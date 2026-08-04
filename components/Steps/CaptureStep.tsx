@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Camera, Upload, AlertCircle, RefreshCw, Hand, Sparkles, Image as ImageIcon, SwitchCamera, Check } from "lucide-react";
+import { Camera, Upload, AlertCircle, RefreshCw, Hand, Sparkles, Image as ImageIcon, SwitchCamera } from "lucide-react";
 import { getHandLandmarker, isPeaceSignGesture } from "@/lib/gestureUtils";
 
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
@@ -49,7 +49,7 @@ export default function CaptureStep({
   const peaceStartTimeRef = useRef<number | null>(null);
   const isLockedRef = useRef(false);
 
-  // MediaPipe Hand Detection Loop (Per-Shot Trigger ✌️)
+  // MediaPipe Hand Detection Loop (Streamlined Peace Trigger ✌️ - 1 Second)
   useEffect(() => {
     let animFrameId: number;
     let active = true;
@@ -76,17 +76,17 @@ export default function CaptureStep({
             const isPeace = isPeaceSignGesture(handLandmarks);
 
             if (isPeace && !isLockedRef.current) {
-              setGestureStatus("Pose Peace Terdeteksi! Tahan 1.5 detik ✌️");
+              setGestureStatus("Pose Peace Terdeteksi! Tahan 1 detik ✌️");
 
               if (!peaceStartTimeRef.current) {
                 peaceStartTimeRef.current = performance.now();
               }
 
               const elapsed = performance.now() - peaceStartTimeRef.current;
-              const progress = Math.min((elapsed / 1500) * 100, 100);
+              const progress = Math.min((elapsed / 1000) * 100, 100);
               setPeaceProgress(progress);
 
-              if (elapsed >= 1500) {
+              if (elapsed >= 1000) {
                 isLockedRef.current = true;
                 setPeaceProgress(100);
                 setGestureStatus("Jepret! 📸");
@@ -240,7 +240,7 @@ export default function CaptureStep({
               </div>
             )}
 
-            {/* CAPTURE STEP AUTO-BLUR EFFECT DURING COUNTDOWN & SNAPSHOT MOMENTS */}
+            {/* HEAVY SCREEN BLUR EFFECT (backdrop-blur-2xl bg-slate-950/70) DURING COUNTDOWN & SNAPSHOT MOMENTS */}
             {(countdown !== null || isCapturing) && (
               <div className="absolute inset-0 backdrop-blur-2xl bg-slate-950/70 transition-all duration-500 z-30 flex flex-col items-center justify-center gap-3">
                 {countdown !== null ? (
@@ -323,7 +323,7 @@ export default function CaptureStep({
 
       {/* User Helper Directive Badge */}
       <p className="text-xs text-slate-500 font-medium text-center max-w-md">
-        💡 <strong className="text-pink-600">Tips:</strong> Tunjukkan pose Peace (✌️) di depan kamera untuk otomatis jepret tanpa menyentuh layar!
+        💡 <strong className="text-pink-600">Tips:</strong> Tunjukkan pose Peace (✌️) selama 1 detik di depan kamera untuk otomatis jepret!
       </p>
     </div>
   );

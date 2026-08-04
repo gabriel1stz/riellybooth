@@ -355,6 +355,8 @@ export const drawPhotoStrip = (
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length === 0) return;
 
+  const isNewspaper = preset === "newspaper" || layout === "newspaper_grid";
+
   // Determine target canvas dimensions based on 9 layout modes
   let photoCount = 4;
   let targetW = 600;
@@ -376,7 +378,7 @@ export const drawPhotoStrip = (
     photoCount = 4;
     targetW = 1000;
     targetH = 1600;
-  } else if (layout === "newspaper_grid") {
+  } else if (isNewspaper) {
     photoCount = 4;
     targetW = 1100;
     targetH = 1500;
@@ -396,37 +398,44 @@ export const drawPhotoStrip = (
 
   const filterString = `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) grayscale(${filter.grayscale}%)`;
   const padding = preset === "film" || preset === "receipt" ? 60 : 36;
-  const bottomFooterHeight = preset === "newspaper" || preset === "receipt" || preset === "concert_ticket" || layout === "newspaper_grid" ? 260 : 220;
+  const bottomFooterHeight = isNewspaper || preset === "receipt" || preset === "concert_ticket" ? 220 : 220;
 
-  // STEP 1: BACKGROUND & FRAME PRESETS (NEWSPAPER & GEN Z INDONESIA FRAMES)
+  // STEP 1: BACKGROUND & FRAME PRESETS (OVERHAULED NEWSPAPER & GEN Z FRAMES)
   ctx.save();
-  if (preset === "newspaper" || layout === "newspaper_grid") {
-    // Authentic Newsprint Paper Texture & Headline Header
+  if (isNewspaper) {
+    // Authentic Newsprint Paper Texture
     ctx.fillStyle = "#f4f1ea";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "#1c1917";
-    ctx.fillRect(0, 0, canvas.width, 110);
+    // Decorative Header Rule Lines
+    ctx.strokeStyle = "#1c1917";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
 
-    ctx.fillStyle = "#f4f1ea";
-    ctx.font = "900 40px 'Georgia', serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("THE DAILY RIELLLYBOOTH", canvas.width / 2, 55);
-
-    ctx.fillStyle = "#e7e5e4";
-    ctx.font = "italic 16px 'Georgia', serif";
-    ctx.fillText("EST. 2026 • EDITION #882 • SPECIAL MEMORIES", canvas.width / 2, 90);
-
-    // Decorative newspaper column lines
-    ctx.strokeStyle = "rgba(28, 25, 23, 0.2)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(30, 120);
-    ctx.lineTo(canvas.width - 30, 120);
-    ctx.moveTo(30, canvas.height - bottomFooterHeight + 10);
-    ctx.lineTo(canvas.width - 30, canvas.height - bottomFooterHeight + 10);
+    ctx.moveTo(30, 135);
+    ctx.lineTo(canvas.width - 30, 135);
     ctx.stroke();
+
+    // Ribbons on Top Header Left & Right
+    drawRibbonBow(ctx, 60, 55, 1.0);
+    drawRibbonBow(ctx, canvas.width - 60, 55, 1.0);
+
+    // Headline: Bold "RIELLLYBOOTH"
+    ctx.fillStyle = "#1c1917";
+    ctx.font = "900 48px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("RIELLLYBOOTH", canvas.width / 2, 55);
+
+    // Edition Date & Tagline
+    ctx.font = "italic 15px 'Georgia', serif";
+    ctx.fillText("EST. 2026 • EDITION #882 • SPECIAL MEMORIES FOR LIFE", canvas.width / 2, 92);
+
+    ctx.font = "italic 13px 'Georgia', serif";
+    ctx.fillText('"Today wasn\'t just an ordinary day — it was our timeless scene at rielllybooth."', canvas.width / 2, 118);
+
   } else if (preset === "polkadot") {
     ctx.fillStyle = frameColor || "#fce7f3";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -545,27 +554,77 @@ export const drawPhotoStrip = (
   }
   ctx.restore();
 
-  // STEP 2: DRAW PHOTOS ACCORDING TO THE 9 LAYOUT MODES
-  const startYOffset = preset === "newspaper" || layout === "newspaper_grid" || preset === "receipt" || preset === "concert_ticket" ? 115 : 0;
-
-  if (layout === "spotlight") {
-    // Spotlight Layout: 1 Large Top Main Photo + 3 Bottom Thumbnails
+  // STEP 2: DRAW PHOTOS ACCORDING TO THE LAYOUT MODES
+  if (isNewspaper) {
+    // OVERHAULED NEWSPAPER LAYOUT: 1 Large main photo on top + 3 smaller photos side-by-side at bottom
     const topW = canvas.width - padding * 2;
-    const topH = (canvas.height - bottomFooterHeight - padding * 3 - startYOffset) * 0.65;
-    const botW = (canvas.width - padding * 4) / 3;
-    const botH = (canvas.height - bottomFooterHeight - padding * 3 - startYOffset) * 0.32;
+    const topH = 650;
+    const topY = 150;
 
     if (images[0]) {
       ctx.save();
       ctx.filter = filterString;
-      drawImageCover(ctx, images[0], padding, startYOffset + padding, topW, topH, 16, isFlipped);
+      drawImageCover(ctx, images[0], padding, topY, topW, topH, 0, isFlipped);
       ctx.restore();
-      applyCuteFilterOverlay(ctx, padding, startYOffset + padding, topW, topH, cuteFilter, filter.beautyGlow, 16);
+      applyCuteFilterOverlay(ctx, padding, topY, topW, topH, cuteFilter, filter.beautyGlow, 0);
+
+      // Border frame around top main photo
+      ctx.strokeStyle = "#1c1917";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(padding, topY, topW, topH);
+    }
+
+    const botY = topY + topH + 30;
+    const botW = (canvas.width - padding * 4) / 3;
+    const botH = 340;
+    const captions = ["THE BEST VIBES", "UNFILTERED JOY", "CORE MEMORIES"];
+
+    images.slice(1, 4).forEach((img, i) => {
+      const bx = padding + i * (botW + padding);
+
+      ctx.save();
+      ctx.filter = filterString;
+      drawImageCover(ctx, img, bx, botY, botW, botH, 0, isFlipped);
+      ctx.restore();
+
+      ctx.strokeStyle = "#1c1917";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx, botY, botW, botH);
+
+      applyCuteFilterOverlay(ctx, bx, botY, botW, botH, cuteFilter, filter.beautyGlow, 0);
+
+      // Newspaper Captions & Column Articles under 3 bottom photos
+      ctx.save();
+      ctx.fillStyle = "#1c1917";
+      ctx.font = "bold 15px 'Georgia', serif";
+      ctx.textAlign = "center";
+      ctx.fillText(captions[i], bx + botW / 2, botY + botH + 24);
+
+      // Newspaper Article Snippet Lines
+      ctx.fillStyle = "#44403c";
+      ctx.font = "10px 'Georgia', serif";
+      ctx.fillText("Special Edition • rielllybooth", bx + botW / 2, botY + botH + 42);
+      ctx.restore();
+    });
+
+  } else if (layout === "spotlight") {
+    // Spotlight Layout: 1 Large Top Main Photo + 3 Bottom Thumbnails
+    const topW = canvas.width - padding * 2;
+    const topH = (canvas.height - bottomFooterHeight - padding * 3) * 0.65;
+    const botW = (canvas.width - padding * 4) / 3;
+    const botH = (canvas.height - bottomFooterHeight - padding * 3) * 0.32;
+
+    if (images[0]) {
+      ctx.save();
+      ctx.filter = filterString;
+      drawImageCover(ctx, images[0], padding, padding, topW, topH, 16, isFlipped);
+      ctx.restore();
+      applyCuteFilterOverlay(ctx, padding, padding, topW, topH, cuteFilter, filter.beautyGlow, 16);
     }
 
     images.slice(1, 4).forEach((img, i) => {
       const bx = padding + i * (botW + padding);
-      const by = startYOffset + padding * 2 + topH;
+      const by = padding * 2 + topH;
       ctx.save();
       ctx.filter = filterString;
       drawImageCover(ctx, img, bx, by, botW, botH, 12, isFlipped);
@@ -575,21 +634,21 @@ export const drawPhotoStrip = (
   } else if (layout === "editorial_vogue") {
     // Vogue Magazine Grid: 1 Hero Photo + 3 Side/Bottom Magazine Grid
     const heroW = (canvas.width - padding * 3) * 0.6;
-    const heroH = canvas.height - bottomFooterHeight - padding * 2 - startYOffset;
+    const heroH = canvas.height - bottomFooterHeight - padding * 2;
     const sideW = (canvas.width - padding * 3) * 0.38;
     const sideH = (heroH - padding * 2) / 3;
 
     if (images[0]) {
       ctx.save();
       ctx.filter = filterString;
-      drawImageCover(ctx, images[0], padding, startYOffset + padding, heroW, heroH, 16, isFlipped);
+      drawImageCover(ctx, images[0], padding, padding, heroW, heroH, 16, isFlipped);
       ctx.restore();
-      applyCuteFilterOverlay(ctx, padding, startYOffset + padding, heroW, heroH, cuteFilter, filter.beautyGlow, 16);
+      applyCuteFilterOverlay(ctx, padding, padding, heroW, heroH, cuteFilter, filter.beautyGlow, 16);
     }
 
     images.slice(1, 4).forEach((img, i) => {
       const sx = padding * 2 + heroW;
-      const sy = startYOffset + padding + i * (sideH + padding);
+      const sy = padding + i * (sideH + padding);
       ctx.save();
       ctx.filter = filterString;
       drawImageCover(ctx, img, sx, sy, sideW, sideH, 12, isFlipped);
@@ -598,11 +657,11 @@ export const drawPhotoStrip = (
     });
   } else if (layout.startsWith("strip") || layout === "y2k_checker") {
     const photoW = canvas.width - padding * 2;
-    const availableH = canvas.height - bottomFooterHeight - padding * (photoCount + 1) - startYOffset;
+    const availableH = canvas.height - bottomFooterHeight - padding * (photoCount + 1);
     const photoH = availableH / photoCount;
 
     images.slice(0, photoCount).forEach((img, i) => {
-      const y = startYOffset + padding + i * (photoH + padding);
+      const y = padding + i * (photoH + padding);
       const borderRadius =
         preset === "film"
           ? 4
@@ -637,16 +696,16 @@ export const drawPhotoStrip = (
       }
     });
   } else {
-    // grid_2x2, purikura_4cut, scrapbook, newspaper_grid
+    // grid_2x2, purikura_4cut, scrapbook
     const photoW = (canvas.width - padding * 3) / 2;
-    const availableH = canvas.height - bottomFooterHeight - padding * 3 - startYOffset;
+    const availableH = canvas.height - bottomFooterHeight - padding * 3;
     const photoH = availableH / 2;
 
     const positions = [
-      { x: padding, y: startYOffset + padding },
-      { x: padding * 2 + photoW, y: startYOffset + padding },
-      { x: padding, y: startYOffset + padding * 2 + photoH },
-      { x: padding * 2 + photoW, y: startYOffset + padding * 2 + photoH },
+      { x: padding, y: padding },
+      { x: padding * 2 + photoW, y: padding },
+      { x: padding, y: padding * 2 + photoH },
+      { x: padding * 2 + photoW, y: padding * 2 + photoH },
     ];
 
     images.slice(0, 4).forEach((img, i) => {
@@ -806,14 +865,14 @@ export const drawPhotoStrip = (
       ctx.fillText("TOTAL", leftX, curY);
       ctx.textAlign = "right";
       ctx.fillText("PAID WITH LOVE ♡", rightX, curY);
-    } else if (preset === "newspaper" || layout === "newspaper_grid") {
+    } else if (isNewspaper) {
       ctx.fillStyle = "#1c1917";
       ctx.font = "bold 24px 'Georgia', serif";
       ctx.textAlign = "center";
-      ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 120);
+      ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 80);
 
-      ctx.font = "italic 16px 'Georgia', serif";
-      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 80);
+      ctx.font = "italic 15px 'Georgia', serif";
+      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 45);
     } else {
       ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
 

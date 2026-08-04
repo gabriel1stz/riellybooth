@@ -207,8 +207,8 @@ export default function EditorStep({
 
       {/* 2. MIDDLE SECTION: CENTERED CANVAS PREVIEW CARD + CONTROL TABS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
-        {/* Left Interactive Canvas Preview Container (COMPACT MOBILE CANVAS PREVIEW max-h-[35vh] / max-h-[300px]) */}
-        <div className="lg:col-span-6 flex flex-col items-center gap-2 sticky top-16 z-30 bg-rose-50/95 backdrop-blur-md p-2 rounded-2xl shadow-md max-h-[38vh] lg:max-h-none overflow-hidden mb-3 lg:mb-0 lg:static lg:bg-transparent lg:p-0 lg:shadow-none w-full">
+        {/* Left Interactive Canvas Preview Container (NON-CLIPPING CONTAINER WRAPPER) */}
+        <div className="lg:col-span-6 flex flex-col items-center gap-2 sticky top-16 z-30 bg-rose-50/95 backdrop-blur-md p-2 rounded-2xl shadow-md overflow-hidden mb-3 lg:mb-0 lg:static lg:bg-transparent lg:p-0 lg:shadow-none w-full">
           {/* Top Status Pill */}
           <div className="w-full flex items-center justify-between px-2 py-1">
             <span className="text-[11px] font-black text-pink-600 uppercase tracking-wider flex items-center gap-1">
@@ -219,9 +219,10 @@ export default function EditorStep({
             </span>
           </div>
 
+          {/* DEDICATED PREVIEW CONTAINER BOX - NEVER CUTS OFF OR CLIPS TOP HEADERS */}
           <div
             ref={containerRef}
-            className="relative bg-white border-3 sm:border-4 border-pink-300 rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden flex items-center justify-center max-h-[35vh] sm:max-h-[300px] lg:max-h-[650px] w-full p-1.5 sm:p-2 cursor-grab active:cursor-grabbing select-none"
+            className="relative w-full max-w-sm sm:max-w-md mx-auto aspect-auto p-4 flex items-center justify-center bg-white rounded-3xl shadow-md overflow-hidden cursor-grab active:cursor-grabbing select-none"
             onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
             onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
             onMouseUp={handlePointerUp}
@@ -247,7 +248,7 @@ export default function EditorStep({
 
             <canvas
               ref={canvasRef}
-              className="max-w-full max-h-[35vh] sm:max-h-[300px] lg:max-h-[620px] object-contain h-auto w-auto mx-auto rounded-xl shadow-inner pointer-events-none"
+              className="max-w-full max-h-[480px] w-auto h-auto object-contain rounded-xl shadow-inner pointer-events-none"
             />
           </div>
 
@@ -374,13 +375,13 @@ export default function EditorStep({
                 <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z Indonesia:</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
+                    { id: "newspaper", label: "Newspaper 📰" },
                     { id: "coquette", label: "Coquette Ribbon 🎀" },
                     { id: "y2k", label: "Y2K Cyber ✨" },
                     { id: "receipt", label: "Struk Belanja 🧾" },
                     { id: "photocard", label: "K-Pop Photocard 💖" },
                     { id: "concert_ticket", label: "Tiket Konser 🎟️" },
                     { id: "galau_quote", label: "Quote Galau ☕" },
-                    { id: "newspaper", label: "Newspaper 📰" },
                     { id: "polkadot", label: "Polkadot Cute 💖" },
                     { id: "retro_manga", label: "Komik Strip 💥" },
                     { id: "film", label: "35mm Film 🎞️" },
