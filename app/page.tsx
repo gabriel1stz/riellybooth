@@ -15,7 +15,7 @@ import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
 type Step = "landing" | "capture" | "review" | "editor";
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
-const VIRAL_CAPTION = `Baru aja foto estetik di rielllybooth ♡ Cobain bikin photo strip & Live Photo gratis tanpa watermark di sini 👉 https://rielllybooth.vercel.app ✨`;
+const VIRAL_CAPTION = `Baru aja foto estetik di rielllybooth ♡ Cobain bikin photo strip & Live Photo gratis tanpa watermark di sini 👉 https://riellybooth.my.id ✨`;
 
 export default function RielllyBooth() {
   const [step, setStep] = useState<Step>("landing");
@@ -453,7 +453,7 @@ export default function RielllyBooth() {
             files: [file],
             title: "rielllybooth ♡ Virtual Photobooth",
             text: "Baru aja foto estetik di rielllybooth ♡ Bikin photo strip & Live Photo gratis di sini! ✨",
-            url: window.location.origin,
+            url: "https://riellybooth.my.id",
           });
 
           try {
@@ -580,7 +580,7 @@ export default function RielllyBooth() {
           files: [file],
           title: "rielllybooth ♡ Virtual Photobooth",
           text: "Baru aja foto estetik di rielllybooth ♡ Bikin photo strip & Live Photo gratis di sini! ✨",
-          url: "https://rielllybooth.vercel.app",
+          url: "https://riellybooth.my.id",
         });
       } else {
         alert("Browser Anda belum mendukung Web Share API file. Silakan gunakan tombol Simpan PNG HD!");
@@ -741,7 +741,7 @@ export default function RielllyBooth() {
         </div>
       )}
 
-      {/* SUPPORT / DONATE MODAL */}
+      {/* TRAKTEER-ONLY SUPPORT / DONATE MODAL */}
       {showSupportModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 relative animate-in fade-in zoom-in-95 duration-200">
@@ -758,39 +758,19 @@ export default function RielllyBooth() {
               </div>
               <h3 className="text-2xl font-black text-slate-800">Support / Traktir Kopi 💖</h3>
               <p className="text-xs text-slate-600 font-medium">
-                Bantu rielllybooth tetap gratis & aktif dengan mentraktir secangkir kopi!
+                Dukung server rielllybooth tetap gratis!
               </p>
             </div>
 
             <div className="space-y-2.5">
               <a
-                href="https://saweria.co/rielllybooth"
+                href="https://teer.id/eveexyz"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full p-3 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black text-xs rounded-2xl border-2 border-amber-500 flex items-center justify-between transition shadow-xs"
+                className="w-full p-4 bg-rose-400 hover:bg-rose-500 text-white font-black text-sm rounded-2xl border-2 border-rose-500 flex items-center justify-between transition shadow-md hover:scale-102 active:scale-95"
               >
-                <span>☕ Saweria Support</span>
-                <span className="text-[10px] bg-white px-2 py-0.5 rounded-md font-bold">QRIS / GoPay / OVO</span>
-              </a>
-
-              <a
-                href="https://trakteer.id/rielllybooth"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full p-3 bg-rose-400 hover:bg-rose-500 text-white font-black text-xs rounded-2xl border-2 border-rose-500 flex items-center justify-between transition shadow-xs"
-              >
-                <span>🍧 Trakteer.id</span>
-                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-md font-bold">Support Studio</span>
-              </a>
-
-              <a
-                href="https://ko-fi.com/rielllybooth"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full p-3 bg-sky-400 hover:bg-sky-500 text-white font-black text-xs rounded-2xl border-2 border-sky-500 flex items-center justify-between transition shadow-xs"
-              >
-                <span>💙 Ko-fi</span>
-                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-md font-bold">Global Support</span>
+                <span>💖 Traktir Kopi via Trakteer</span>
+                <span className="text-[10px] bg-white/20 px-2 py-1 rounded-md font-bold">Trakteer.id</span>
               </a>
             </div>
 
