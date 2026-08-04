@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import confetti from "canvas-confetti";
-import { Instagram, Mail, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, Share2, Download, Copy, Check } from "lucide-react";
+import { Instagram, Mail, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, Share2, Download, Copy, Check, MessageCircle, Twitter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import LandingStep from "@/components/Steps/LandingStep";
 import CaptureStep from "@/components/Steps/CaptureStep";
@@ -14,6 +14,8 @@ import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
 
 type Step = "landing" | "capture" | "review" | "editor";
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
+
+const VIRAL_CAPTION = `Baru aja foto estetik di rielllybooth ♡ Cobain bikin photo strip & Live Photo gratis tanpa watermark di sini 👉 https://rielllybooth.vercel.app ✨`;
 
 export default function RielllyBooth() {
   const [step, setStep] = useState<Step>("landing");
@@ -40,6 +42,7 @@ export default function RielllyBooth() {
   const [downloadedDataUrl, setDownloadedDataUrl] = useState<string | null>(null);
   const [downloadedVideoUrl, setDownloadedVideoUrl] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCaption, setCopiedCaption] = useState(false);
 
   // Live Photo, Custom Logo & Editor State
   const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
@@ -448,8 +451,9 @@ export default function RielllyBooth() {
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
-            title: "rielllybooth photo strip",
-            text: "My cute photo strip from rielllybooth ♡",
+            title: "rielllybooth ♡ Virtual Photobooth",
+            text: "Baru aja foto estetik di rielllybooth ♡ Bikin photo strip & Live Photo gratis di sini! ✨",
+            url: window.location.origin,
           });
 
           try {
@@ -527,6 +531,7 @@ export default function RielllyBooth() {
               await navigator.share({
                 files: [file],
                 title: "rielllybooth live photo",
+                text: "Live photo boomerang video created with rielllybooth ♡ ✨",
               });
               setIsExportingVideo(false);
               return;
@@ -559,11 +564,45 @@ export default function RielllyBooth() {
     }
   };
 
+  // NATIVE MULTI-APP SHARE HANDLER
+  const handleNativeMultiAppShare = async () => {
+    if (!canvasRef.current) return;
+    const dataUrl = canvasRef.current.toDataURL("image/png");
+
+    try {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const randomHash = Math.random().toString(36).substring(2, 8);
+      const file = new File([blob], `rielllybooth-${randomHash}.png`, { type: "image/png" });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "rielllybooth ♡ Virtual Photobooth",
+          text: "Baru aja foto estetik di rielllybooth ♡ Bikin photo strip & Live Photo gratis di sini! ✨",
+          url: "https://rielllybooth.vercel.app",
+        });
+      } else {
+        alert("Browser Anda belum mendukung Web Share API file. Silakan gunakan tombol Simpan PNG HD!");
+      }
+    } catch (err) {
+      console.warn("Native file share cancelled:", err);
+    }
+  };
+
   const handleCopyShareLink = () => {
     if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  const handleCopyCaption = () => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(VIRAL_CAPTION);
+      setCopiedCaption(true);
+      setTimeout(() => setCopiedCaption(false), 2000);
     }
   };
 
@@ -767,10 +806,10 @@ export default function RielllyBooth() {
         </div>
       )}
 
-      {/* SHARE TO IG STORY & TIKTOK 9:16 MODAL */}
+      {/* ENHANCED SOCIAL MEDIA SHARE & VIRAL CAPTION MODAL */}
       {showShareModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
             <button
               onClick={() => setShowShareModal(false)}
               className="absolute top-4 right-4 p-1 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
@@ -779,40 +818,91 @@ export default function RielllyBooth() {
             </button>
 
             <div className="inline-flex p-3 bg-pink-100 rounded-full border border-pink-300 text-pink-500">
-              <Share2 className="w-6 h-6" />
+              <Share2 className="w-6 h-6 animate-bounce" />
             </div>
 
-            <h3 className="text-xl font-black text-slate-800">Share to Story 📲</h3>
+            <h3 className="text-2xl font-black text-slate-800">Bagikan ke Media Sosial 📲</h3>
             <p className="text-xs text-slate-600 font-medium">
-              Siap di-share ke Instagram Story & TikTok!
+              Share photo strip kamu ke Instagram Story, WhatsApp, TikTok & Twitter!
             </p>
 
-            {/* 9:16 Aspect Preview Card */}
-            <div className="w-full aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden border-2 border-pink-300 shadow-md flex items-center justify-center p-2">
-              {downloadedDataUrl ? (
-                <img src={downloadedDataUrl} alt="Story Preview" className="h-full w-auto object-contain rounded-lg" />
-              ) : (
-                <div className="text-white text-xs font-bold space-y-2">
-                  <Sparkles className="w-6 h-6 text-pink-400 mx-auto animate-bounce" />
-                  <p>Klik &ldquo;Simpan PNG HD&rdquo; terlebih dahulu!</p>
-                </div>
-              )}
+            {/* Native Multi-App File Share Action */}
+            <button
+              type="button"
+              onClick={handleNativeMultiAppShare}
+              className="w-full py-3.5 px-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-sm rounded-2xl border-2 border-pink-500 shadow-md flex items-center justify-center gap-2 transition hover:scale-102 active:scale-95"
+            >
+              <Share2 className="w-5 h-5" /> Bagikan Langsung + Foto 📲
+            </button>
+
+            {/* VIRAL CAPTION BOX */}
+            <div className="bg-rose-50 border-2 border-pink-200 p-3.5 rounded-2xl text-left space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-pink-700">Caption Viral:</span>
+                <button
+                  type="button"
+                  onClick={handleCopyCaption}
+                  className="px-2.5 py-1 bg-white hover:bg-pink-100 text-pink-700 text-[11px] font-bold rounded-lg border border-pink-300 flex items-center gap-1 transition shadow-xs"
+                >
+                  {copiedCaption ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-pink-500" />}
+                  <span>{copiedCaption ? "Tersalin!" : "Salin Caption"}</span>
+                </button>
+              </div>
+              <p className="text-[11px] font-medium text-slate-700 bg-white p-2.5 rounded-xl border border-pink-200 leading-relaxed italic">
+                {VIRAL_CAPTION}
+              </p>
             </div>
 
-            <div className="flex gap-2">
+            {/* QUICK SOCIAL SHORTCUTS GRID */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(VIRAL_CAPTION)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs rounded-xl border border-emerald-600 flex items-center justify-center gap-2 transition shadow-xs"
+              >
+                <MessageCircle className="w-4 h-4" /> WhatsApp
+              </a>
+
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(VIRAL_CAPTION)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl border border-slate-900 flex items-center justify-center gap-2 transition shadow-xs"
+              >
+                <Twitter className="w-4 h-4" /> Twitter / X
+              </a>
+            </div>
+
+            {/* 9:16 Aspect Story Preview Card */}
+            <div className="space-y-1.5 pt-2">
+              <span className="text-xs font-bold text-slate-700">Pratinjau Story (9:16):</span>
+              <div className="w-full aspect-[9/16] max-h-56 bg-slate-900 rounded-2xl overflow-hidden border-2 border-pink-300 shadow-md flex items-center justify-center p-2 mx-auto">
+                {downloadedDataUrl ? (
+                  <img src={downloadedDataUrl} alt="Story Preview" className="h-full w-auto object-contain rounded-lg" />
+                ) : (
+                  <div className="text-white text-xs font-bold space-y-2">
+                    <Sparkles className="w-6 h-6 text-pink-400 mx-auto animate-bounce" />
+                    <p>Photo Strip Ready!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={handleCopyShareLink}
                 className="flex-1 py-2.5 bg-rose-50 hover:bg-rose-100 text-pink-700 font-bold text-xs rounded-xl border border-pink-200 transition flex items-center justify-center gap-1.5"
               >
                 {copiedLink ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-pink-500" />}
-                <span>{copiedLink ? "Link Tersalin!" : "Salin Link App"}</span>
+                <span>{copiedLink ? "Link Tersalin!" : "Salin Link Web"}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setShowShareModal(false)}
-                className="py-2.5 px-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-xs rounded-xl shadow-md border border-pink-500 transition"
+                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition"
               >
                 Tutup
               </button>
