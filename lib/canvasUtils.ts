@@ -2,13 +2,25 @@
  * Canvas Utilities for high-resolution photo strip rendering, layout assembly,
  * CSS & pixel filter effects, Webcam Toy retro filters (Pixel Art, Thermal Heatmap,
  * Vivid Pop Art, VHS Retro CRT), Film Grain 🎞️, Soft Beauty Glow ✨, 11 Frame Presets
- * (including 5 Gen Z Viral Presets: Receipt 🧾, Concert Ticket 🎟️, K-Pop Photocard 💖,
- * Retro Manga 💥, Galau Quote 🥺), 4 Layout Modes (strip_2, strip_3, strip_4, grid_2x2),
- * interactive sticker overlays, flip horizontal toggle, custom event logo high-res sharp rendering,
- * and customizable typography branding engine.
+ * (including Gen Z Viral Presets: Coquette Ribbon 🎀, Y2K Cyber ✨, Receipt Paper 🧾,
+ * K-Pop Photocard 💖, Concert Ticket 🎫, Galau Quote ☕, Newspaper 📰),
+ * 9 Layout Modes, interactive sticker overlays, flip horizontal toggle,
+ * custom event logo high-res sharp rendering, and customizable typography branding engine.
  */
 
-export type LayoutMode = "strip_2" | "strip_3" | "strip_4" | "grid_2x2";
+export type LayoutMode =
+  | "strip_1x4"
+  | "strip_3cut"
+  | "grid_2x2"
+  | "purikura_4cut"
+  | "y2k_checker"
+  | "scrapbook"
+  | "spotlight"
+  | "newspaper_grid"
+  | "editorial_vogue"
+  | "strip_2"
+  | "strip_3"
+  | "strip_4";
 
 export type FramePreset =
   | "clean"
@@ -248,27 +260,6 @@ function applyFilmGrainOverlay(
 }
 
 /**
- * Barcode Vector Generator Helper ║▌║▌║█║▌
- */
-function drawBarcodeVector(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string = "#000000") {
-  ctx.save();
-  ctx.fillStyle = color;
-  let currentX = x;
-  const barWidths = [3, 1, 4, 2, 1, 5, 2, 1, 3, 2, 4, 1, 3, 5, 2, 1, 4, 2, 3];
-  let idx = 0;
-
-  while (currentX < x + w) {
-    const bw = barWidths[idx % barWidths.length];
-    if (idx % 2 === 0) {
-      ctx.fillRect(currentX, y, Math.min(bw, x + w - currentX), h);
-    }
-    currentX += bw + 2;
-    idx++;
-  }
-  ctx.restore();
-}
-
-/**
  * Serrated Zigzag Edge Generator for Receipts 🧾
  */
 function drawSerratedZigzag(ctx: CanvasRenderingContext2D, width: number, y: number, height: number = 15, numTeeth: number = 24) {
@@ -343,7 +334,7 @@ function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, sc
 }
 
 /**
- * Main High-Resolution Photo Strip Render Engine (Supports strip_2, strip_3, strip_4, grid_2x2)
+ * Main High-Resolution Photo Strip Render Engine (Supports 9 Layout Modes & Gen Z Frames)
  */
 export const drawPhotoStrip = (
   canvas: HTMLCanvasElement,
@@ -364,46 +355,79 @@ export const drawPhotoStrip = (
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length === 0) return;
 
-  // Determine photo count and target canvas dimensions based on layout mode
+  // Determine target canvas dimensions based on 9 layout modes
   let photoCount = 4;
   let targetW = 600;
   let targetH = 1800;
 
-  if (layout === "strip_2") {
-    photoCount = 2;
-    targetW = 600;
-    targetH = 1100;
-  } else if (layout === "strip_3") {
+  if (layout === "strip_3cut" || layout === "strip_3") {
     photoCount = 3;
     targetW = 600;
     targetH = 1450;
-  } else if (layout === "strip_4") {
+  } else if (layout === "strip_1x4" || layout === "strip_4" || layout === "y2k_checker") {
     photoCount = 4;
     targetW = 600;
     targetH = 1800;
-  } else {
-    // grid_2x2
+  } else if (layout === "grid_2x2" || layout === "purikura_4cut" || layout === "scrapbook") {
     photoCount = 4;
     targetW = 1200;
     targetH = 1400;
+  } else if (layout === "spotlight" || layout === "editorial_vogue") {
+    photoCount = 4;
+    targetW = 1000;
+    targetH = 1600;
+  } else if (layout === "newspaper_grid") {
+    photoCount = 4;
+    targetW = 1100;
+    targetH = 1500;
+  } else if (layout === "strip_2") {
+    photoCount = 2;
+    targetW = 600;
+    targetH = 1100;
   }
 
-  // Only resize canvas if target dimensions actually change to prevent browser canvas clearing flicker
+  // Set dimensions only when changed to avoid canvas clear flicker
   if (canvas.width !== targetW) canvas.width = targetW;
   if (canvas.height !== targetH) canvas.height = targetH;
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const filterString = `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) grayscale(${filter.grayscale}%)`;
   const padding = preset === "film" || preset === "receipt" ? 60 : 36;
-  const bottomFooterHeight = preset === "newspaper" || preset === "receipt" || preset === "concert_ticket" ? 260 : 220;
+  const bottomFooterHeight = preset === "newspaper" || preset === "receipt" || preset === "concert_ticket" || layout === "newspaper_grid" ? 260 : 220;
 
-  // STEP 1: BACKGROUND & FRAME PRESET
+  // STEP 1: BACKGROUND & FRAME PRESETS (NEWSPAPER & GEN Z INDONESIA FRAMES)
   ctx.save();
-  if (preset === "polkadot") {
+  if (preset === "newspaper" || layout === "newspaper_grid") {
+    // Authentic Newsprint Paper Texture & Headline Header
+    ctx.fillStyle = "#f4f1ea";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#1c1917";
+    ctx.fillRect(0, 0, canvas.width, 110);
+
+    ctx.fillStyle = "#f4f1ea";
+    ctx.font = "900 40px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("THE DAILY RIELLLYBOOTH", canvas.width / 2, 55);
+
+    ctx.fillStyle = "#e7e5e4";
+    ctx.font = "italic 16px 'Georgia', serif";
+    ctx.fillText("EST. 2026 • EDITION #882 • SPECIAL MEMORIES", canvas.width / 2, 90);
+
+    // Decorative newspaper column lines
+    ctx.strokeStyle = "rgba(28, 25, 23, 0.2)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(30, 120);
+    ctx.lineTo(canvas.width - 30, 120);
+    ctx.moveTo(30, canvas.height - bottomFooterHeight + 10);
+    ctx.lineTo(canvas.width - 30, canvas.height - bottomFooterHeight + 10);
+    ctx.stroke();
+  } else if (preset === "polkadot") {
     ctx.fillStyle = frameColor || "#fce7f3";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -428,7 +452,7 @@ export const drawPhotoStrip = (
     ctx.setLineDash([8, 8]);
     ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
     ctx.setLineDash([]);
-  } else if (preset === "y2k") {
+  } else if (preset === "y2k" || layout === "y2k_checker") {
     ctx.fillStyle = "#1e293b";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -440,22 +464,6 @@ export const drawPhotoStrip = (
       ctx.lineTo(x, canvas.height);
       ctx.stroke();
     }
-  } else if (preset === "newspaper") {
-    ctx.fillStyle = "#f4f1ea";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "#1c1917";
-    ctx.fillRect(0, 0, canvas.width, 100);
-
-    ctx.fillStyle = "#f4f1ea";
-    ctx.font = "900 36px 'Georgia', serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("THE DAILY RIELLLYBOOTH", canvas.width / 2, 50);
-
-    ctx.fillStyle = "#e7e5e4";
-    ctx.font = "italic 16px 'Georgia', serif";
-    ctx.fillText("SPECIAL EDITION • MEMORIES FOR LIFE • VOL. 1", canvas.width / 2, 80);
   } else if (preset === "film") {
     ctx.fillStyle = "#0d0d0d";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -490,7 +498,7 @@ export const drawPhotoStrip = (
     ctx.textAlign = "center";
     ctx.fillText("RECEIPT #88219 • RIELLLYBOOTH", canvas.width / 2, 50);
   } else if (preset === "concert_ticket") {
-    // 🎟️ MUSIC FESTIVAL CONCERT TICKET STUB (FIXED CENTER ALIGNMENT)
+    // 🎟️ MUSIC FESTIVAL CONCERT TICKET STUB
     ctx.fillStyle = "#0f172a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -524,7 +532,7 @@ export const drawPhotoStrip = (
       }
     }
   } else if (preset === "galau_quote") {
-    // 🥺 GALAU QUOTE AESTHETIC GEN Z
+    // ☕ GALAU QUOTE AESTHETIC GEN Z
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
     grad.addColorStop(0, "#cbd5e1");
     grad.addColorStop(0.5, "#f472b6");
@@ -537,10 +545,58 @@ export const drawPhotoStrip = (
   }
   ctx.restore();
 
-  // STEP 2: DRAW PHOTOS WITH FILTERS & FLIP HORIZONTAL PREFERENCE
-  const startYOffset = preset === "newspaper" || preset === "receipt" || preset === "concert_ticket" ? 110 : 0;
+  // STEP 2: DRAW PHOTOS ACCORDING TO THE 9 LAYOUT MODES
+  const startYOffset = preset === "newspaper" || layout === "newspaper_grid" || preset === "receipt" || preset === "concert_ticket" ? 115 : 0;
 
-  if (layout.startsWith("strip")) {
+  if (layout === "spotlight") {
+    // Spotlight Layout: 1 Large Top Main Photo + 3 Bottom Thumbnails
+    const topW = canvas.width - padding * 2;
+    const topH = (canvas.height - bottomFooterHeight - padding * 3 - startYOffset) * 0.65;
+    const botW = (canvas.width - padding * 4) / 3;
+    const botH = (canvas.height - bottomFooterHeight - padding * 3 - startYOffset) * 0.32;
+
+    if (images[0]) {
+      ctx.save();
+      ctx.filter = filterString;
+      drawImageCover(ctx, images[0], padding, startYOffset + padding, topW, topH, 16, isFlipped);
+      ctx.restore();
+      applyCuteFilterOverlay(ctx, padding, startYOffset + padding, topW, topH, cuteFilter, filter.beautyGlow, 16);
+    }
+
+    images.slice(1, 4).forEach((img, i) => {
+      const bx = padding + i * (botW + padding);
+      const by = startYOffset + padding * 2 + topH;
+      ctx.save();
+      ctx.filter = filterString;
+      drawImageCover(ctx, img, bx, by, botW, botH, 12, isFlipped);
+      ctx.restore();
+      applyCuteFilterOverlay(ctx, bx, by, botW, botH, cuteFilter, filter.beautyGlow, 12);
+    });
+  } else if (layout === "editorial_vogue") {
+    // Vogue Magazine Grid: 1 Hero Photo + 3 Side/Bottom Magazine Grid
+    const heroW = (canvas.width - padding * 3) * 0.6;
+    const heroH = canvas.height - bottomFooterHeight - padding * 2 - startYOffset;
+    const sideW = (canvas.width - padding * 3) * 0.38;
+    const sideH = (heroH - padding * 2) / 3;
+
+    if (images[0]) {
+      ctx.save();
+      ctx.filter = filterString;
+      drawImageCover(ctx, images[0], padding, startYOffset + padding, heroW, heroH, 16, isFlipped);
+      ctx.restore();
+      applyCuteFilterOverlay(ctx, padding, startYOffset + padding, heroW, heroH, cuteFilter, filter.beautyGlow, 16);
+    }
+
+    images.slice(1, 4).forEach((img, i) => {
+      const sx = padding * 2 + heroW;
+      const sy = startYOffset + padding + i * (sideH + padding);
+      ctx.save();
+      ctx.filter = filterString;
+      drawImageCover(ctx, img, sx, sy, sideW, sideH, 12, isFlipped);
+      ctx.restore();
+      applyCuteFilterOverlay(ctx, sx, sy, sideW, sideH, cuteFilter, filter.beautyGlow, 12);
+    });
+  } else if (layout.startsWith("strip") || layout === "y2k_checker") {
     const photoW = canvas.width - padding * 2;
     const availableH = canvas.height - bottomFooterHeight - padding * (photoCount + 1) - startYOffset;
     const photoH = availableH / photoCount;
@@ -581,7 +637,7 @@ export const drawPhotoStrip = (
       }
     });
   } else {
-    // grid_2x2
+    // grid_2x2, purikura_4cut, scrapbook, newspaper_grid
     const photoW = (canvas.width - padding * 3) / 2;
     const availableH = canvas.height - bottomFooterHeight - padding * 3 - startYOffset;
     const photoH = availableH / 2;
@@ -595,7 +651,9 @@ export const drawPhotoStrip = (
 
     images.slice(0, 4).forEach((img, i) => {
       const borderRadius =
-        preset === "film"
+        layout === "purikura_4cut"
+          ? 32
+          : preset === "film"
           ? 4
           : preset === "photocard"
           ? 28
@@ -604,6 +662,7 @@ export const drawPhotoStrip = (
           : preset === "retro_manga"
           ? 0
           : 16;
+
       ctx.save();
       ctx.filter = filterString;
       drawImageCover(ctx, img, positions[i].x, positions[i].y, photoW, photoH, borderRadius, isFlipped);
@@ -744,91 +803,25 @@ export const drawPhotoStrip = (
       curY += 24;
       ctx.font = "bold 16px monospace";
       ctx.textAlign = "left";
-      ctx.fillText("TOTAL PRICE:", leftX, curY);
+      ctx.fillText("TOTAL", leftX, curY);
       ctx.textAlign = "right";
-      ctx.fillText("PRICELESS ✨", rightX, curY);
-
-      drawBarcodeVector(ctx, padding + 20, canvas.height - 65, canvas.width - padding * 2 - 40, 24, "#1c1917");
-    } else if (preset === "concert_ticket") {
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 20px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("ADMIT ONE • SEAT A1 • VIP ZONE", canvas.width / 2, canvas.height - 140);
-
-      ctx.fillStyle = "#38bdf8";
-      ctx.font = "bold 16px sans-serif";
-      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 105);
-
-      drawBarcodeVector(ctx, padding + 30, canvas.height - 70, canvas.width - padding * 2 - 60, 32, "#ffffff");
-    } else if (preset === "photocard") {
-      ctx.fillStyle = "#db2777";
-      ctx.font = `900 38px ${fontCss}`;
-      ctx.textAlign = "center";
-      ctx.fillText(customText || "K-POP PHOTOCARD ♡", canvas.width / 2, canvas.height - 110);
-
-      ctx.fillStyle = "#6366f1";
-      ctx.font = `bold 18px ${fontCss}`;
-      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
-    } else if (preset === "retro_manga") {
-      ctx.fillStyle = "#000000";
-      ctx.font = `900 34px ${fontCss}`;
-      ctx.textAlign = "center";
-      ctx.fillText(customText || "CHAPTER 01 • CHAPTER OF LOVE", canvas.width / 2, canvas.height - 65);
-    } else if (preset === "galau_quote") {
-      ctx.fillStyle = "#ffffff";
-      ctx.shadowColor = "rgba(0,0,0,0.4)";
-      ctx.shadowBlur = 8;
-
-      ctx.font = `italic bold 28px ${fontCss}`;
-      ctx.textAlign = "center";
-      ctx.fillText(customText || "“Capek sih, tapi tetep harus estetik ✨”", canvas.width / 2, canvas.height - 110);
-
-      ctx.font = `bold 18px ${fontCss}`;
-      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
-      ctx.shadowBlur = 0;
-    } else if (preset === "newspaper") {
+      ctx.fillText("PAID WITH LOVE ♡", rightX, curY);
+    } else if (preset === "newspaper" || layout === "newspaper_grid") {
       ctx.fillStyle = "#1c1917";
-      ctx.strokeStyle = "#1c1917";
-      ctx.lineWidth = 3;
-
-      ctx.beginPath();
-      ctx.moveTo(padding, canvas.height - 130);
-      ctx.lineTo(canvas.width - padding, canvas.height - 130);
-      ctx.stroke();
-
-      ctx.font = `bold 36px ${fontCss}`;
-      ctx.textAlign = "center";
-      ctx.fillText(customText || "rielllybooth", canvas.width / 2, canvas.height - 85);
-
-      ctx.font = `italic 18px ${fontCss}`;
-      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 45);
-    } else if (preset === "y2k") {
-      ctx.fillStyle = "#f472b6";
-      ctx.font = `900 44px ${fontCss}`;
-      ctx.textAlign = "center";
-      ctx.fillText(customText || "RIELLLYBOOTH.Y2K", canvas.width / 2, canvas.height - 110);
-
-      ctx.fillStyle = "#38bdf8";
-      ctx.font = `bold 18px ${fontCss}`;
-      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
-    } else if (preset === "film") {
-      ctx.fillStyle = "#ffffff";
-      ctx.font = `bold 38px ${fontCss}`;
-      ctx.textAlign = "center";
-      ctx.fillText(customText || "rielllybooth 35mm", canvas.width / 2, canvas.height - 110);
-
-      ctx.fillStyle = "#9ca3af";
-      ctx.font = `18px ${fontCss}`;
-      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
-    } else {
-      // Classic Clean, Coquette, & Polkadot
-      ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
-      ctx.font = `bold 44px ${fontCss}`;
+      ctx.font = "bold 24px 'Georgia', serif";
       ctx.textAlign = "center";
       ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 120);
 
-      ctx.font = `500 20px ${fontCss}`;
-      ctx.globalAlpha = 0.85;
+      ctx.font = "italic 16px 'Georgia', serif";
+      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 80);
+    } else {
+      ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
+
+      ctx.font = `800 32px ${fontCss}`;
+      ctx.textAlign = "center";
+      ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 120);
+
+      ctx.font = `500 18px ${fontCss}`;
       ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 70);
     }
   }

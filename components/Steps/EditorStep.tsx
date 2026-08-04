@@ -101,7 +101,7 @@ export default function EditorStep({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [isUpdatingCanvas, setIsUpdatingCanvas] = useState(false);
 
-  // Trigger anti-flicker brief loading indicator when switching layout/preset/filter
+  // Trigger anti-flicker brief loading overlay during layout/preset/filter transitions
   useEffect(() => {
     setIsUpdatingCanvas(true);
     const timer = setTimeout(() => setIsUpdatingCanvas(false), 180);
@@ -207,8 +207,8 @@ export default function EditorStep({
 
       {/* 2. MIDDLE SECTION: CENTERED CANVAS PREVIEW CARD + CONTROL TABS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
-        {/* Left Interactive Canvas Preview Container (ANTI-FLICKER OVERLAY) */}
-        <div className="lg:col-span-6 flex flex-col items-center gap-2 sticky top-16 z-30 bg-rose-50/95 backdrop-blur-md p-2 rounded-2xl shadow-md max-h-[42vh] lg:max-h-none overflow-hidden mb-3 lg:mb-0 lg:static lg:bg-transparent lg:p-0 lg:shadow-none w-full">
+        {/* Left Interactive Canvas Preview Container (COMPACT MOBILE CANVAS PREVIEW max-h-[35vh] / max-h-[300px]) */}
+        <div className="lg:col-span-6 flex flex-col items-center gap-2 sticky top-16 z-30 bg-rose-50/95 backdrop-blur-md p-2 rounded-2xl shadow-md max-h-[38vh] lg:max-h-none overflow-hidden mb-3 lg:mb-0 lg:static lg:bg-transparent lg:p-0 lg:shadow-none w-full">
           {/* Top Status Pill */}
           <div className="w-full flex items-center justify-between px-2 py-1">
             <span className="text-[11px] font-black text-pink-600 uppercase tracking-wider flex items-center gap-1">
@@ -221,7 +221,7 @@ export default function EditorStep({
 
           <div
             ref={containerRef}
-            className="relative bg-white border-3 sm:border-4 border-pink-300 rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden flex items-center justify-center max-h-[40vh] sm:max-h-[650px] w-full p-1.5 sm:p-2 cursor-grab active:cursor-grabbing select-none"
+            className="relative bg-white border-3 sm:border-4 border-pink-300 rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden flex items-center justify-center max-h-[35vh] sm:max-h-[300px] lg:max-h-[650px] w-full p-1.5 sm:p-2 cursor-grab active:cursor-grabbing select-none"
             onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
             onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
             onMouseUp={handlePointerUp}
@@ -237,7 +237,7 @@ export default function EditorStep({
             }}
             onTouchEnd={handlePointerUp}
           >
-            {/* Anti-Flicker Loading Overlay */}
+            {/* Anti-Flicker Smooth Overlay Loader during transitions */}
             {isUpdatingCanvas && (
               <div className="absolute inset-0 bg-white/70 backdrop-blur-xs z-40 flex items-center justify-center gap-2 pointer-events-none transition-opacity duration-150">
                 <Sparkles className="w-5 h-5 text-pink-500 animate-spin" />
@@ -247,7 +247,7 @@ export default function EditorStep({
 
             <canvas
               ref={canvasRef}
-              className="max-w-full max-h-full object-contain h-auto w-auto rounded-xl shadow-inner pointer-events-none"
+              className="max-w-full max-h-[35vh] sm:max-h-[300px] lg:max-h-[620px] object-contain h-auto w-auto mx-auto rounded-xl shadow-inner pointer-events-none"
             />
           </div>
 
@@ -306,23 +306,28 @@ export default function EditorStep({
             </button>
           </div>
 
-          {/* TAB 1: LAYOUT PRESETS & TUKAR URUTAN FOTO THUMBNAILS */}
+          {/* TAB 1: EXPANDED LAYOUT GRIDS (9 OPTIONS) & PHOTO SWAP */}
           {activeTab === "layout" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Pilih Layout Potongan Foto:</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <label className="text-xs font-bold text-slate-700">Pilih Layout Potongan Foto (9 Options):</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
-                    { id: "strip_2", label: "Strip 2-Cut" },
-                    { id: "strip_3", label: "Strip 3-Cut" },
-                    { id: "strip_4", label: "Strip 4-Cut" },
-                    { id: "grid_2x2", label: "Grid 2x2" },
+                    { id: "strip_1x4", label: "Strip 1x4 🎞️" },
+                    { id: "strip_3cut", label: "Strip 3-Cut ✂️" },
+                    { id: "grid_2x2", label: "Grid 2x2 🏁" },
+                    { id: "purikura_4cut", label: "Purikura 4-Cut 💖" },
+                    { id: "y2k_checker", label: "Y2K Checker Strip ✨" },
+                    { id: "scrapbook", label: "Scrapbook Washi 🎨" },
+                    { id: "spotlight", label: "Spotlight Grid 🌟" },
+                    { id: "newspaper_grid", label: "Newspaper Grid 📰" },
+                    { id: "editorial_vogue", label: "Vogue Magazine 💄" },
                   ].map((item) => (
                     <button
                       key={item.id}
                       type="button"
                       onClick={() => setLayout(item.id as LayoutMode)}
-                      className={`py-2.5 px-3 rounded-xl text-xs font-bold border-2 transition ${
+                      className={`py-2 px-2 rounded-xl text-[11px] font-bold border-2 transition ${
                         layout === item.id
                           ? "bg-pink-400 text-white border-pink-500 shadow-xs"
                           : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -362,22 +367,22 @@ export default function EditorStep({
             </div>
           )}
 
-          {/* TAB 2: FRAME PRESETS & COLOR PALETTE CIRCLES */}
+          {/* TAB 2: FIXED NEWSPAPER & EXPANDED GEN Z FRAME PRESETS */}
           {activeTab === "frame" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z:</label>
+                <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z Indonesia:</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
-                    { id: "polkadot", label: "Polkadot Cute 💖" },
-                    { id: "receipt", label: "Struk Belanja 🧾" },
-                    { id: "concert_ticket", label: "Tiket Konser 🎟️" },
-                    { id: "photocard", label: "K-Pop Photocard 💖" },
-                    { id: "retro_manga", label: "Komik Strip 💥" },
-                    { id: "galau_quote", label: "Quote Galau 🥺" },
                     { id: "coquette", label: "Coquette Ribbon 🎀" },
                     { id: "y2k", label: "Y2K Cyber ✨" },
+                    { id: "receipt", label: "Struk Belanja 🧾" },
+                    { id: "photocard", label: "K-Pop Photocard 💖" },
+                    { id: "concert_ticket", label: "Tiket Konser 🎟️" },
+                    { id: "galau_quote", label: "Quote Galau ☕" },
                     { id: "newspaper", label: "Newspaper 📰" },
+                    { id: "polkadot", label: "Polkadot Cute 💖" },
+                    { id: "retro_manga", label: "Komik Strip 💥" },
                     { id: "film", label: "35mm Film 🎞️" },
                     { id: "clean", label: "Classic Clean 🤍" },
                   ].map((item) => (

@@ -151,11 +151,11 @@ export default function CaptureStep({
         </div>
       )}
 
-      {/* Top Header Status Badge */}
+      {/* Top Header Status Badge with Shot Counter Badge */}
       <div className="w-full flex flex-wrap justify-between items-center gap-3 bg-white border-2 border-pink-200 p-3 sm:p-4 rounded-2xl shadow-sm">
         <div className="flex items-center gap-3">
-          <span className="px-3 py-1 bg-pink-100 border border-pink-300 text-pink-700 font-extrabold text-xs rounded-full">
-            Pose #{currentShotIndex} / 4
+          <span className="px-3.5 py-1.5 bg-pink-500 text-white font-extrabold text-xs sm:text-sm rounded-full shadow-xs tracking-wider">
+            SHOT {Math.min(currentShotIndex, 4)} / 4
           </span>
           <h3 className="text-base sm:text-lg font-black text-slate-800">
             {shotsCount < 4 ? `Jepret Foto #${currentShotIndex}` : "Selesai 4 Pose! ✨"}
@@ -240,19 +240,26 @@ export default function CaptureStep({
               </div>
             )}
 
-            {/* Countdown Overlay */}
-            {countdown !== null && (
-              <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs z-30 flex items-center justify-center">
-                <span className="text-8xl sm:text-9xl font-black text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] animate-ping">
-                  {countdown}
-                </span>
+            {/* CAPTURE STEP AUTO-BLUR EFFECT DURING COUNTDOWN & SNAPSHOT MOMENTS */}
+            {(countdown !== null || isCapturing) && (
+              <div className="absolute inset-0 backdrop-blur-2xl bg-slate-950/70 transition-all duration-500 z-30 flex flex-col items-center justify-center gap-3">
+                {countdown !== null ? (
+                  <span className="text-8xl sm:text-9xl font-black text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] animate-ping">
+                    {countdown}
+                  </span>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-white animate-pulse">
+                    <Camera className="w-16 h-16 text-pink-400" />
+                    <span className="text-lg font-black tracking-wider uppercase">Smile! 📸</span>
+                  </div>
+                )}
               </div>
             )}
           </>
         )}
       </div>
 
-      {/* CIRCULAR STEP TRACKER THUMBNAILS (4 BADGES) */}
+      {/* CIRCULAR STEP TRACKER THUMBNAILS (SHOT X / 4 & PROGRESS THUMBNAILS BENEATH VIDEO) */}
       <div className="flex items-center justify-center gap-3 py-1">
         {[0, 1, 2, 3].map((idx) => {
           const shot = shots[idx];
