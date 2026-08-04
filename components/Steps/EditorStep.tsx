@@ -332,7 +332,7 @@ export default function EditorStep({
             </button>
           </div>
 
-          {/* TAB 1: FRAME & LAYOUT PRESETS */}
+          {/* TAB 1: FRAME & LAYOUT PRESETS (EXPANDED WITH 5 NEW VIRAL GEN Z PRESETS) */}
           {activeTab === "frame" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
@@ -364,15 +364,20 @@ export default function EditorStep({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Preset Bingkai Aesthetic:</label>
-                <div className="grid grid-cols-3 gap-2">
+                <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z:</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
                     { id: "polkadot", label: "Polkadot Cute 💖" },
-                    { id: "clean", label: "Classic Clean 🤍" },
+                    { id: "receipt", label: "Struk Belanja 🧾" },
+                    { id: "concert_ticket", label: "Tiket Konser 🎟️" },
+                    { id: "photocard", label: "K-Pop Photocard 💖" },
+                    { id: "retro_manga", label: "Komik Strip 💥" },
+                    { id: "galau_quote", label: "Quote Galau 🥺" },
                     { id: "coquette", label: "Coquette Ribbon 🎀" },
                     { id: "y2k", label: "Y2K Cyber ✨" },
                     { id: "newspaper", label: "Newspaper 📰" },
                     { id: "film", label: "35mm Film 🎞️" },
+                    { id: "clean", label: "Classic Clean 🤍" },
                   ].map((item) => (
                     <button
                       key={item.id}

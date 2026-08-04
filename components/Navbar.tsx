@@ -19,22 +19,22 @@ export default function Navbar({
   const [logoFailed, setLogoFailed] = useState(false);
 
   return (
-    <header className="border-b border-pink-200/80 px-4 sm:px-8 py-3.5 flex justify-between items-center bg-white/90 backdrop-blur-md sticky top-0 z-50 transition-all duration-300 shadow-xs">
+    <header className="border-b border-pink-200/80 px-4 sm:px-8 py-3 flex justify-between items-center bg-white/90 backdrop-blur-md sticky top-0 z-50 transition-all duration-300 shadow-xs">
       {/* Brand Logo & Name */}
       <div
         onClick={onGoHome}
         className="flex items-center gap-3 group cursor-pointer"
       >
-        <div className="p-1.5 sm:p-2 rounded-2xl bg-pink-100 border border-pink-300 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+        <div className="p-1 sm:p-1.5 rounded-2xl bg-pink-100/80 border border-pink-300 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
           {!logoFailed ? (
             <img
               src="/logo.png"
               alt="rielllybooth logo"
               onError={() => setLogoFailed(true)}
-              className="w-6 h-6 object-contain"
+              className="h-8 sm:h-9 w-auto object-contain"
             />
           ) : (
-            <Camera className="w-5 h-5 text-pink-500" />
+            <Camera className="w-6 h-6 text-pink-500" />
           )}
         </div>
         <div className="flex items-center gap-1.5">

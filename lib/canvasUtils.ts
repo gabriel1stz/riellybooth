@@ -1,14 +1,26 @@
 /**
  * Canvas Utilities for high-resolution photo strip rendering, layout assembly,
  * CSS & pixel filter effects, Webcam Toy retro filters (Pixel Art, Thermal Heatmap,
- * Vivid Pop Art, VHS Retro CRT), Film Grain 🎞️, Soft Beauty Glow ✨, Polkadot frame preset,
- * interactive sticker overlays, flip horizontal toggle, custom event logo support,
- * and customizable typography branding engine.
+ * Vivid Pop Art, VHS Retro CRT), Film Grain 🎞️, Soft Beauty Glow ✨, 11 Frame Presets
+ * (including 5 Gen Z Viral Presets: Receipt 🧾, Concert Ticket 🎟️, K-Pop Photocard 💖,
+ * Retro Manga 💥, Galau Quote 🥺), interactive sticker overlays, flip horizontal toggle,
+ * custom event logo high-res sharp rendering, and customizable typography branding engine.
  */
 
 export type LayoutMode = "strip" | "grid";
 
-export type FramePreset = "clean" | "coquette" | "y2k" | "newspaper" | "film" | "polkadot";
+export type FramePreset =
+  | "clean"
+  | "coquette"
+  | "y2k"
+  | "newspaper"
+  | "film"
+  | "polkadot"
+  | "receipt"
+  | "concert_ticket"
+  | "photocard"
+  | "retro_manga"
+  | "galau_quote";
 
 export type CuteFilter =
   | "none"
@@ -54,6 +66,8 @@ function drawImageCover(
   isFlipped: boolean = false
 ) {
   ctx.save();
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   if (borderRadius > 0) {
     ctx.beginPath();
@@ -111,7 +125,6 @@ function applyCuteFilterOverlay(
     ctx.clip();
   }
 
-  // Soft Beauty Glow Filter
   if (beautyGlow > 0) {
     ctx.fillStyle = `rgba(255, 255, 255, ${(beautyGlow / 100) * 0.25})`;
     ctx.globalCompositeOperation = "soft-light";
@@ -228,6 +241,42 @@ function applyFilmGrainOverlay(
   ctx.restore();
 }
 
+/**
+ * Barcode Vector Generator Helper ║▌║▌║█║▌
+ */
+function drawBarcodeVector(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string = "#000000") {
+  ctx.save();
+  ctx.fillStyle = color;
+  let currentX = x;
+  const barWidths = [3, 1, 4, 2, 1, 5, 2, 1, 3, 2, 4, 1, 3, 5, 2, 1, 4, 2, 3];
+  let idx = 0;
+
+  while (currentX < x + w) {
+    const bw = barWidths[idx % barWidths.length];
+    if (idx % 2 === 0) {
+      ctx.fillRect(currentX, y, Math.min(bw, x + w - currentX), h);
+    }
+    currentX += bw + 2;
+    idx++;
+  }
+  ctx.restore();
+}
+
+/**
+ * Serrated Zigzag Edge Generator for Receipts 🧾
+ */
+function drawSerratedZigzag(ctx: CanvasRenderingContext2D, width: number, y: number, height: number = 15, numTeeth: number = 24) {
+  const toothWidth = width / numTeeth;
+  ctx.beginPath();
+  ctx.moveTo(0, y);
+  for (let i = 0; i < numTeeth; i++) {
+    const x1 = i * toothWidth + toothWidth / 2;
+    const x2 = (i + 1) * toothWidth;
+    ctx.lineTo(x1, y + height);
+    ctx.lineTo(x2, y);
+  }
+}
+
 function drawY2kStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
   ctx.save();
   ctx.fillStyle = color;
@@ -309,6 +358,9 @@ export const drawPhotoStrip = (
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length < 4) return;
 
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
   if (layout === "strip") {
     canvas.width = 600;
     canvas.height = 1800;
@@ -320,8 +372,8 @@ export const drawPhotoStrip = (
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const filterString = `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) grayscale(${filter.grayscale}%)`;
-  const padding = preset === "film" ? 60 : 36;
-  const bottomFooterHeight = preset === "newspaper" ? 240 : 220;
+  const padding = preset === "film" || preset === "receipt" ? 60 : 36;
+  const bottomFooterHeight = preset === "newspaper" || preset === "receipt" || preset === "concert_ticket" ? 260 : 220;
 
   // STEP 1: BACKGROUND & FRAME PRESET
   ctx.save();
@@ -396,6 +448,62 @@ export const drawPhotoStrip = (
       ctx.roundRect(canvas.width - 38, y, holeW, holeH, 4);
       ctx.fill();
     }
+  } else if (preset === "receipt") {
+    // 🧾 RECEIPT PAPER STYLED FRAME WITH SERRATED EDGES
+    ctx.fillStyle = "#fafaf9";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#e7e5e4";
+    drawSerratedZigzag(ctx, canvas.width, 0, 16, 28);
+    ctx.fill();
+    drawSerratedZigzag(ctx, canvas.width, canvas.height - 16, 16, 28);
+    ctx.fill();
+
+    ctx.fillStyle = "#1c1917";
+    ctx.font = "900 30px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("RECEIPT #88219 • RIELLLYBOOTH", canvas.width / 2, 50);
+  } else if (preset === "concert_ticket") {
+    // 🎟️ MUSIC FESTIVAL CONCERT TICKET STUB
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#ec4899";
+    ctx.fillRect(0, 0, canvas.width, 90);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 34px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🎟️ RIELLLYBOOTH FESTIVAL VIP", canvas.width / 2, 55);
+  } else if (preset === "photocard") {
+    // 💖 K-POP PHOTOCARD BINDER SLEEVE
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    grad.addColorStop(0, "#fce7f3");
+    grad.addColorStop(0.5, "#e0e7ff");
+    grad.addColorStop(1, "#fbcfe8");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (preset === "retro_manga") {
+    // 💥 JAPANESE RETRO MANGA COMIC STRIP
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    for (let mx = 0; mx < canvas.width; mx += 16) {
+      for (let my = 0; my < canvas.height; my += 16) {
+        ctx.beginPath();
+        ctx.arc(mx, my, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else if (preset === "galau_quote") {
+    // 🥺 GALAU QUOTE AESTHETIC GEN Z
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, "#cbd5e1");
+    grad.addColorStop(0.5, "#f472b6");
+    grad.addColorStop(1, "#fda4af");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   } else {
     ctx.fillStyle = frameColor || "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -403,7 +511,7 @@ export const drawPhotoStrip = (
   ctx.restore();
 
   // STEP 2: DRAW PHOTOS WITH FILTERS & FLIP HORIZONTAL PREFERENCE
-  const startYOffset = preset === "newspaper" ? 120 : 0;
+  const startYOffset = preset === "newspaper" || preset === "receipt" || preset === "concert_ticket" ? 110 : 0;
 
   if (layout === "strip") {
     const photoW = canvas.width - padding * 2;
@@ -412,12 +520,27 @@ export const drawPhotoStrip = (
 
     images.slice(0, 4).forEach((img, i) => {
       const y = startYOffset + padding + i * (photoH + padding);
-      const borderRadius = preset === "film" ? 4 : preset === "coquette" || preset === "polkadot" ? 16 : 12;
+      const borderRadius =
+        preset === "film"
+          ? 4
+          : preset === "photocard"
+          ? 24
+          : preset === "coquette" || preset === "polkadot"
+          ? 16
+          : preset === "retro_manga"
+          ? 0
+          : 12;
 
       ctx.save();
       ctx.filter = filterString;
       drawImageCover(ctx, img, padding, y, photoW, photoH, borderRadius, isFlipped);
       ctx.restore();
+
+      if (preset === "retro_manga") {
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 6;
+        ctx.strokeRect(padding, y, photoW, photoH);
+      }
 
       applyCuteFilterOverlay(ctx, padding, y, photoW, photoH, cuteFilter, filter.beautyGlow, borderRadius);
 
@@ -443,11 +566,26 @@ export const drawPhotoStrip = (
     ];
 
     images.slice(0, 4).forEach((img, i) => {
-      const borderRadius = preset === "film" ? 4 : preset === "coquette" || preset === "polkadot" ? 20 : 16;
+      const borderRadius =
+        preset === "film"
+          ? 4
+          : preset === "photocard"
+          ? 28
+          : preset === "coquette" || preset === "polkadot"
+          ? 20
+          : preset === "retro_manga"
+          ? 0
+          : 16;
       ctx.save();
       ctx.filter = filterString;
       drawImageCover(ctx, img, positions[i].x, positions[i].y, photoW, photoH, borderRadius, isFlipped);
       ctx.restore();
+
+      if (preset === "retro_manga") {
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 6;
+        ctx.strokeRect(positions[i].x, positions[i].y, photoW, photoH);
+      }
 
       applyCuteFilterOverlay(ctx, positions[i].x, positions[i].y, photoW, photoH, cuteFilter, filter.beautyGlow, borderRadius);
     });
@@ -462,6 +600,26 @@ export const drawPhotoStrip = (
     drawY2kStar(ctx, padding + 15, 30, 14, "#ec4899");
     drawY2kStar(ctx, canvas.width - padding - 15, 30, 14, "#38bdf8");
     drawY2kStar(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 20, 18, "#f472b6");
+  } else if (preset === "photocard") {
+    drawRibbonBow(ctx, padding + 20, 40, 0.8);
+    drawY2kStar(ctx, canvas.width - padding - 20, 40, 16, "#ec4899");
+    drawY2kStar(ctx, padding + 25, canvas.height - bottomFooterHeight + 20, 18, "#38bdf8");
+  } else if (preset === "retro_manga") {
+    ctx.save();
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 4;
+
+    ctx.beginPath();
+    ctx.ellipse(canvas.width / 2, canvas.height - bottomFooterHeight + 35, 140, 35, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "900 22px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("SUGOI! 💖 (すごい)", canvas.width / 2, canvas.height - bottomFooterHeight + 42);
+    ctx.restore();
   }
 
   // STEP 4: INTERACTIVE DRAGGABLE STICKERS OVERLAY
@@ -482,9 +640,11 @@ export const drawPhotoStrip = (
     applyFilmGrainOverlay(ctx, canvas.width, canvas.height, filter.grain);
   }
 
-  // STEP 6: CUSTOM BRAND/EVENT LOGO & TYPOGRAPHY FOOTER
+  // STEP 6: CUSTOM BRAND/EVENT LOGO & TYPOGRAPHY FOOTER (SHARP HIGH-RES RENDER)
   ctx.save();
   ctx.filter = "none";
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   const defaultDate = new Date().toLocaleDateString("id-ID", {
     day: "2-digit",
@@ -499,10 +659,10 @@ export const drawPhotoStrip = (
   else if (fontFamily === "cursive") fontCss = "'Brush Script MT', 'Comic Sans MS', cursive";
   else if (fontFamily === "mono") fontCss = "monospace";
 
-  // DRAW CUSTOM BRAND/EVENT LOGO IF PROVIDED
+  // DRAW CUSTOM BRAND/EVENT LOGO IF PROVIDED WITH HIGH SHARPNESS
   if (customLogoImg) {
-    const maxLogoW = 200;
-    const maxLogoH = 70;
+    const maxLogoW = 240;
+    const maxLogoH = 85;
     const logoRatio = customLogoImg.width / customLogoImg.height;
 
     let drawW = maxLogoW;
@@ -523,8 +683,82 @@ export const drawPhotoStrip = (
     ctx.textAlign = "center";
     ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
   } else {
-    // REGULAR TYPOGRAPHY RENDER
-    if (preset === "newspaper") {
+    // REGULAR TYPOGRAPHY & GEN Z FOOTERS
+    if (preset === "receipt") {
+      ctx.fillStyle = "#1c1917";
+      ctx.font = "14px monospace";
+      ctx.textAlign = "left";
+
+      const leftX = padding + 10;
+      const rightX = canvas.width - padding - 10;
+      let curY = canvas.height - 175;
+
+      ctx.fillText("1x Cute Pose Snapshot", leftX, curY);
+      ctx.textAlign = "right";
+      ctx.fillText("Rp 0", rightX, curY);
+
+      curY += 24;
+      ctx.textAlign = "left";
+      ctx.fillText("1x Good Vibes Only", leftX, curY);
+      ctx.textAlign = "right";
+      ctx.fillText("Rp 0", rightX, curY);
+
+      curY += 30;
+      ctx.strokeStyle = "#1c1917";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(leftX, curY);
+      ctx.lineTo(rightX, curY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      curY += 24;
+      ctx.font = "bold 16px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("TOTAL PRICE:", leftX, curY);
+      ctx.textAlign = "right";
+      ctx.fillText("PRICELESS ✨", rightX, curY);
+
+      drawBarcodeVector(ctx, padding + 20, canvas.height - 65, canvas.width - padding * 2 - 40, 24, "#1c1917");
+    } else if (preset === "concert_ticket") {
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 20px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("ADMIT ONE • SEAT A1 • VIP ZONE", canvas.width / 2, canvas.height - 140);
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = "bold 16px sans-serif";
+      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 105);
+
+      drawBarcodeVector(ctx, padding + 30, canvas.height - 70, canvas.width - padding * 2 - 60, 32, "#ffffff");
+    } else if (preset === "photocard") {
+      ctx.fillStyle = "#db2777";
+      ctx.font = `900 38px ${fontCss}`;
+      ctx.textAlign = "center";
+      ctx.fillText(customText || "K-POP PHOTOCARD ♡", canvas.width / 2, canvas.height - 110);
+
+      ctx.fillStyle = "#6366f1";
+      ctx.font = `bold 18px ${fontCss}`;
+      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
+    } else if (preset === "retro_manga") {
+      ctx.fillStyle = "#000000";
+      ctx.font = `900 34px ${fontCss}`;
+      ctx.textAlign = "center";
+      ctx.fillText(customText || "CHAPTER 01 • CHAPTER OF LOVE", canvas.width / 2, canvas.height - 65);
+    } else if (preset === "galau_quote") {
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = "rgba(0,0,0,0.4)";
+      ctx.shadowBlur = 8;
+
+      ctx.font = `italic bold 28px ${fontCss}`;
+      ctx.textAlign = "center";
+      ctx.fillText(customText || "“Capek sih, tapi tetep harus estetik ✨”", canvas.width / 2, canvas.height - 110);
+
+      ctx.font = `bold 18px ${fontCss}`;
+      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
+      ctx.shadowBlur = 0;
+    } else if (preset === "newspaper") {
       ctx.fillStyle = "#1c1917";
       ctx.strokeStyle = "#1c1917";
       ctx.lineWidth = 3;
