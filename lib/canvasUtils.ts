@@ -3,11 +3,12 @@
  * CSS & pixel filter effects, Webcam Toy retro filters (Pixel Art, Thermal Heatmap,
  * Vivid Pop Art, VHS Retro CRT), Film Grain 🎞️, Soft Beauty Glow ✨, 11 Frame Presets
  * (including 5 Gen Z Viral Presets: Receipt 🧾, Concert Ticket 🎟️, K-Pop Photocard 💖,
- * Retro Manga 💥, Galau Quote 🥺), interactive sticker overlays, flip horizontal toggle,
- * custom event logo high-res sharp rendering, and customizable typography branding engine.
+ * Retro Manga 💥, Galau Quote 🥺), 4 Layout Modes (strip_2, strip_3, strip_4, grid_2x2),
+ * interactive sticker overlays, flip horizontal toggle, custom event logo high-res sharp rendering,
+ * and customizable typography branding engine.
  */
 
-export type LayoutMode = "strip" | "grid";
+export type LayoutMode = "strip_2" | "strip_3" | "strip_4" | "grid_2x2";
 
 export type FramePreset =
   | "clean"
@@ -337,7 +338,7 @@ function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, sc
 }
 
 /**
- * Main High-Resolution Photo Strip Render Engine
+ * Main High-Resolution Photo Strip Render Engine (Supports strip_2, strip_3, strip_4, grid_2x2)
  */
 export const drawPhotoStrip = (
   canvas: HTMLCanvasElement,
@@ -348,7 +349,7 @@ export const drawPhotoStrip = (
   filter: FilterState,
   preset: FramePreset = "clean",
   cuteFilter: CuteFilter = "none",
-  customText: string = "rielllybooth ",
+  customText: string = "rielllybooth ♡",
   fontFamily: FontFamily = "sans",
   subtitleText?: string,
   stickers: PlacedSticker[] = [],
@@ -356,15 +357,28 @@ export const drawPhotoStrip = (
   customLogoImg?: HTMLImageElement | null
 ): void => {
   const ctx = canvas.getContext("2d");
-  if (!ctx || images.length < 4) return;
+  if (!ctx || images.length === 0) return;
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  if (layout === "strip") {
+  // Determine photo count and canvas dimensions based on layout mode
+  let photoCount = 4;
+  if (layout === "strip_2") {
+    photoCount = 2;
+    canvas.width = 600;
+    canvas.height = 1100;
+  } else if (layout === "strip_3") {
+    photoCount = 3;
+    canvas.width = 600;
+    canvas.height = 1450;
+  } else if (layout === "strip_4") {
+    photoCount = 4;
     canvas.width = 600;
     canvas.height = 1800;
   } else {
+    // grid_2x2
+    photoCount = 4;
     canvas.width = 1200;
     canvas.height = 1400;
   }
@@ -464,7 +478,7 @@ export const drawPhotoStrip = (
     ctx.textAlign = "center";
     ctx.fillText("RECEIPT #88219 • RIELLLYBOOTH", canvas.width / 2, 50);
   } else if (preset === "concert_ticket") {
-    // 🎟️ MUSIC FESTIVAL CONCERT TICKET STUB
+    // 🎟️ MUSIC FESTIVAL CONCERT TICKET STUB (FIXED CENTER ALIGNMENT)
     ctx.fillStyle = "#0f172a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -474,7 +488,8 @@ export const drawPhotoStrip = (
     ctx.fillStyle = "#ffffff";
     ctx.font = "900 34px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("🎟️ FESTIVAL VIP", canvas.width / 2, 55);
+    ctx.textBaseline = "middle";
+    ctx.fillText("🎟️ RIELLLYBOOTH FESTIVAL VIP", canvas.width / 2, 45);
   } else if (preset === "photocard") {
     // 💖 K-POP PHOTOCARD BINDER SLEEVE
     const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -513,12 +528,12 @@ export const drawPhotoStrip = (
   // STEP 2: DRAW PHOTOS WITH FILTERS & FLIP HORIZONTAL PREFERENCE
   const startYOffset = preset === "newspaper" || preset === "receipt" || preset === "concert_ticket" ? 110 : 0;
 
-  if (layout === "strip") {
+  if (layout.startsWith("strip")) {
     const photoW = canvas.width - padding * 2;
-    const availableH = canvas.height - bottomFooterHeight - padding * 5 - startYOffset;
-    const photoH = availableH / 4;
+    const availableH = canvas.height - bottomFooterHeight - padding * (photoCount + 1) - startYOffset;
+    const photoH = availableH / photoCount;
 
-    images.slice(0, 4).forEach((img, i) => {
+    images.slice(0, photoCount).forEach((img, i) => {
       const y = startYOffset + padding + i * (photoH + padding);
       const borderRadius =
         preset === "film"
@@ -554,6 +569,7 @@ export const drawPhotoStrip = (
       }
     });
   } else {
+    // grid_2x2
     const photoW = (canvas.width - padding * 3) / 2;
     const availableH = canvas.height - bottomFooterHeight - padding * 3 - startYOffset;
     const photoH = availableH / 2;
@@ -640,7 +656,7 @@ export const drawPhotoStrip = (
     applyFilmGrainOverlay(ctx, canvas.width, canvas.height, filter.grain);
   }
 
-  // STEP 6: CUSTOM BRAND/EVENT LOGO & TYPOGRAPHY FOOTER (SHARP HIGH-RES RENDER)
+  // STEP 6: CUSTOM BRAND/EVENT LOGO & TYPOGRAPHY FOOTER
   ctx.save();
   ctx.filter = "none";
   ctx.imageSmoothingEnabled = true;
@@ -659,7 +675,7 @@ export const drawPhotoStrip = (
   else if (fontFamily === "cursive") fontCss = "'Brush Script MT', 'Comic Sans MS', cursive";
   else if (fontFamily === "mono") fontCss = "monospace";
 
-  // DRAW CUSTOM BRAND/EVENT LOGO IF PROVIDED WITH HIGH SHARPNESS
+  // DRAW CUSTOM BRAND/EVENT LOGO IF PROVIDED
   if (customLogoImg) {
     const maxLogoW = 240;
     const maxLogoH = 85;

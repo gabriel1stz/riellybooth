@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import confetti from "canvas-confetti";
-import { Instagram, Mail, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, QrCode, Share2, Download, Copy, Check, Smartphone, Image as ImageIcon } from "lucide-react";
+import { Instagram, Mail, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, Share2, Download, Copy, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import LandingStep from "@/components/Steps/LandingStep";
 import CaptureStep from "@/components/Steps/CaptureStep";
@@ -36,9 +36,7 @@ export default function RielllyBooth() {
   // Modals State
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
-  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [downloadModalTab, setDownloadModalTab] = useState<"direct" | "qr">("direct");
   const [downloadedDataUrl, setDownloadedDataUrl] = useState<string | null>(null);
   const [downloadedVideoUrl, setDownloadedVideoUrl] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -48,7 +46,7 @@ export default function RielllyBooth() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(null);
   const [customLogoImg, setCustomLogoImg] = useState<HTMLImageElement | null>(null);
-  const [layout, setLayout] = useState<LayoutMode>("strip");
+  const [layout, setLayout] = useState<LayoutMode>("strip_4");
   const [preset, setPreset] = useState<FramePreset>("polkadot");
   const [cuteFilter, setCuteFilter] = useState<CuteFilter>("none");
   const [customText, setCustomText] = useState("rielllybooth ♡");
@@ -330,9 +328,9 @@ export default function RielllyBooth() {
   // Render HTML5 Canvas Output
   const renderCanvas = useCallback(
     (videoElements?: HTMLVideoElement[]) => {
-      if (!canvasRef.current || shots.length < 4) return;
+      if (!canvasRef.current || shots.length === 0) return;
 
-      if (isLivePhotoOn && videoElements && videoElements.length === 4) {
+      if (isLivePhotoOn && videoElements && videoElements.length > 0) {
         drawPhotoStrip(
           canvasRef.current,
           videoElements,
@@ -356,14 +354,16 @@ export default function RielllyBooth() {
       const loadedImages: HTMLImageElement[] = [];
       let count = 0;
 
-      shots.slice(0, 4).forEach((shot, i) => {
+      const targetCount = layout === "strip_2" ? 2 : layout === "strip_3" ? 3 : 4;
+
+      shots.slice(0, targetCount).forEach((shot, i) => {
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.src = shot.dataUrl;
         img.onload = () => {
           loadedImages[i] = img;
           count++;
-          if (count === 4 && canvasRef.current) {
+          if (count === targetCount && canvasRef.current) {
             drawPhotoStrip(
               canvasRef.current,
               loadedImages,
@@ -393,7 +393,7 @@ export default function RielllyBooth() {
     let videoElements: HTMLVideoElement[] = [];
 
     if (step === "editor" && isLivePhotoOn && shots.some((s) => s.videoBlobUrl)) {
-      videoElements = shots.slice(0, 4).map((shot) => {
+      videoElements = shots.map((shot) => {
         const vid = document.createElement("video");
         vid.src = shot.videoBlobUrl || shot.dataUrl;
         vid.autoplay = true;
@@ -429,8 +429,8 @@ export default function RielllyBooth() {
     return window.innerWidth < 768 || navigator.maxTouchPoints > 0;
   }, []);
 
-  // Native Web Share API + Direct Download Trigger with Branded Random Filenames
-  const triggerDirectPngDownload = async () => {
+  // Direct PNG Download Trigger with Branded Random Filename
+  const handleDownloadPng = async () => {
     if (!canvasRef.current) return;
     const randomHash = Math.random().toString(36).substring(2, 8);
     const filename = `rielllybooth-${randomHash}.png`;
@@ -438,7 +438,7 @@ export default function RielllyBooth() {
     const dataUrl = canvasRef.current.toDataURL("image/png");
     setDownloadedDataUrl(dataUrl);
 
-    // TRY NATIVE WEB SHARE API FOR MOBILE DEVICESS (SAVE DIRECTLY TO CAMERA ROLL)
+    // Native Web Share API for Mobile Devices
     if (isMobileDevice() && navigator.share) {
       try {
         const res = await fetch(dataUrl);
@@ -451,56 +451,27 @@ export default function RielllyBooth() {
             title: "rielllybooth photo strip",
             text: "My cute photo strip from rielllybooth ♡",
           });
+
+          try {
+            confetti({
+              particleCount: 120,
+              spread: 80,
+              origin: { y: 0.6 },
+              colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
+            });
+          } catch (e) {}
           return;
         }
       } catch (shareErr) {
-        console.warn("Web Share API cancelled or unhandled:", shareErr);
+        console.warn("Web Share API cancelled or unsupported:", shareErr);
       }
     }
 
-    // DESKTOP & FALLBACK DOWNLOAD TRIGGER
+    // Direct Browser Download
     const link = document.createElement("a");
     link.download = filename;
     link.href = dataUrl;
     link.click();
-  };
-
-  const triggerDirectVideoDownload = async () => {
-    if (!downloadedVideoUrl) return;
-    const randomHash = Math.random().toString(36).substring(2, 8);
-    const filename = `rielllybooth-live-${randomHash}.webm`;
-
-    if (isMobileDevice() && navigator.share) {
-      try {
-        const res = await fetch(downloadedVideoUrl);
-        const blob = await res.blob();
-        const file = new File([blob], filename, { type: "video/webm" });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: "rielllybooth live photo",
-          });
-          return;
-        }
-      } catch (shareErr) {
-        console.warn("Web Share API video cancelled:", shareErr);
-      }
-    }
-
-    const link = document.createElement("a");
-    link.download = filename;
-    link.href = downloadedVideoUrl;
-    link.click();
-  };
-
-  // HD PNG Download Action & Open Download Modal
-  const handleDownloadPng = async () => {
-    if (!canvasRef.current) return;
-    const dataUrl = canvasRef.current.toDataURL("image/png");
-    setDownloadedDataUrl(dataUrl);
-
-    await triggerDirectPngDownload();
 
     try {
       confetti({
@@ -510,24 +481,28 @@ export default function RielllyBooth() {
         colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
       });
     } catch (e) {}
-
-    // Only open Download Modal on Desktop (NEVER SHOW QR MODAL ON MOBILE)
-    if (!isMobileDevice()) {
-      setDownloadModalTab("direct");
-      setTimeout(() => setShowDownloadModal(true), 300);
-    }
   };
 
-  // Live Video Export Action & Open Download Modal
+  // Live Photo Video Export (MP4 preferred, WebM fallback)
   const handleDownloadVideo = async () => {
     if (!canvasRef.current || isExportingVideo) return;
     setIsExportingVideo(true);
 
     try {
       const canvasStream = canvasRef.current.captureStream(30);
-      let mimeType = "video/webm;codecs=vp9";
+      let mimeType = "video/mp4;codecs=avc1";
+      let extension = "mp4";
+
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "video/mp4";
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "video/webm;codecs=vp9";
+        extension = "webm";
+      }
       if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = "video/webm";
+        extension = "webm";
       }
 
       const recorder = new MediaRecorder(canvasStream, { mimeType });
@@ -543,7 +518,23 @@ export default function RielllyBooth() {
         setDownloadedVideoUrl(url);
 
         const randomHash = Math.random().toString(36).substring(2, 8);
-        const filename = `rielllybooth-live-${randomHash}.webm`;
+        const filename = `rielllybooth-live-${randomHash}.${extension}`;
+
+        if (isMobileDevice() && navigator.share) {
+          try {
+            const file = new File([blob], filename, { type: mimeType });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                files: [file],
+                title: "rielllybooth live photo",
+              });
+              setIsExportingVideo(false);
+              return;
+            }
+          } catch (shareErr) {
+            console.warn("Web Share API video cancelled:", shareErr);
+          }
+        }
 
         const link = document.createElement("a");
         link.download = filename;
@@ -554,11 +545,6 @@ export default function RielllyBooth() {
         try {
           confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         } catch (e) {}
-
-        if (!isMobileDevice()) {
-          setDownloadModalTab("direct");
-          setTimeout(() => setShowDownloadModal(true), 300);
-        }
       };
 
       recorder.start();
@@ -777,103 +763,6 @@ export default function RielllyBooth() {
                 Kembali
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* DESKTOP DOWNLOAD MODAL (ONLY DISPLAYED ON DESKTOP DEVICESS) */}
-      {showDownloadModal && (
-        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 text-center relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setShowDownloadModal(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="space-y-1">
-              <div className="inline-flex p-3 bg-pink-100 rounded-full border border-pink-300 text-pink-500">
-                <Download className="w-6 h-6 animate-bounce" />
-              </div>
-              <h3 className="text-2xl font-black text-slate-800">Unduh Photo Strip 📸</h3>
-              <p className="text-xs text-slate-600 font-medium">
-                File berhasil disimpan di Laptop! Pindai QR Code jika ingin mentransfer ke HP:
-              </p>
-            </div>
-
-            <div className="flex bg-rose-50 p-1.5 rounded-2xl border border-pink-200 gap-1">
-              <button
-                type="button"
-                onClick={() => setDownloadModalTab("direct")}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                  downloadModalTab === "direct"
-                    ? "bg-pink-400 text-white shadow-xs"
-                    : "text-slate-600 hover:bg-pink-100"
-                }`}
-              >
-                <Download className="w-3.5 h-3.5" /> Unduh Ulang ⬇️
-              </button>
-              <button
-                type="button"
-                onClick={() => setDownloadModalTab("qr")}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                  downloadModalTab === "qr"
-                    ? "bg-pink-400 text-white shadow-xs"
-                    : "text-slate-600 hover:bg-pink-100"
-                }`}
-              >
-                <QrCode className="w-3.5 h-3.5" /> Transfer ke HP 📱
-              </button>
-            </div>
-
-            {downloadModalTab === "direct" && (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={triggerDirectPngDownload}
-                    className="w-full py-3.5 px-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-sm rounded-2xl border-2 border-pink-500 shadow-md flex items-center justify-center gap-2 transition hover:scale-102 active:scale-95"
-                  >
-                    <Download className="w-5 h-5" /> ⬇️ Download Foto Statis (PNG HD)
-                  </button>
-
-                  {downloadedVideoUrl && (
-                    <button
-                      type="button"
-                      onClick={triggerDirectVideoDownload}
-                      className="w-full py-3.5 px-4 bg-purple-500 hover:bg-purple-600 text-white font-black text-sm rounded-2xl border-2 border-purple-600 shadow-md flex items-center justify-center gap-2 transition hover:scale-102 active:scale-95"
-                    >
-                      <Video className="w-5 h-5" /> 🎥 Download Live Video (WebM)
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {downloadModalTab === "qr" && (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <p className="text-xs text-slate-600 font-medium">
-                  Scan QR code ini pakai kamera HP kamu untuk membuka link photo strip di HP!
-                </p>
-
-                <div className="bg-rose-50 border-2 border-pink-200 p-4 rounded-2xl flex flex-col items-center justify-center">
-                  <div className="w-36 h-36 bg-white p-2 border-2 border-pink-300 rounded-xl shadow-inner flex flex-col items-center justify-center">
-                    <QrCode className="w-28 h-28 text-slate-800" />
-                    <span className="text-[9px] font-black text-pink-600 bg-pink-100 px-2 py-0.5 rounded border border-pink-300 mt-1">
-                      rielllybooth
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={() => setShowDownloadModal(false)}
-              className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition"
-            >
-              Selesai ✨
-            </button>
           </div>
         </div>
       )}

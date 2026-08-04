@@ -100,7 +100,7 @@ export default function EditorStep({
   const [activeTab, setActiveTab] = useState<"frame" | "filter" | "text" | "stickers" | "adjust">("frame");
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
-  // Helper to convert mouse/touch event into canvas coordinate space
+  // Throttled Pointer Event Handlers for Draggable Stickers
   const getCanvasPos = (clientX: number, clientY: number) => {
     if (!canvasRef.current) return null;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -137,7 +137,9 @@ export default function EditorStep({
     if (!draggingId || !onUpdateStickerPos) return;
     const pos = getCanvasPos(clientX, clientY);
     if (pos) {
-      onUpdateStickerPos(draggingId, pos.x, pos.y);
+      requestAnimationFrame(() => {
+        onUpdateStickerPos(draggingId, pos.x, pos.y);
+      });
     }
   };
 
@@ -153,7 +155,7 @@ export default function EditorStep({
 
   return (
     <div className="w-full max-w-6xl px-4 py-4 space-y-6">
-      {/* Top Header Controls */}
+      {/* Top Header Controls Bar */}
       <div className="flex flex-wrap justify-between items-center gap-4 bg-white border-2 border-pink-200 p-4 rounded-2xl shadow-sm">
         <button
           type="button"
@@ -193,7 +195,7 @@ export default function EditorStep({
             <span>Live Photo 🎥 {isLivePhotoOn ? "ON" : "OFF"}</span>
           </button>
 
-          {/* Share to Story Modal Trigger */}
+          {/* Share to Story Button */}
           <button
             type="button"
             onClick={onOpenShareModal}
@@ -202,37 +204,55 @@ export default function EditorStep({
             <Share2 className="w-4 h-4 text-purple-500" /> Share 📲
           </button>
         </div>
+      </div>
 
-        {/* Dual Export Buttons */}
-        <div className="flex items-center gap-2">
+      {/* DISTINCT DIRECT DOWNLOAD CARDS (NO QR CARDS) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Card 1: PNG HD Photo Strip */}
+        <div className="bg-white border-2 border-pink-300 p-4 rounded-2xl shadow-sm flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="text-xs font-black text-pink-600 uppercase tracking-wider flex items-center gap-1">
+              <Download className="w-3.5 h-3.5" /> Foto Statis
+            </span>
+            <h4 className="text-sm font-black text-slate-800">Simpan Foto Statis (PNG HD)</h4>
+            <p className="text-[11px] text-slate-500 font-medium">Format gambar resolusi tinggi tanpa watermark.</p>
+          </div>
           <button
             type="button"
             onClick={onDownloadPng}
-            className="px-5 py-2.5 bg-pink-400 hover:bg-pink-500 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-pink-500 shadow-md flex items-center gap-2 transition hover:scale-105 active:scale-95"
+            className="px-5 py-3 bg-pink-400 hover:bg-pink-500 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-pink-500 shadow-md transition hover:scale-105 active:scale-95 shrink-0"
           >
-            <Download className="w-4 h-4" /> Simpan PNG HD
+            Simpan PNG HD ⬇️
           </button>
+        </div>
 
-          {isLivePhotoOn && (
-            <button
-              type="button"
-              onClick={onDownloadVideo}
-              disabled={isExportingVideo}
-              className="px-4 py-2.5 bg-purple-500 hover:bg-purple-600 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-purple-600 shadow-md flex items-center gap-2 transition disabled:opacity-50 hover:scale-105 active:scale-95"
-            >
-              <Video className="w-4 h-4" /> {isExportingVideo ? "Exporting..." : "Simpan Video 🎥"}
-            </button>
-          )}
+        {/* Card 2: Live Video (MP4 / REELS 🎥) */}
+        <div className="bg-white border-2 border-purple-300 p-4 rounded-2xl shadow-sm flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="text-xs font-black text-purple-600 uppercase tracking-wider flex items-center gap-1">
+              <Video className="w-3.5 h-3.5" /> Moving Video
+            </span>
+            <h4 className="text-sm font-black text-slate-800">Simpan Live Video (MP4 / REELS 🎥)</h4>
+            <p className="text-[11px] text-slate-500 font-medium">Video gerak klip pendek siap unggah ke Story & Reels.</p>
+          </div>
+          <button
+            type="button"
+            onClick={onDownloadVideo}
+            disabled={isExportingVideo || !isLivePhotoOn}
+            className="px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-purple-600 shadow-md transition disabled:opacity-50 hover:scale-105 active:scale-95 shrink-0"
+          >
+            {isExportingVideo ? "Exporting..." : "Simpan MP4 🎥"}
+          </button>
         </div>
       </div>
 
       {/* Main Studio Grid: Canvas Preview + Controls Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Interactive Canvas Preview Container */}
-        <div className="lg:col-span-6 flex flex-col items-center gap-3 lg:sticky lg:top-24">
+        {/* Left Interactive Canvas Preview Container (MOBILE FLEXIBLE SCALING FIX) */}
+        <div className="lg:col-span-6 flex flex-col items-center gap-3 lg:sticky lg:top-24 w-full">
           <div
             ref={containerRef}
-            className="relative bg-white border-4 border-pink-300 p-3 sm:p-4 rounded-3xl shadow-2xl overflow-hidden flex items-center justify-center max-h-[75vh] cursor-grab active:cursor-grabbing select-none"
+            className="relative bg-white border-4 border-pink-300 rounded-3xl shadow-2xl overflow-hidden flex items-center justify-center max-h-[55vh] sm:max-h-[650px] w-full p-2 cursor-grab active:cursor-grabbing select-none"
             onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
             onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
             onMouseUp={handlePointerUp}
@@ -250,7 +270,7 @@ export default function EditorStep({
           >
             <canvas
               ref={canvasRef}
-              className="max-h-[68vh] w-auto h-auto object-contain rounded-xl shadow-inner pointer-events-none"
+              className="max-w-full max-h-full object-contain h-auto w-auto rounded-xl shadow-inner pointer-events-none"
             />
           </div>
 
@@ -295,7 +315,7 @@ export default function EditorStep({
                   : "text-slate-600 hover:bg-pink-100"
               }`}
             >
-              <Layout className="w-3.5 h-3.5" /> Bingkai & Warna
+              <Layout className="w-3.5 h-3.5" /> Bingkai & Layout
             </button>
             <button
               type="button"
@@ -332,34 +352,31 @@ export default function EditorStep({
             </button>
           </div>
 
-          {/* TAB 1: FRAME & LAYOUT PRESETS (EXPANDED WITH 5 NEW VIRAL GEN Z PRESETS) */}
+          {/* TAB 1: FRAME & EXPANDED 4-LAYOUT SELECTOR (strip_2, strip_3, strip_4, grid_2x2) */}
           {activeTab === "frame" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Layout Photo Strip:</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setLayout("strip")}
-                    className={`py-2.5 px-4 rounded-xl text-xs font-bold border-2 transition ${
-                      layout === "strip"
-                        ? "bg-pink-400 text-white border-pink-500 shadow-xs"
-                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    1x4 Vertical Strip
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLayout("grid")}
-                    className={`py-2.5 px-4 rounded-xl text-xs font-bold border-2 transition ${
-                      layout === "grid"
-                        ? "bg-pink-400 text-white border-pink-500 shadow-xs"
-                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    2x2 Grid Square
-                  </button>
+                <label className="text-xs font-bold text-slate-700">Pilih Layout Potongan Foto:</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: "strip_2", label: "2-Cut Strip" },
+                    { id: "strip_3", label: "3-Cut Strip" },
+                    { id: "strip_4", label: "4-Cut Strip" },
+                    { id: "grid_2x2", label: "2x2 Grid" },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setLayout(item.id as LayoutMode)}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-bold border-2 transition ${
+                        layout === item.id
+                          ? "bg-pink-400 text-white border-pink-500 shadow-xs"
+                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 

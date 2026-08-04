@@ -1,6 +1,6 @@
 /**
  * Camera Utility module for WebRTC stream management, video frame snapshot capturing,
- * front/back camera facing mode switching, and 1.5s Live Photo (moving photo / boomerang video) snippet recording.
+ * front/back camera facing mode switching, and MP4/WebM Live Photo snippet recording.
  */
 
 export const startCameraStream = async (facingMode: "user" | "environment" = "user"): Promise<MediaStream> => {
@@ -75,7 +75,7 @@ export const captureCanvasSnapshot = (
 };
 
 /**
- * Record 1.5-second short live video snippet (boomerang style) from WebRTC stream.
+ * Record 1.5-second short live video snippet (MP4 preferred, WebM fallback).
  */
 export const recordLiveVideoSnippet = (
   stream: MediaStream,
@@ -83,7 +83,13 @@ export const recordLiveVideoSnippet = (
 ): Promise<string> => {
   return new Promise((resolve) => {
     try {
-      let mimeType = "video/webm;codecs=vp9";
+      let mimeType = "video/mp4;codecs=avc1";
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "video/mp4";
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "video/webm;codecs=vp9";
+      }
       if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = "video/webm";
       }
