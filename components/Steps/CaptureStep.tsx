@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Camera, Upload, AlertCircle, RefreshCw, Volume2, VolumeX, Sparkles, Hand } from "lucide-react";
+import { Camera, Upload, AlertCircle, RefreshCw, Volume2, VolumeX, Hand, Sparkles, CheckCircle2 } from "lucide-react";
 import { getHandLandmarker, isPeaceSignGesture } from "@/lib/gestureUtils";
 
 type CaptureStepProps = {
@@ -9,8 +9,9 @@ type CaptureStepProps = {
   isCapturing: boolean;
   countdown: number | null;
   currentShotIndex: number;
+  shotsCount: number;
   cameraError: string | null;
-  onStartSession: () => void;
+  onTakeSingleShot: () => void;
   onUploadPhotos: (files: FileList) => void;
   flashFx: boolean;
   isAudioOn: boolean;
@@ -22,8 +23,9 @@ export default function CaptureStep({
   isCapturing,
   countdown,
   currentShotIndex,
+  shotsCount,
   cameraError,
-  onStartSession,
+  onTakeSingleShot,
   onUploadPhotos,
   flashFx,
   isAudioOn,
@@ -37,14 +39,14 @@ export default function CaptureStep({
   const [peaceProgress, setPeaceProgress] = useState(0);
 
   const peaceStartTimeRef = useRef<number | null>(null);
-  const isTriggeredRef = useRef(false);
+  const isLockedRef = useRef(false);
 
-  // MediaPipe Hand Detection Loop
+  // MediaPipe Hand Detection Loop (Per-Shot Trigger ✌️)
   useEffect(() => {
     let animFrameId: number;
     let active = true;
 
-    if (!gestureEnabled || isCapturing || cameraError) {
+    if (!gestureEnabled || isCapturing || countdown !== null || cameraError) {
       setGestureStatus(null);
       setPeaceProgress(0);
       peaceStartTimeRef.current = null;
@@ -63,26 +65,29 @@ export default function CaptureStep({
             const handLandmarks = results.landmarks[0];
             const isPeace = isPeaceSignGesture(handLandmarks);
 
-            if (isPeace && !isTriggeredRef.current) {
+            if (isPeace && !isLockedRef.current) {
               const now = Date.now();
               if (!peaceStartTimeRef.current) {
                 peaceStartTimeRef.current = now;
               }
 
               const elapsed = now - peaceStartTimeRef.current;
-              const progress = Math.min(100, Math.round((elapsed / 1500) * 100));
+              const progress = Math.min(100, Math.round((elapsed / 1200) * 100));
               setPeaceProgress(progress);
-              setGestureStatus("✌️ Peace Gesture Detected! Tahan pose...");
+              setGestureStatus(`✌️ Peace Detected! Tahan pose untuk Foto #${currentShotIndex}...`);
 
-              if (elapsed >= 1500) {
-                isTriggeredRef.current = true;
-                setGestureStatus("🚀 Starting Photo Session!");
-                onStartSession();
+              if (elapsed >= 1200) {
+                isLockedRef.current = true;
+                setGestureStatus(`📸 Menjepret Foto #${currentShotIndex}!`);
+                onTakeSingleShot();
+                setTimeout(() => {
+                  isLockedRef.current = false;
+                }, 2000);
               }
             } else {
               peaceStartTimeRef.current = null;
               setPeaceProgress(0);
-              setGestureStatus("🖐️ Posisikan tangan & tunjukkan gesture Peace (✌️)");
+              setGestureStatus(`✌️ Tunjukkan gesture Peace untuk mengambil Foto #${currentShotIndex}/4`);
             }
           } else {
             peaceStartTimeRef.current = null;
@@ -90,7 +95,7 @@ export default function CaptureStep({
             setGestureStatus(null);
           }
         } catch (err) {
-          // Ignore transient frame detection error
+          // Transient frame detection error handling
         }
       }
 
@@ -99,14 +104,13 @@ export default function CaptureStep({
       }
     };
 
-    isTriggeredRef.current = false;
     runDetection();
 
     return () => {
       active = false;
       if (animFrameId) cancelAnimationFrame(animFrameId);
     };
-  }, [gestureEnabled, isCapturing, cameraError, videoRef, onStartSession]);
+  }, [gestureEnabled, isCapturing, countdown, cameraError, currentShotIndex, videoRef, onTakeSingleShot]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -116,15 +120,52 @@ export default function CaptureStep({
 
   return (
     <div className="w-full max-w-3xl flex flex-col items-center gap-6 px-4">
+      {/* Step Guide Banner */}
+      <div className="w-full bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-xl">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-pink-500/10 border border-pink-500/20 rounded-xl text-pink-400 font-bold">
+            #{currentShotIndex} / 4
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-white">
+              {shotsCount === 0 && "Pose ✌️ untuk mengambil Foto #1"}
+              {shotsCount === 1 && "Bagus! Pose ✌️ lagi untuk Foto #2"}
+              {shotsCount === 2 && "Keren! Pose ✌️ lagi untuk Foto #3"}
+              {shotsCount === 3 && "Terakhir! Pose ✌️ untuk Foto #4"}
+              {shotsCount >= 4 && "Selesai! Memproses foto..."}
+            </h4>
+            <p className="text-xs text-slate-400">
+              Setiap gesture ✌️ mengambil 1 foto. Kumpulkan 4 pose terbaikmu!
+            </p>
+          </div>
+        </div>
+
+        {/* 4 Dots Progress Indicator */}
+        <div className="flex items-center gap-1.5">
+          {[0, 1, 2, 3].map((idx) => (
+            <div
+              key={idx}
+              className={`w-3 h-3 rounded-full transition-all ${
+                idx < shotsCount
+                  ? "bg-pink-500 ring-2 ring-pink-500/40"
+                  : idx === shotsCount
+                  ? "bg-pink-400 animate-ping"
+                  : "bg-slate-800"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* Video Viewport Container */}
-      <div className="relative w-full aspect-video bg-slate-900/90 rounded-3xl overflow-hidden border-2 border-slate-800 shadow-2xl shadow-pink-500/5 flex items-center justify-center">
+      <div className="relative w-full aspect-video bg-slate-950 rounded-3xl overflow-hidden border-2 border-slate-800 shadow-2xl flex items-center justify-center">
         {/* FLASH FX OVERLAY */}
         {flashFx && (
           <div className="absolute inset-0 bg-white z-50 animate-out fade-out duration-300 pointer-events-none" />
         )}
 
         {cameraError ? (
-          <div className="p-8 text-center space-y-4 max-w-md animate-fade-in z-10">
+          <div className="p-8 text-center space-y-4 max-w-md z-10">
             <div className="p-4 bg-rose-500/10 rounded-full border border-rose-500/20 inline-block">
               <AlertCircle className="w-10 h-10 text-rose-400 mx-auto" />
             </div>
@@ -133,7 +174,7 @@ export default function CaptureStep({
               {cameraError}
             </p>
             <p className="text-xs text-slate-400">
-              💡 Tutup aplikasi lain yang sedang menggunakan kamera, lalu refresh halaman.
+              💡 Tutup aplikasi lain yang sedang memakai kamera lalu refresh halaman.
             </p>
           </div>
         ) : (
@@ -143,7 +184,7 @@ export default function CaptureStep({
             playsInline
             muted
             className={`w-full h-full object-cover -scale-x-100 transition-all duration-500 ${
-              isCapturing && countdown !== null ? "blur-xs scale-105" : "blur-none scale-100"
+              countdown !== null ? "backdrop-blur-xl bg-slate-950/70 scale-105" : "blur-none scale-100"
             }`}
           />
         )}
@@ -156,25 +197,23 @@ export default function CaptureStep({
           </div>
         )}
 
-        {/* Top-Right Control Toggles: Gesture & Audio */}
+        {/* Top-Right Controls: Gesture Toggle & Audio Toggle */}
         {!cameraError && (
           <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
-            {/* Gesture Detection Toggle */}
             <button
               type="button"
               onClick={() => setGestureEnabled((v) => !v)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md border transition flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md border transition flex items-center gap-1.5 ${
                 gestureEnabled
                   ? "bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-lg shadow-pink-500/20"
                   : "bg-slate-950/80 text-slate-400 border-white/10"
               }`}
-              title="Toggle AI Gesture Peace Sign Auto-Take"
+              title="Toggle Gesture Detection ✌️"
             >
               <Hand className="w-3.5 h-3.5" />
               <span>Gesture ✌️ {gestureEnabled ? "ON" : "OFF"}</span>
             </button>
 
-            {/* Audio BGM Mute/Unmute Toggle */}
             <button
               type="button"
               onClick={onToggleAudio}
@@ -205,9 +244,9 @@ export default function CaptureStep({
           </div>
         )}
 
-        {/* 3-2-1 Countdown Overlay */}
+        {/* Countdown Overlay */}
         {countdown !== null && (
-          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-30">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-30">
             <div className="relative flex items-center justify-center">
               <span className="text-9xl font-black text-pink-400 drop-shadow-[0_0_35px_rgba(244,114,182,0.8)] animate-ping">
                 {countdown}
@@ -225,10 +264,10 @@ export default function CaptureStep({
         <div className="flex flex-wrap justify-center items-center gap-4 w-full">
           {!cameraError ? (
             <button
-              onClick={onStartSession}
+              onClick={onTakeSingleShot}
               className="px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 font-bold text-white rounded-2xl shadow-xl shadow-pink-500/25 flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 text-base"
             >
-              <Camera className="w-5 h-5" /> Ambil 4 Pose Foto
+              <Camera className="w-5 h-5" /> Jepret Foto #{currentShotIndex} Sekarang
             </button>
           ) : (
             <button
@@ -239,7 +278,6 @@ export default function CaptureStep({
             </button>
           )}
 
-          {/* Device Upload Alternative */}
           <input
             ref={fileInputRef}
             type="file"
@@ -253,7 +291,7 @@ export default function CaptureStep({
             onClick={() => fileInputRef.current?.click()}
             className="px-6 py-4 bg-slate-900 hover:bg-slate-800 border border-slate-800 font-semibold text-slate-300 rounded-2xl transition flex items-center gap-2 text-sm shadow-md"
           >
-            <Upload className="w-4 h-4 text-pink-400" /> Upload 4 Foto dari Perangkat
+            <Upload className="w-4 h-4 text-pink-400" /> Upload Foto dari Perangkat
           </button>
         </div>
       )}
@@ -261,7 +299,7 @@ export default function CaptureStep({
       {isCapturing && (
         <div className="text-center text-xs font-semibold text-pink-400 bg-pink-500/10 px-4 py-2 rounded-full border border-pink-500/20 animate-pulse flex items-center gap-2">
           <Sparkles className="w-4 h-4" />
-          <span>📸 Sesi foto sedang berlangsung... Bersiap untuk pose berikutnya!</span>
+          <span>📸 Mengambil Foto & Merekam Live Snippet 1.5 detik...</span>
         </div>
       )}
     </div>

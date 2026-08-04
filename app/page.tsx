@@ -7,12 +7,12 @@ import LandingStep from "@/components/Steps/LandingStep";
 import CaptureStep from "@/components/Steps/CaptureStep";
 import ReviewStep from "@/components/Steps/ReviewStep";
 import EditorStep from "@/components/Steps/EditorStep";
-import { startCameraStream, stopCameraStream, captureCanvasSnapshot } from "@/lib/cameraUtils";
-import { drawPhotoStrip, LayoutMode, FilterState, FramePreset } from "@/lib/canvasUtils";
+import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet } from "@/lib/cameraUtils";
+import { drawPhotoStrip, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily } from "@/lib/canvasUtils";
 import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
 
 type Step = "landing" | "capture" | "review" | "editor";
-type Shot = { id: number; dataUrl: string };
+type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
 export default function RielllyBooth() {
   const [step, setStep] = useState<Step>("landing");
@@ -31,9 +31,14 @@ export default function RielllyBooth() {
   const [flashFx, setFlashFx] = useState(false);
   const [isAudioOn, setIsAudioOn] = useState(false);
 
-  // Editor State
+  // Live Photo & Editor State
+  const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
   const [layout, setLayout] = useState<LayoutMode>("strip");
   const [preset, setPreset] = useState<FramePreset>("clean");
+  const [cuteFilter, setCuteFilter] = useState<CuteFilter>("none");
+  const [customText, setCustomText] = useState("rielllybooth ♡");
+  const [fontFamily, setFontFamily] = useState<FontFamily>("sans");
+  const [subtitleText, setSubtitleText] = useState("");
   const [selectedForSwap, setSelectedForSwap] = useState<number | null>(null);
   const [frameColor, setFrameColor] = useState("#ffffff");
   const [textColor, setTextColor] = useState("#000000");
@@ -43,8 +48,19 @@ export default function RielllyBooth() {
     saturation: 100,
     grayscale: 0,
   });
+  const [isExportingVideo, setIsExportingVideo] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Set default subtitle date
+  useEffect(() => {
+    const today = new Date().toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    setSubtitleText(`✨ ${today} ✨`);
+  }, []);
 
   // Handle BGM Music toggle
   useEffect(() => {
@@ -155,28 +171,42 @@ export default function RielllyBooth() {
     setTimeout(() => setFlashFx(false), 250);
   };
 
-  // Start 4-Photo Session
-  const startPhotoSession = async () => {
-    if (isCapturing) return;
+  // Per-Shot Individual Trigger (1 Peace Gesture ✌️ = 1 Photo)
+  const handleTakeSingleShot = async () => {
+    if (isCapturing || shots.length >= 4) return;
     setIsCapturing(true);
-    setShots([]);
-    const tempShots: Shot[] = [];
 
-    for (let i = 0; i < 4; i++) {
-      setCurrentShotIndex(i + 1);
-      await runCountdown(3);
+    await runCountdown(3);
 
-      if (videoRef.current) {
-        triggerSnapshotFx();
-        const dataUrl = captureCanvasSnapshot(videoRef.current, true);
-        tempShots.push({ id: Date.now() + i, dataUrl });
-        setShots([...tempShots]);
+    let videoBlobUrl = "";
+    if (mediaStreamRef.current) {
+      // Record 1.5s video snippet concurrently
+      videoBlobUrl = await recordLiveVideoSnippet(mediaStreamRef.current, 1500);
+    }
+
+    if (videoRef.current) {
+      triggerSnapshotFx();
+      const dataUrl = captureCanvasSnapshot(videoRef.current, true);
+      const newShot: Shot = {
+        id: Date.now() + shots.length,
+        dataUrl,
+        videoBlobUrl,
+      };
+
+      const updatedShots = [...shots, newShot];
+      setShots(updatedShots);
+
+      if (updatedShots.length < 4) {
+        setCurrentShotIndex(updatedShots.length + 1);
+      } else {
+        // 4 Shots Complete! Transition to review
+        setTimeout(() => {
+          setStep("review");
+        }, 500);
       }
-      await new Promise((r) => setTimeout(r, 800));
     }
 
     setIsCapturing(false);
-    setStep("review");
   };
 
   // Single Photo Retake
@@ -185,14 +215,26 @@ export default function RielllyBooth() {
     setRetakeIndex(index);
     await runCountdown(3);
 
+    let videoBlobUrl = "";
+    if (mediaStreamRef.current) {
+      videoBlobUrl = await recordLiveVideoSnippet(mediaStreamRef.current, 1500);
+    }
+
     if (videoRef.current) {
       triggerSnapshotFx();
       const dataUrl = captureCanvasSnapshot(videoRef.current, true);
       const updated = [...shots];
-      updated[index] = { id: Date.now(), dataUrl };
+      updated[index] = { id: Date.now(), dataUrl, videoBlobUrl };
       setShots(updated);
     }
     setRetakeIndex(null);
+  };
+
+  // Retake All Shots
+  const handleRetakeAll = () => {
+    setShots([]);
+    setCurrentShotIndex(1);
+    setStep("capture");
   };
 
   // Swap 2 Photos in Editor
@@ -212,33 +254,97 @@ export default function RielllyBooth() {
   };
 
   // Render HTML5 Canvas Output
-  const renderCanvas = useCallback(() => {
-    if (!canvasRef.current || shots.length < 4) return;
-    const loadedImages: HTMLImageElement[] = [];
-    let count = 0;
+  const renderCanvas = useCallback(
+    (videoElements?: HTMLVideoElement[]) => {
+      if (!canvasRef.current || shots.length < 4) return;
 
-    shots.slice(0, 4).forEach((shot, i) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = shot.dataUrl;
-      img.onload = () => {
-        loadedImages[i] = img;
-        count++;
-        if (count === 4 && canvasRef.current) {
-          drawPhotoStrip(canvasRef.current, loadedImages, layout, frameColor, textColor, filter, preset);
-        }
-      };
-    });
-  }, [shots, layout, frameColor, textColor, filter, preset]);
+      if (isLivePhotoOn && videoElements && videoElements.length === 4) {
+        drawPhotoStrip(
+          canvasRef.current,
+          videoElements,
+          layout,
+          frameColor,
+          textColor,
+          filter,
+          preset,
+          cuteFilter,
+          customText,
+          fontFamily,
+          subtitleText
+        );
+        return;
+      }
 
+      // Static Image Render
+      const loadedImages: HTMLImageElement[] = [];
+      let count = 0;
+
+      shots.slice(0, 4).forEach((shot, i) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = shot.dataUrl;
+        img.onload = () => {
+          loadedImages[i] = img;
+          count++;
+          if (count === 4 && canvasRef.current) {
+            drawPhotoStrip(
+              canvasRef.current,
+              loadedImages,
+              layout,
+              frameColor,
+              textColor,
+              filter,
+              preset,
+              cuteFilter,
+              customText,
+              fontFamily,
+              subtitleText
+            );
+          }
+        };
+      });
+    },
+    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn]
+  );
+
+  // Video Animation Loop for Live Photo Canvas Rendering
   useEffect(() => {
-    if (step === "editor") {
+    let animId: number;
+    let videoElements: HTMLVideoElement[] = [];
+
+    if (step === "editor" && isLivePhotoOn && shots.some((s) => s.videoBlobUrl)) {
+      videoElements = shots.slice(0, 4).map((shot) => {
+        const vid = document.createElement("video");
+        vid.src = shot.videoBlobUrl || shot.dataUrl;
+        vid.autoplay = true;
+        vid.loop = true;
+        vid.muted = true;
+        vid.playsInline = true;
+        vid.play().catch(() => {});
+        return vid;
+      });
+
+      const loop = () => {
+        renderCanvas(videoElements);
+        animId = requestAnimationFrame(loop);
+      };
+      loop();
+    } else if (step === "editor") {
       renderCanvas();
     }
-  }, [step, renderCanvas]);
+
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+      videoElements.forEach((v) => {
+        v.pause();
+        v.removeAttribute("src");
+        v.load();
+      });
+    };
+  }, [step, isLivePhotoOn, shots, renderCanvas]);
 
   // HD PNG Download & Confetti Trigger
-  const handleDownload = () => {
+  const handleDownloadPng = () => {
     if (!canvasRef.current) return;
     const link = document.createElement("a");
     link.download = `rielllybooth-${Date.now()}.png`;
@@ -257,12 +363,65 @@ export default function RielllyBooth() {
     }
   };
 
+  // Live Video (WebM / Boomerang) Export
+  const handleDownloadVideo = async () => {
+    if (!canvasRef.current || isExportingVideo) return;
+    setIsExportingVideo(true);
+
+    try {
+      const canvasStream = canvasRef.current.captureStream(30);
+      let mimeType = "video/webm;codecs=vp9";
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "video/webm";
+      }
+
+      const recorder = new MediaRecorder(canvasStream, { mimeType });
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.download = `rielllybooth-live-${Date.now()}.webm`;
+        link.href = url;
+        link.click();
+        setIsExportingVideo(false);
+
+        try {
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        } catch (e) {}
+      };
+
+      recorder.start();
+      setTimeout(() => {
+        if (recorder.state !== "inactive") {
+          recorder.stop();
+        }
+      }, 3500);
+    } catch (err) {
+      console.warn("Live video export failed:", err);
+      setIsExportingVideo(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans selection:bg-pink-500 selection:text-white">
       <Navbar />
 
       <div className="flex-1 flex flex-col justify-center items-center py-8">
-        {step === "landing" && <LandingStep onStart={() => setStep("capture")} />}
+        {step === "landing" && (
+          <LandingStep
+            onStart={() => {
+              setShots([]);
+              setCurrentShotIndex(1);
+              setStep("capture");
+            }}
+          />
+        )}
 
         {step === "capture" && (
           <CaptureStep
@@ -270,7 +429,8 @@ export default function RielllyBooth() {
             isCapturing={isCapturing}
             countdown={countdown}
             currentShotIndex={currentShotIndex}
-            onStartSession={startPhotoSession}
+            shotsCount={shots.length}
+            onTakeSingleShot={handleTakeSingleShot}
             onUploadPhotos={handleUploadPhotos}
             cameraError={cameraError}
             flashFx={flashFx}
@@ -285,7 +445,7 @@ export default function RielllyBooth() {
             countdown={countdown}
             retakeIndex={retakeIndex}
             onRetakeSingle={handleRetakeSingle}
-            onRetakeAll={() => setStep("capture")}
+            onRetakeAll={handleRetakeAll}
             onNextToEditor={() => setStep("editor")}
           />
         )}
@@ -298,6 +458,16 @@ export default function RielllyBooth() {
             setLayout={setLayout}
             preset={preset}
             setPreset={setPreset}
+            cuteFilter={cuteFilter}
+            setCuteFilter={setCuteFilter}
+            customText={customText}
+            setCustomText={setCustomText}
+            fontFamily={fontFamily}
+            setFontFamily={setFontFamily}
+            subtitleText={subtitleText}
+            setSubtitleText={setSubtitleText}
+            isLivePhotoOn={isLivePhotoOn}
+            setIsLivePhotoOn={setIsLivePhotoOn}
             selectedForSwap={selectedForSwap}
             onSwapPhotos={handleSwapPhotos}
             frameColor={frameColor}
@@ -307,7 +477,9 @@ export default function RielllyBooth() {
             filter={filter}
             setFilter={setFilter}
             onBack={() => setStep("review")}
-            onDownload={handleDownload}
+            onDownloadPng={handleDownloadPng}
+            onDownloadVideo={handleDownloadVideo}
+            isExportingVideo={isExportingVideo}
           />
         )}
       </div>

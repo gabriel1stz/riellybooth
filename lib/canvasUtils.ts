@@ -1,12 +1,16 @@
 /**
  * Canvas Utilities for high-resolution photo strip rendering, layout assembly,
- * CSS filter effects, 5 expanded aesthetic frame presets (Classic Clean, Coquette Ribbon,
- * Y2K Cyber, Newspaper Headline, Film Strip), and branding footer generation.
+ * CSS filter effects, 5 aesthetic frame presets, Cute Color Grade presets,
+ * and customizable typography branding engine.
  */
 
 export type LayoutMode = "strip" | "grid";
 
 export type FramePreset = "clean" | "coquette" | "y2k" | "newspaper" | "film";
+
+export type CuteFilter = "none" | "soft_pink" | "warm_cafe" | "cyber_glow" | "vintage_90s";
+
+export type FontFamily = "sans" | "serif" | "cursive" | "mono";
 
 export type FilterState = {
   brightness: number;
@@ -20,7 +24,7 @@ export type FilterState = {
  */
 function drawImageCover(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
+  img: HTMLImageElement | HTMLVideoElement,
   x: number,
   y: number,
   w: number,
@@ -35,7 +39,10 @@ function drawImageCover(
     ctx.clip();
   }
 
-  const imgRatio = img.width / img.height;
+  const imgW = (img as HTMLVideoElement).videoWidth || img.width;
+  const imgH = (img as HTMLVideoElement).videoHeight || img.height;
+
+  const imgRatio = imgW / imgH;
   const containerRatio = w / h;
 
   let renderW = w;
@@ -52,6 +59,60 @@ function drawImageCover(
   }
 
   ctx.drawImage(img, x + offsetX, y + offsetY, renderW, renderH);
+  ctx.restore();
+}
+
+/**
+ * Helper to apply cute color grade overlays onto photo slots
+ */
+function applyCuteFilterOverlay(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  cuteFilter: CuteFilter,
+  borderRadius: number = 0
+) {
+  if (cuteFilter === "none") return;
+
+  ctx.save();
+  if (borderRadius > 0) {
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, borderRadius);
+    ctx.clip();
+  }
+
+  if (cuteFilter === "soft_pink") {
+    ctx.fillStyle = "rgba(244, 114, 182, 0.12)";
+    ctx.globalCompositeOperation = "color-burn";
+    ctx.fillRect(x, y, w, h);
+
+    ctx.fillStyle = "rgba(251, 207, 232, 0.15)";
+    ctx.globalCompositeOperation = "soft-light";
+    ctx.fillRect(x, y, w, h);
+  } else if (cuteFilter === "warm_cafe") {
+    ctx.fillStyle = "rgba(180, 83, 9, 0.18)";
+    ctx.globalCompositeOperation = "color";
+    ctx.fillRect(x, y, w, h);
+
+    ctx.fillStyle = "rgba(254, 243, 199, 0.15)";
+    ctx.globalCompositeOperation = "soft-light";
+    ctx.fillRect(x, y, w, h);
+  } else if (cuteFilter === "cyber_glow") {
+    ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
+    ctx.globalCompositeOperation = "overlay";
+    ctx.fillRect(x, y, w, h);
+
+    ctx.fillStyle = "rgba(217, 70, 239, 0.12)";
+    ctx.globalCompositeOperation = "color-dodge";
+    ctx.fillRect(x, y, w, h);
+  } else if (cuteFilter === "vintage_90s") {
+    ctx.fillStyle = "rgba(120, 53, 15, 0.15)";
+    ctx.globalCompositeOperation = "multiply";
+    ctx.fillRect(x, y, w, h);
+  }
+
   ctx.restore();
 }
 
@@ -95,7 +156,7 @@ function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, sc
   ctx.fill();
   ctx.stroke();
 
-  // Left Ribbon Tail
+  // Ribbon Tails
   ctx.beginPath();
   ctx.moveTo(-6, 2);
   ctx.quadraticCurveTo(-16, 18, -22, 28);
@@ -105,7 +166,6 @@ function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, sc
   ctx.fill();
   ctx.stroke();
 
-  // Right Ribbon Tail
   ctx.beginPath();
   ctx.moveTo(6, 2);
   ctx.quadraticCurveTo(16, 18, 22, 28);
@@ -130,12 +190,16 @@ function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, sc
  */
 export const drawPhotoStrip = (
   canvas: HTMLCanvasElement,
-  images: HTMLImageElement[],
+  images: (HTMLImageElement | HTMLVideoElement)[],
   layout: LayoutMode,
   frameColor: string,
   textColor: string,
   filter: FilterState,
-  preset: FramePreset = "clean"
+  preset: FramePreset = "clean",
+  cuteFilter: CuteFilter = "none",
+  customText: string = "rielllybooth ♡",
+  fontFamily: FontFamily = "sans",
+  subtitleText?: string
 ): void => {
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length < 4) return;
@@ -160,18 +224,15 @@ export const drawPhotoStrip = (
   // ==========================================
   ctx.save();
   if (preset === "coquette") {
-    // Soft Pastel Pink Frame
     ctx.fillStyle = "#fff1f2";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Inner Lace Dotted Border
     ctx.strokeStyle = "#f472b6";
     ctx.lineWidth = 4;
     ctx.setLineDash([8, 8]);
     ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
     ctx.setLineDash([]);
   } else if (preset === "y2k") {
-    // Metallic Silver/Slate Gradient Frame
     const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     grad.addColorStop(0, "#0f172a");
     grad.addColorStop(0.5, "#334155");
@@ -179,7 +240,6 @@ export const drawPhotoStrip = (
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Neon Cyber Grid Lines
     ctx.strokeStyle = "rgba(244, 114, 182, 0.15)";
     ctx.lineWidth = 1;
     for (let x = 0; x < canvas.width; x += 40) {
@@ -189,11 +249,9 @@ export const drawPhotoStrip = (
       ctx.stroke();
     }
   } else if (preset === "newspaper") {
-    // Vintage Newsprint Paper Texture
     ctx.fillStyle = "#f4f1ea";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Headline Banner Box on Top
     ctx.fillStyle = "#1c1917";
     ctx.fillRect(0, 0, canvas.width, 100);
 
@@ -207,29 +265,24 @@ export const drawPhotoStrip = (
     ctx.font = "italic 16px 'Georgia', serif";
     ctx.fillText("SPECIAL EDITION • MEMORIES FOR LIFE • VOL. 1", canvas.width / 2, 80);
   } else if (preset === "film") {
-    // 35mm Matte Black Film Stock
     ctx.fillStyle = "#0d0d0d";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Sprocket holes (left & right film margins)
     ctx.fillStyle = "#ffffff";
     const holeW = 20;
     const holeH = 28;
     const holeGap = 44;
 
     for (let y = 30; y < canvas.height - 30; y += holeGap) {
-      // Left sprocket hole
       ctx.beginPath();
       ctx.roundRect(18, y, holeW, holeH, 4);
       ctx.fill();
 
-      // Right sprocket hole
       ctx.beginPath();
       ctx.roundRect(canvas.width - 38, y, holeW, holeH, 4);
       ctx.fill();
     }
   } else {
-    // Classic Clean Solid Color Frame
     ctx.fillStyle = frameColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
@@ -247,15 +300,16 @@ export const drawPhotoStrip = (
 
     images.slice(0, 4).forEach((img, i) => {
       const y = startYOffset + padding + i * (photoH + padding);
+      const borderRadius = preset === "film" ? 4 : preset === "coquette" ? 16 : 12;
 
       ctx.save();
       ctx.filter = filterString;
-
-      const borderRadius = preset === "film" ? 4 : preset === "coquette" ? 16 : 12;
       drawImageCover(ctx, img, padding, y, photoW, photoH, borderRadius);
       ctx.restore();
 
-      // Film Frame Number Markings
+      // Apply Cute Color Grade Filter Overlay
+      applyCuteFilterOverlay(ctx, padding, y, photoW, photoH, cuteFilter, borderRadius);
+
       if (preset === "film") {
         ctx.save();
         ctx.fillStyle = "#f59e0b";
@@ -279,11 +333,14 @@ export const drawPhotoStrip = (
     ];
 
     images.slice(0, 4).forEach((img, i) => {
+      const borderRadius = preset === "film" ? 4 : preset === "coquette" ? 20 : 16;
       ctx.save();
       ctx.filter = filterString;
-      const borderRadius = preset === "film" ? 4 : preset === "coquette" ? 20 : 16;
       drawImageCover(ctx, img, positions[i].x, positions[i].y, photoW, photoH, borderRadius);
       ctx.restore();
+
+      // Apply Cute Color Grade Filter Overlay
+      applyCuteFilterOverlay(ctx, positions[i].x, positions[i].y, photoW, photoH, cuteFilter, borderRadius);
     });
   }
 
@@ -291,74 +348,79 @@ export const drawPhotoStrip = (
   // STEP 3: PRESET DECORATIVE VECTORS & STICKERS
   // ==========================================
   if (preset === "coquette") {
-    // Render Ribbon Bows 🎀
     drawRibbonBow(ctx, padding + 20, 40, 0.9);
     drawRibbonBow(ctx, canvas.width - padding - 20, 40, 0.9);
     drawRibbonBow(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 10, 1.1);
   } else if (preset === "y2k") {
-    // Render Chrome Stars ✨
     drawY2kStar(ctx, padding + 15, 30, 14, "#ec4899");
     drawY2kStar(ctx, canvas.width - padding - 15, 30, 14, "#38bdf8");
     drawY2kStar(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 20, 18, "#f472b6");
   }
 
   // ==========================================
-  // STEP 4: BRANDING FOOTER & TYPOGRAPHY
+  // STEP 4: CUSTOM BRANDING FOOTER & TYPOGRAPHY
   // ==========================================
   ctx.save();
   ctx.filter = "none";
 
-  const today = new Date().toLocaleDateString("id-ID", {
+  const defaultDate = new Date().toLocaleDateString("id-ID", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
+
+  const displaySubtitle = subtitleText !== undefined ? subtitleText : `✨ ${defaultDate} ✨`;
+
+  // Font family mapping
+  let fontCss = "'Plus Jakarta Sans', system-ui, sans-serif";
+  if (fontFamily === "serif") fontCss = "'Georgia', 'Times New Roman', serif";
+  else if (fontFamily === "cursive") fontCss = "'Brush Script MT', 'Comic Sans MS', cursive";
+  else if (fontFamily === "mono") fontCss = "monospace";
 
   if (preset === "newspaper") {
     ctx.fillStyle = "#1c1917";
     ctx.strokeStyle = "#1c1917";
     ctx.lineWidth = 3;
 
-    // Double line divider
     ctx.beginPath();
     ctx.moveTo(padding, canvas.height - 130);
     ctx.lineTo(canvas.width - padding, canvas.height - 130);
     ctx.stroke();
 
-    ctx.font = "bold 36px 'Georgia', serif";
+    ctx.font = `bold 36px ${fontCss}`;
     ctx.textAlign = "center";
-    ctx.fillText("rielllybooth", canvas.width / 2, canvas.height - 85);
+    ctx.fillText(customText || "rielllybooth", canvas.width / 2, canvas.height - 85);
 
-    ctx.font = "italic 18px 'Georgia', serif";
-    ctx.fillText(`Printed on ${today} • All Rights Reserved`, canvas.width / 2, canvas.height - 45);
+    ctx.font = `italic 18px ${fontCss}`;
+    ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 45);
   } else if (preset === "y2k") {
     ctx.fillStyle = "#f472b6";
-    ctx.font = "900 44px monospace";
+    ctx.font = `900 44px ${fontCss}`;
     ctx.textAlign = "center";
-    ctx.fillText("RIELLLYBOOTH.Y2K", canvas.width / 2, canvas.height - 110);
+    ctx.fillText(customText || "RIELLLYBOOTH.Y2K", canvas.width / 2, canvas.height - 110);
 
     ctx.fillStyle = "#38bdf8";
-    ctx.font = "bold 18px monospace";
-    ctx.fillText(`[ ${today} // CYBER EDITION ]`, canvas.width / 2, canvas.height - 60);
+    ctx.font = `bold 18px ${fontCss}`;
+    ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
   } else if (preset === "film") {
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 38px monospace";
+    ctx.font = `bold 38px ${fontCss}`;
     ctx.textAlign = "center";
-    ctx.fillText("rielllybooth 35mm", canvas.width / 2, canvas.height - 110);
+    ctx.fillText(customText || "rielllybooth 35mm", canvas.width / 2, canvas.height - 110);
 
     ctx.fillStyle = "#9ca3af";
-    ctx.font = "18px monospace";
-    ctx.fillText(`FRAME #04 • ${today}`, canvas.width / 2, canvas.height - 60);
+    ctx.font = `18px ${fontCss}`;
+    ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
   } else {
-    // Classic & Coquette
+    // Classic Clean & Coquette
     ctx.fillStyle = preset === "coquette" ? "#db2777" : textColor;
-    ctx.font = "bold 44px 'Plus Jakarta Sans', system-ui, sans-serif";
+    ctx.font = `bold 44px ${fontCss}`;
     ctx.textAlign = "center";
-    ctx.fillText(preset === "coquette" ? "rielllybooth 🎀" : "rielllybooth ♡", canvas.width / 2, canvas.height - 120);
+    ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 120);
 
-    ctx.font = "500 20px 'Plus Jakarta Sans', system-ui, sans-serif";
+    ctx.font = `500 20px ${fontCss}`;
     ctx.globalAlpha = 0.85;
-    ctx.fillText(`✨ ${today} ✨`, canvas.width / 2, canvas.height - 70);
+    ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 70);
   }
 
   ctx.restore();

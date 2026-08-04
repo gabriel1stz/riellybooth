@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
-import { Repeat, ArrowRight, Camera, Sparkles } from "lucide-react";
+import React, { useState } from "react";
+import { Repeat, ArrowRight, Camera, Sparkles, Video, Play, Pause } from "lucide-react";
 
-type Shot = { id: number; dataUrl: string };
+type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
 type ReviewStepProps = {
   shots: Shot[];
@@ -22,6 +22,8 @@ export default function ReviewStep({
   onRetakeAll,
   onNextToEditor,
 }: ReviewStepProps) {
+  const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
+
   return (
     <div className="w-full max-w-4xl space-y-8 px-4 py-4">
       {/* Header */}
@@ -33,8 +35,24 @@ export default function ReviewStep({
           Review Hasil Jepretanmu
         </h3>
         <p className="text-slate-400 text-sm max-w-md mx-auto">
-          Pose ada yang kurang pas? Kamu bisa mengulang foto tertentu atau langsung lanjut ke Studio Hias.
+          Kamu bisa mengulang foto tertentu atau langsung lanjut ke Studio Hias.
         </p>
+
+        {/* Live Photo Toggle Switch */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => setIsLivePhotoOn((v) => !v)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-bold transition shadow-lg ${
+              isLivePhotoOn
+                ? "bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-pink-500/10"
+                : "bg-slate-900 text-slate-400 border-slate-800"
+            }`}
+          >
+            <Video className="w-4 h-4 text-pink-400" />
+            <span>Live Photo 🎥 (Moving Video) : {isLivePhotoOn ? "AKTIF 🔥" : "MATI"}</span>
+          </button>
+        </div>
       </div>
 
       {/* 4 Photo Grid */}
@@ -44,15 +62,33 @@ export default function ReviewStep({
             key={shot.id || idx}
             className="relative bg-slate-900/90 rounded-2xl overflow-hidden border border-slate-800/90 shadow-xl group flex flex-col justify-between"
           >
-            <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-950">
-              <img
-                src={shot.dataUrl}
-                alt={`Pose #${idx + 1}`}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+            <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-950 flex items-center justify-center">
+              {isLivePhotoOn && shot.videoBlobUrl ? (
+                <video
+                  src={shot.videoBlobUrl}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <img
+                  src={shot.dataUrl}
+                  alt={`Pose #${idx + 1}`}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              )}
+
               <span className="absolute top-2 left-2 bg-slate-950/80 backdrop-blur-md text-[10px] text-pink-300 font-bold px-2 py-0.5 rounded-md border border-white/10">
                 #{idx + 1}
               </span>
+
+              {isLivePhotoOn && shot.videoBlobUrl && (
+                <span className="absolute top-2 right-2 bg-pink-500/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs flex items-center gap-1">
+                  <Play className="w-2.5 h-2.5 fill-current" /> Live
+                </span>
+              )}
             </div>
 
             <div className="p-3 bg-slate-900/80 border-t border-slate-800">

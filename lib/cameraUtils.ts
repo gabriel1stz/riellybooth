@@ -1,5 +1,6 @@
 /**
- * Camera Utility module for WebRTC stream management and video frame snapshot capturing.
+ * Camera Utility module for WebRTC stream management, video frame snapshot capturing,
+ * and 1.5s Live Photo (moving photo / boomerang video) snippet recording.
  */
 
 export const startCameraStream = async (): Promise<MediaStream> => {
@@ -8,7 +9,6 @@ export const startCameraStream = async (): Promise<MediaStream> => {
   }
 
   try {
-    // Standard high quality resolution request
     return await navigator.mediaDevices.getUserMedia({
       video: {
         width: { ideal: 1280 },
@@ -19,7 +19,6 @@ export const startCameraStream = async (): Promise<MediaStream> => {
     });
   } catch (err: unknown) {
     console.warn("Retrying camera stream initialization with default constraints...", err);
-    // Fallback if specific ideal constraints fail or hardware has restrictions
     try {
       return await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -28,7 +27,7 @@ export const startCameraStream = async (): Promise<MediaStream> => {
     } catch (fallbackErr: unknown) {
       if (fallbackErr instanceof Error) {
         if (fallbackErr.name === "NotReadableError") {
-          throw new Error("Kamera sedang digunakan oleh aplikasi lain (Zoom, OBS, Discord, atau browser tab lain). Silakan tutup aplikasi tersebut dan coba lagi.");
+          throw new Error("Kamera sedang digunakan oleh aplikasi lain (Zoom, OBS, Discord, atau tab browser lain). Silakan tutup aplikasi tersebut dan coba lagi.");
         } else if (fallbackErr.name === "NotAllowedError" || fallbackErr.name === "PermissionDeniedError") {
           throw new Error("Akses kamera ditolak. Silakan berikan izin kamera pada browser Anda.");
         } else if (fallbackErr.name === "NotFoundError" || fallbackErr.name === "DevicesNotFoundError") {
@@ -70,4 +69,50 @@ export const captureCanvasSnapshot = (
   }
 
   return canvas.toDataURL("image/png");
+};
+
+/**
+ * Records a 1.5-second live video snippet (Live Photo / boomerang) from camera stream using MediaRecorder.
+ */
+export const recordLiveVideoSnippet = (
+  stream: MediaStream,
+  durationMs: number = 1500
+): Promise<string> => {
+  return new Promise((resolve) => {
+    try {
+      let mimeType = "video/webm;codecs=vp9";
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "video/webm";
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "";
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      const chunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType || "video/webm" });
+        const videoBlobUrl = URL.createObjectURL(blob);
+        resolve(videoBlobUrl);
+      };
+
+      mediaRecorder.start();
+
+      setTimeout(() => {
+        if (mediaRecorder.state !== "inactive") {
+          mediaRecorder.stop();
+        }
+      }, durationMs);
+    } catch (err) {
+      console.warn("Live photo video snippet recording unsupported or failed:", err);
+      resolve("");
+    }
+  });
 };
