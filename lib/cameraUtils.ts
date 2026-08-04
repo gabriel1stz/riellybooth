@@ -1,9 +1,9 @@
 /**
  * Camera Utility module for WebRTC stream management, video frame snapshot capturing,
- * and 1.5s Live Photo (moving photo / boomerang video) snippet recording.
+ * front/back camera facing mode switching, and 1.5s Live Photo (moving photo / boomerang video) snippet recording.
  */
 
-export const startCameraStream = async (): Promise<MediaStream> => {
+export const startCameraStream = async (facingMode: "user" | "environment" = "user"): Promise<MediaStream> => {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     throw new Error("Kamera tidak didukung pada peramban ini.");
   }
@@ -13,7 +13,7 @@ export const startCameraStream = async (): Promise<MediaStream> => {
       video: {
         width: { ideal: 1280 },
         height: { ideal: 720 },
-        facingMode: "user",
+        facingMode: facingMode,
       },
       audio: false,
     });
@@ -21,7 +21,7 @@ export const startCameraStream = async (): Promise<MediaStream> => {
     console.warn("Retrying camera stream initialization with default constraints...", err);
     try {
       return await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: { facingMode: facingMode },
         audio: false,
       });
     } catch (fallbackErr: unknown) {
@@ -41,42 +41,41 @@ export const startCameraStream = async (): Promise<MediaStream> => {
 
 export const stopCameraStream = (stream: MediaStream | null): void => {
   if (!stream) return;
-  stream.getTracks().forEach((track) => {
-    track.stop();
-  });
+  stream.getTracks().forEach((track) => track.stop());
 };
 
 /**
- * Captures video snapshot. Defaults to mirror = false (un-mirrored normal orientation)
- * so clothing text and faces read correctly!
+ * Capture high-resolution un-mirrored snapshot from active WebRTC video element.
+ * Text on clothing and faces read correctly non-flipped.
  */
 export const captureCanvasSnapshot = (
-  video: HTMLVideoElement,
+  videoEl: HTMLVideoElement,
   mirror: boolean = false
 ): string => {
   const canvas = document.createElement("canvas");
-  const width = video.videoWidth || 1280;
-  const height = video.videoHeight || 720;
+  const width = videoEl.videoWidth || 1280;
+  const height = videoEl.videoHeight || 720;
 
   canvas.width = width;
   canvas.height = height;
 
   const ctx = canvas.getContext("2d");
-  if (ctx) {
-    ctx.save();
-    if (mirror) {
-      ctx.translate(width, 0);
-      ctx.scale(-1, 1);
-    }
-    ctx.drawImage(video, 0, 0, width, height);
-    ctx.restore();
+  if (!ctx) return "";
+
+  ctx.save();
+  if (mirror) {
+    ctx.translate(width, 0);
+    ctx.scale(-1, 1);
   }
+
+  ctx.drawImage(videoEl, 0, 0, width, height);
+  ctx.restore();
 
   return canvas.toDataURL("image/png");
 };
 
 /**
- * Records a 1.5-second live video snippet (Live Photo / boomerang) from camera stream using MediaRecorder.
+ * Record 1.5-second short live video snippet (boomerang style) from WebRTC stream.
  */
 export const recordLiveVideoSnippet = (
   stream: MediaStream,
@@ -88,34 +87,28 @@ export const recordLiveVideoSnippet = (
       if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = "video/webm";
       }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = "";
-      }
 
-      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      const recorder = new MediaRecorder(stream, { mimeType });
       const chunks: Blob[] = [];
 
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) {
-          chunks.push(e.data);
-        }
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
       };
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mimeType || "video/webm" });
-        const videoBlobUrl = URL.createObjectURL(blob);
-        resolve(videoBlobUrl);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType });
+        const videoUrl = URL.createObjectURL(blob);
+        resolve(videoUrl);
       };
 
-      mediaRecorder.start();
-
+      recorder.start();
       setTimeout(() => {
-        if (mediaRecorder.state !== "inactive") {
-          mediaRecorder.stop();
+        if (recorder.state !== "inactive") {
+          recorder.stop();
         }
       }, durationMs);
     } catch (err) {
-      console.warn("Live photo video snippet recording unsupported or failed:", err);
+      console.warn("Live photo snippet recording failed fallback:", err);
       resolve("");
     }
   });

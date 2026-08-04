@@ -4,12 +4,18 @@ import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-plus-jakarta",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
-  title: "rielllybooth - Virtual Photobooth Aesthetic",
-  description: "Bikin photo strip aesthetic langsung dari web browser!",
+  title: "rielllybooth ♡ Virtual Photobooth Studio",
+  description: "Bikin photo strip aesthetic langsung dari browser gratis tanpa watermark!",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -18,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
+    <html lang="id" className="scroll-smooth">
       <body className={`${plusJakartaSans.variable} font-sans antialiased bg-rose-50/50 text-slate-800`}>
         {children}
       </body>

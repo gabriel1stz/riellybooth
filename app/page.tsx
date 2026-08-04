@@ -18,9 +18,10 @@ type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 export default function RielllyBooth() {
   const [step, setStep] = useState<Step>("landing");
 
-  // Camera & Capture State
+  // Camera & Facing Mode State
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -125,13 +126,18 @@ export default function RielllyBooth() {
     setCustomLogoImg(null);
   };
 
+  // Toggle Camera Facing Mode (Front / Back)
+  const handleToggleFacingMode = () => {
+    setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
+  };
+
   // WebRTC Stream Lifecycle Management
   useEffect(() => {
     let isActive = true;
 
     if (step === "capture" || retakeIndex !== null) {
       setCameraError(null);
-      startCameraStream()
+      startCameraStream(facingMode)
         .then((stream) => {
           if (!isActive) {
             stopCameraStream(stream);
@@ -159,7 +165,7 @@ export default function RielllyBooth() {
     return () => {
       isActive = false;
     };
-  }, [step, retakeIndex]);
+  }, [step, retakeIndex, facingMode]);
 
   // Handle Upload 4 Photos from Device
   const handleUploadPhotos = (files: FileList) => {
@@ -417,34 +423,84 @@ export default function RielllyBooth() {
     };
   }, [step, isLivePhotoOn, shots, renderCanvas]);
 
-  // Direct Download Trigger Helpers
-  const triggerDirectPngDownload = () => {
+  // Helper for Mobile Device Detection
+  const isMobileDevice = useCallback(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 768 || navigator.maxTouchPoints > 0;
+  }, []);
+
+  // Native Web Share API + Direct Download Trigger with Branded Random Filenames
+  const triggerDirectPngDownload = async () => {
     if (!canvasRef.current) return;
+    const randomHash = Math.random().toString(36).substring(2, 8);
+    const filename = `rielllybooth-${randomHash}.png`;
+
     const dataUrl = canvasRef.current.toDataURL("image/png");
     setDownloadedDataUrl(dataUrl);
 
+    // TRY NATIVE WEB SHARE API FOR MOBILE DEVICESS (SAVE DIRECTLY TO CAMERA ROLL)
+    if (isMobileDevice() && navigator.share) {
+      try {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], filename, { type: "image/png" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: "rielllybooth photo strip",
+            text: "My cute photo strip from rielllybooth ♡",
+          });
+          return;
+        }
+      } catch (shareErr) {
+        console.warn("Web Share API cancelled or unhandled:", shareErr);
+      }
+    }
+
+    // DESKTOP & FALLBACK DOWNLOAD TRIGGER
     const link = document.createElement("a");
-    link.download = `rielllybooth-${Date.now()}.png`;
+    link.download = filename;
     link.href = dataUrl;
     link.click();
   };
 
-  const triggerDirectVideoDownload = () => {
-    if (downloadedVideoUrl) {
-      const link = document.createElement("a");
-      link.download = `rielllybooth-live-${Date.now()}.webm`;
-      link.href = downloadedVideoUrl;
-      link.click();
+  const triggerDirectVideoDownload = async () => {
+    if (!downloadedVideoUrl) return;
+    const randomHash = Math.random().toString(36).substring(2, 8);
+    const filename = `rielllybooth-live-${randomHash}.webm`;
+
+    if (isMobileDevice() && navigator.share) {
+      try {
+        const res = await fetch(downloadedVideoUrl);
+        const blob = await res.blob();
+        const file = new File([blob], filename, { type: "video/webm" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: "rielllybooth live photo",
+          });
+          return;
+        }
+      } catch (shareErr) {
+        console.warn("Web Share API video cancelled:", shareErr);
+      }
     }
+
+    const link = document.createElement("a");
+    link.download = filename;
+    link.href = downloadedVideoUrl;
+    link.click();
   };
 
   // HD PNG Download Action & Open Download Modal
-  const handleDownloadPng = () => {
+  const handleDownloadPng = async () => {
     if (!canvasRef.current) return;
     const dataUrl = canvasRef.current.toDataURL("image/png");
     setDownloadedDataUrl(dataUrl);
 
-    triggerDirectPngDownload();
+    await triggerDirectPngDownload();
 
     try {
       confetti({
@@ -455,9 +511,11 @@ export default function RielllyBooth() {
       });
     } catch (e) {}
 
-    // Open Download Modal with Direct Tab Selected
-    setDownloadModalTab("direct");
-    setTimeout(() => setShowDownloadModal(true), 300);
+    // Only open Download Modal on Desktop (NEVER SHOW QR MODAL ON MOBILE)
+    if (!isMobileDevice()) {
+      setDownloadModalTab("direct");
+      setTimeout(() => setShowDownloadModal(true), 300);
+    }
   };
 
   // Live Video Export Action & Open Download Modal
@@ -479,13 +537,16 @@ export default function RielllyBooth() {
         if (e.data && e.data.size > 0) chunks.push(e.data);
       };
 
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setDownloadedVideoUrl(url);
 
+        const randomHash = Math.random().toString(36).substring(2, 8);
+        const filename = `rielllybooth-live-${randomHash}.webm`;
+
         const link = document.createElement("a");
-        link.download = `rielllybooth-live-${Date.now()}.webm`;
+        link.download = filename;
         link.href = url;
         link.click();
         setIsExportingVideo(false);
@@ -494,8 +555,10 @@ export default function RielllyBooth() {
           confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         } catch (e) {}
 
-        setDownloadModalTab("direct");
-        setTimeout(() => setShowDownloadModal(true), 300);
+        if (!isMobileDevice()) {
+          setDownloadModalTab("direct");
+          setTimeout(() => setShowDownloadModal(true), 300);
+        }
       };
 
       recorder.start();
@@ -546,6 +609,8 @@ export default function RielllyBooth() {
             flashFx={flashFx}
             isAudioOn={isAudioOn}
             onToggleAudio={() => setIsAudioOn((v) => !v)}
+            facingMode={facingMode}
+            onToggleFacingMode={handleToggleFacingMode}
           />
         )}
 
@@ -716,7 +781,7 @@ export default function RielllyBooth() {
         </div>
       )}
 
-      {/* OVERHAULED MOBILE & DESKTOP DIRECT DOWNLOAD MODAL */}
+      {/* DESKTOP DOWNLOAD MODAL (ONLY DISPLAYED ON DESKTOP DEVICESS) */}
       {showDownloadModal && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 text-center relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
@@ -733,11 +798,10 @@ export default function RielllyBooth() {
               </div>
               <h3 className="text-2xl font-black text-slate-800">Unduh Photo Strip 📸</h3>
               <p className="text-xs text-slate-600 font-medium">
-                Pilih opsi di bawah untuk menyimpan file langsung ke HP atau Laptop!
+                File berhasil disimpan di Laptop! Pindai QR Code jika ingin mentransfer ke HP:
               </p>
             </div>
 
-            {/* TAB SELECTOR: Direct Download vs Optional QR Code */}
             <div className="flex bg-rose-50 p-1.5 rounded-2xl border border-pink-200 gap-1">
               <button
                 type="button"
@@ -748,7 +812,7 @@ export default function RielllyBooth() {
                     : "text-slate-600 hover:bg-pink-100"
                 }`}
               >
-                <Download className="w-3.5 h-3.5" /> Unduh Langsung ⬇️
+                <Download className="w-3.5 h-3.5" /> Unduh Ulang ⬇️
               </button>
               <button
                 type="button"
@@ -763,10 +827,8 @@ export default function RielllyBooth() {
               </button>
             </div>
 
-            {/* TAB 1: DIRECT DOWNLOAD BUTTONS & MOBILE PRESS-AND-HOLD PREVIEW */}
             {downloadModalTab === "direct" && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                {/* Direct Action Buttons */}
                 <div className="space-y-2">
                   <button
                     type="button"
@@ -786,31 +848,9 @@ export default function RielllyBooth() {
                     </button>
                   )}
                 </div>
-
-                {/* Mobile Browser Press & Hold Preview Image with Helpful Hint */}
-                {downloadedDataUrl && (
-                  <div className="bg-rose-50 border-2 border-pink-200 p-3 rounded-2xl space-y-2.5">
-                    <span className="text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1">
-                      <Smartphone className="w-4 h-4 text-pink-500" /> Pratinjau Foto (HP & Tablet):
-                    </span>
-
-                    <div className="flex justify-center max-h-56 overflow-hidden rounded-xl border border-pink-200 bg-white p-1 shadow-inner">
-                      <img
-                        src={downloadedDataUrl}
-                        alt="Photo Strip Download Preview"
-                        className="max-h-52 w-auto object-contain rounded-lg shadow-xs cursor-pointer"
-                      />
-                    </div>
-
-                    <p className="text-[11px] font-bold text-pink-700 bg-pink-100 p-2.5 rounded-xl border border-pink-200 leading-relaxed text-center">
-                      💡 <span className="underline">Petunjuk pengguna HP (iOS / Android)</span>: Kamu juga bisa <strong>Tekan & Tahan</strong> gambar di atas, lalu pilih <strong>&ldquo;Simpan ke Foto / Save Image&rdquo;</strong>!
-                    </p>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* TAB 2: OPTIONAL QR CODE TRANSFER FOR DESKTOP */}
             {downloadModalTab === "qr" && (
               <div className="space-y-4 animate-in fade-in duration-200">
                 <p className="text-xs text-slate-600 font-medium">
