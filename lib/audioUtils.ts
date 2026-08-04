@@ -1,20 +1,20 @@
 /**
  * Audio Utility Module using HTMLAudioElement (new Audio())
- * Loads external audio files /audio/shutter.mp3 and /audio/bgm.mp3 with graceful error handling.
+ * Loads external audio files /audio/shutter.mp3 and /audio/bgm.mp3 with deferred loading.
  */
 
 let shutterAudio: HTMLAudioElement | null = null;
 let bgmAudio: HTMLAudioElement | null = null;
 
 /**
- * Initialize or get the shutter audio element
+ * Initialize or get the shutter audio element (deferred)
  */
 const getShutterAudio = (): HTMLAudioElement | null => {
   if (typeof window === "undefined") return null;
   if (!shutterAudio) {
     try {
       shutterAudio = new Audio("/audio/shutter.mp3");
-      shutterAudio.preload = "auto";
+      shutterAudio.preload = "none";
       shutterAudio.volume = 0.8;
       shutterAudio.onerror = () => {
         console.warn("Shutter audio file /audio/shutter.mp3 not found or could not be loaded.");
@@ -27,7 +27,7 @@ const getShutterAudio = (): HTMLAudioElement | null => {
 };
 
 /**
- * Initialize or get the background music audio element
+ * Initialize or get the background music audio element (deferred, no initial preload)
  */
 const getBgmAudio = (): HTMLAudioElement | null => {
   if (typeof window === "undefined") return null;
@@ -35,7 +35,7 @@ const getBgmAudio = (): HTMLAudioElement | null => {
     try {
       bgmAudio = new Audio("/audio/bgm.mp3");
       bgmAudio.loop = true;
-      bgmAudio.preload = "auto";
+      bgmAudio.preload = "none";
       bgmAudio.volume = 0.4;
       bgmAudio.onerror = () => {
         console.warn("BGM audio file /audio/bgm.mp3 not found or could not be loaded.");
@@ -72,6 +72,7 @@ export const playShutterSound = (): void => {
  */
 export const setBgmState = (shouldPlay: boolean): void => {
   try {
+    if (!shouldPlay && !bgmAudio) return;
     const audio = getBgmAudio();
     if (!audio) return;
 

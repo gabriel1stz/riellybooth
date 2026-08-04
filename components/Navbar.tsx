@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Image from "next/image";
 import { Sparkles, Camera, Volume2, VolumeX, Home, Info, Heart } from "lucide-react";
 
 type NavbarProps = {
@@ -27,9 +28,12 @@ export default function Navbar({
       >
         <div className="p-1 sm:p-1.5 rounded-2xl bg-pink-100/80 border border-pink-300 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
           {!logoFailed ? (
-            <img
+            <Image
               src="/logo.png"
               alt="rielllybooth logo"
+              width={160}
+              height={48}
+              priority
               onError={() => setLogoFailed(true)}
               className="h-8 sm:h-9 w-auto object-contain"
             />

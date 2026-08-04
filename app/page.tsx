@@ -1,16 +1,25 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import confetti from "canvas-confetti";
 import { Instagram, Mail, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, Share2, Download, Copy, Check, MessageCircle, Twitter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import LandingStep from "@/components/Steps/LandingStep";
-import CaptureStep from "@/components/Steps/CaptureStep";
-import ReviewStep from "@/components/Steps/ReviewStep";
-import EditorStep from "@/components/Steps/EditorStep";
 import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet } from "@/lib/cameraUtils";
 import { drawPhotoStrip, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
 import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
+
+// Dynamic Imports for Heavy Step Components to optimize Initial JS Bundle & LCP
+const CaptureStep = dynamic(() => import("@/components/Steps/CaptureStep"), {
+  loading: () => <div className="p-8 text-center text-pink-500 font-bold animate-pulse">Memuat Studio Kamera... 📸</div>,
+});
+const ReviewStep = dynamic(() => import("@/components/Steps/ReviewStep"), {
+  loading: () => <div className="p-8 text-center text-pink-500 font-bold animate-pulse">Memuat Review Foto... ✨</div>,
+});
+const EditorStep = dynamic(() => import("@/components/Steps/EditorStep"), {
+  loading: () => <div className="p-8 text-center text-pink-500 font-bold animate-pulse">Memuat Studio Editor... 🎨</div>,
+});
 
 type Step = "landing" | "capture" | "review" | "editor";
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
@@ -81,7 +90,7 @@ export default function RielllyBooth() {
     setSubtitleText(`✨ ${today} ✨`);
   }, []);
 
-  // Handle BGM Music lifecycle (ONLY PLAY DURING CAPTURE STEP)
+  // Handle BGM Music lifecycle (ONLY PLAY DURING CAPTURE STEP - DEFERRED LOADING)
   useEffect(() => {
     if (step === "capture" && isAudioOn) {
       setBgmState(true);
@@ -900,17 +909,17 @@ export default function RielllyBooth() {
           </span>
           <span className="text-slate-400">•</span>
           <span className="italic text-slate-600 font-medium">
-            &ldquo;happy captures ✨&rdquo;
+            &ldquo;capturing ur cutiest moments everywhere ✨&rdquo;
           </span>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
           <a
-            href="mailto:rielllybooth@gmail.com"
+            href="mailto:hello.rielllybooth@gmail.com"
             className="inline-flex items-center gap-1.5 font-bold text-slate-700 hover:text-pink-600 transition"
           >
             <Mail className="w-3.5 h-3.5 text-pink-500" />
-            <span>rielllybooth@gmail.com</span>
+            <span>hello.rielllybooth@gmail.com</span>
           </a>
 
           <span className="text-slate-300">•</span>
@@ -925,7 +934,27 @@ export default function RielllyBooth() {
             <span>@dhikastriaaa</span>
           </a>
 
+          <a
+            href="https://instagram.com/rielllybooth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-bold text-pink-600 hover:text-pink-700 transition underline"
+          >
+            <Instagram className="w-3.5 h-3.5" />
+            <span>@rielllybooth</span>
+          </a>
+
           <span className="text-slate-300">•</span>
+
+          <a
+            href="https://tiktok.com/@rielllybooth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-bold text-purple-600 hover:text-purple-700 transition underline"
+          >
+            <Video className="w-3.5 h-3.5 text-purple-500" />
+            <span>TikTok @rielllybooth</span>
+          </a>
         </div>
       </footer>
     </main>
