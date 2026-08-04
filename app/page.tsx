@@ -905,21 +905,21 @@ export default function RielllyBooth() {
         <div className="flex flex-wrap items-center justify-center gap-2 font-bold text-slate-700">
           <span>&copy; {new Date().getFullYear()}</span>
           <span className="text-pink-500 font-extrabold text-sm flex items-center gap-1">
-            rielllybooth ♡ <span className="text-xs">🎀</span>
+            rielllybooth <span className="text-xs">🎀</span>
           </span>
           <span className="text-slate-400">•</span>
           <span className="italic text-slate-600 font-medium">
-            &ldquo;capturing ur cutiest moments everywhere ✨&rdquo;
+            &ldquo;happy captures ✨&rdquo;
           </span>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
           <a
-            href="mailto:hello.rielllybooth@gmail.com"
+            href="mailto:rielllybooth@gmail.com"
             className="inline-flex items-center gap-1.5 font-bold text-slate-700 hover:text-pink-600 transition"
           >
             <Mail className="w-3.5 h-3.5 text-pink-500" />
-            <span>hello.rielllybooth@gmail.com</span>
+            <span>rielllybooth@gmail.com</span>
           </a>
 
           <span className="text-slate-300">•</span>
@@ -934,27 +934,8 @@ export default function RielllyBooth() {
             <span>@dhikastriaaa</span>
           </a>
 
-          <a
-            href="https://instagram.com/rielllybooth"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-bold text-pink-600 hover:text-pink-700 transition underline"
-          >
-            <Instagram className="w-3.5 h-3.5" />
-            <span>@rielllybooth</span>
-          </a>
-
           <span className="text-slate-300">•</span>
 
-          <a
-            href="https://tiktok.com/@rielllybooth"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-bold text-purple-600 hover:text-purple-700 transition underline"
-          >
-            <Video className="w-3.5 h-3.5 text-purple-500" />
-            <span>TikTok @rielllybooth</span>
-          </a>
         </div>
       </footer>
     </main>
