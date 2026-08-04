@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, ArrowLeft, Download, ArrowLeftRight, Palette, Sliders, RotateCcw, Frame, Heart, Film, Newspaper, Sparkle, Video, Type, FontCw, Wand2 } from "lucide-react";
+import { Sparkles, ArrowLeft, Download, ArrowLeftRight, Palette, Sliders, RotateCcw, Frame, Heart, Film, Newspaper, Sparkle, Video, Type, Wand2 } from "lucide-react";
 import Slider from "../UI/Slider";
 import ColorPicker from "../UI/ColorPicker";
 import { LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily } from "@/lib/canvasUtils";
