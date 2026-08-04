@@ -348,7 +348,7 @@ export const drawPhotoStrip = (
   filter: FilterState,
   preset: FramePreset = "clean",
   cuteFilter: CuteFilter = "none",
-  customText: string = "rielllybooth ♡",
+  customText: string = "rielllybooth ",
   fontFamily: FontFamily = "sans",
   subtitleText?: string,
   stickers: PlacedSticker[] = [],
@@ -474,7 +474,7 @@ export const drawPhotoStrip = (
     ctx.fillStyle = "#ffffff";
     ctx.font = "900 34px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("🎟️ RIELLLYBOOTH FESTIVAL VIP", canvas.width / 2, 55);
+    ctx.fillText("🎟️ FESTIVAL VIP", canvas.width / 2, 55);
   } else if (preset === "photocard") {
     // 💖 K-POP PHOTOCARD BINDER SLEEVE
     const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
