@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import confetti from "canvas-confetti";
+import { Instagram, Mail, Heart } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import LandingStep from "@/components/Steps/LandingStep";
 import CaptureStep from "@/components/Steps/CaptureStep";
@@ -27,12 +28,13 @@ export default function RielllyBooth() {
   const [shots, setShots] = useState<Shot[]>([]);
   const [retakeIndex, setRetakeIndex] = useState<number | null>(null);
 
-  // FX & Audio State - DEFAULT AUDIO ON FOR CAPTURE SESSION
+  // FX & Audio State
   const [flashFx, setFlashFx] = useState(false);
   const [isAudioOn, setIsAudioOn] = useState(true);
 
   // Live Photo & Editor State
   const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
+  const [isFlipped, setIsFlipped] = useState(false);
   const [layout, setLayout] = useState<LayoutMode>("strip");
   const [preset, setPreset] = useState<FramePreset>("polkadot");
   const [cuteFilter, setCuteFilter] = useState<CuteFilter>("none");
@@ -80,8 +82,8 @@ export default function RielllyBooth() {
   const handleStartCapture = () => {
     setShots([]);
     setCurrentShotIndex(1);
+    setRetakeIndex(null);
     setIsAudioOn(true);
-    // Explicitly start audio inside user click event stack
     setBgmState(true);
     setStep("capture");
   };
@@ -184,7 +186,7 @@ export default function RielllyBooth() {
 
   // Per-Shot Individual Trigger (1 Peace Gesture ✌️ = 1 Photo)
   const handleTakeSingleShot = async () => {
-    if (isCapturing || shots.length >= 4) return;
+    if (isCapturing) return;
     setIsCapturing(true);
 
     await runCountdown(3);
@@ -196,53 +198,50 @@ export default function RielllyBooth() {
 
     if (videoRef.current) {
       triggerSnapshotFx();
-      const dataUrl = captureCanvasSnapshot(videoRef.current, true);
-      const newShot: Shot = {
-        id: Date.now() + shots.length,
-        dataUrl,
-        videoBlobUrl,
-      };
+      const dataUrl = captureCanvasSnapshot(videoRef.current, false); // false = un-mirrored normal text/face orientation!
 
-      const updatedShots = [...shots, newShot];
-      setShots(updatedShots);
-
-      if (updatedShots.length < 4) {
-        setCurrentShotIndex(updatedShots.length + 1);
+      if (retakeIndex !== null) {
+        // Retake single targeted shot
+        const updated = [...shots];
+        updated[retakeIndex] = { id: Date.now(), dataUrl, videoBlobUrl };
+        setShots(updated);
+        setRetakeIndex(null);
+        setStep("review");
       } else {
-        setTimeout(() => {
-          setStep("review");
-        }, 500);
+        const newShot: Shot = {
+          id: Date.now() + shots.length,
+          dataUrl,
+          videoBlobUrl,
+        };
+
+        const updatedShots = [...shots, newShot];
+        setShots(updatedShots);
+
+        if (updatedShots.length < 4) {
+          setCurrentShotIndex(updatedShots.length + 1);
+        } else {
+          setTimeout(() => {
+            setStep("review");
+          }, 500);
+        }
       }
     }
 
     setIsCapturing(false);
   };
 
-  // Single Photo Retake
-  const handleRetakeSingle = async (index: number) => {
-    if (retakeIndex !== null) return;
+  // Single Photo Retake Trigger
+  const handleRetakeSingle = (index: number) => {
     setRetakeIndex(index);
-    await runCountdown(3);
-
-    let videoBlobUrl = "";
-    if (mediaStreamRef.current) {
-      videoBlobUrl = await recordLiveVideoSnippet(mediaStreamRef.current, 1500);
-    }
-
-    if (videoRef.current) {
-      triggerSnapshotFx();
-      const dataUrl = captureCanvasSnapshot(videoRef.current, true);
-      const updated = [...shots];
-      updated[index] = { id: Date.now(), dataUrl, videoBlobUrl };
-      setShots(updated);
-    }
-    setRetakeIndex(null);
+    setCurrentShotIndex(index + 1);
+    setStep("capture");
   };
 
   // Retake All Shots
   const handleRetakeAll = () => {
     setShots([]);
     setCurrentShotIndex(1);
+    setRetakeIndex(null);
     setIsAudioOn(true);
     setBgmState(true);
     setStep("capture");
@@ -264,16 +263,22 @@ export default function RielllyBooth() {
     }
   };
 
-  // Handle Adding Stickers to Canvas
+  // Handle Adding & Dragging Stickers on Canvas
   const handleAddSticker = (emoji: string) => {
     const newSticker: PlacedSticker = {
       id: Date.now().toString() + Math.random().toString(),
       emoji,
-      x: 100 + Math.random() * 400,
-      y: 200 + Math.random() * 1100,
+      x: 300,
+      y: 800 + Math.random() * 200,
       scale: 1,
     };
     setPlacedStickers((prev) => [...prev, newSticker]);
+  };
+
+  const handleUpdateStickerPos = (id: string, x: number, y: number) => {
+    setPlacedStickers((prev) =>
+      prev.map((st) => (st.id === id ? { ...st, x, y } : st))
+    );
   };
 
   const handleClearStickers = () => {
@@ -298,7 +303,8 @@ export default function RielllyBooth() {
           customText,
           fontFamily,
           subtitleText,
-          placedStickers
+          placedStickers,
+          isFlipped
         );
         return;
       }
@@ -327,13 +333,14 @@ export default function RielllyBooth() {
               customText,
               fontFamily,
               subtitleText,
-              placedStickers
+              placedStickers,
+              isFlipped
             );
           }
         };
       });
     },
-    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers]
+    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped]
   );
 
   // Video Animation Loop for Live Photo Canvas Rendering
@@ -496,6 +503,7 @@ export default function RielllyBooth() {
             setIsLivePhotoOn={setIsLivePhotoOn}
             placedStickers={placedStickers}
             onAddSticker={handleAddSticker}
+            onUpdateStickerPos={handleUpdateStickerPos}
             onClearStickers={handleClearStickers}
             selectedForSwap={selectedForSwap}
             onSwapPhotos={handleSwapPhotos}
@@ -505,6 +513,8 @@ export default function RielllyBooth() {
             setTextColor={setTextColor}
             filter={filter}
             setFilter={setFilter}
+            isFlipped={isFlipped}
+            setIsFlipped={setIsFlipped}
             onBack={() => setStep("review")}
             onDownloadPng={handleDownloadPng}
             onDownloadVideo={handleDownloadVideo}
@@ -513,8 +523,48 @@ export default function RielllyBooth() {
         )}
       </div>
 
-      <footer className="border-t border-pink-200 py-4 text-center text-xs text-slate-600 bg-white/80 backdrop-blur-md">
-        &copy; {new Date().getFullYear()} <span className="text-pink-500 font-bold">rielllybooth</span> ♡ Virtual Photobooth Aesthetic. All rights reserved.
+      {/* SIGNATURE FOOTER INTEGRATION */}
+      <footer className="border-t border-pink-200 py-6 text-center text-xs text-slate-600 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center gap-3 px-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-center gap-2 font-bold text-slate-700">
+          <span>&copy; {new Date().getFullYear()}</span>
+          <span className="text-pink-500 font-extrabold text-sm">rielllybooth ♡</span>
+          <span className="text-slate-400">•</span>
+          <span className="italic text-slate-600 font-medium">
+            &ldquo;capturing ur cutiest moments everywhere ✨&rdquo;
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
+          <a
+            href="mailto:rielllybooth@gmail.com"
+            className="inline-flex items-center gap-1.5 font-bold text-slate-700 hover:text-pink-600 transition"
+          >
+            <Mail className="w-3.5 h-3.5 text-pink-500" />
+            <span>rielllybooth@gmail.com</span>
+          </a>
+
+          <span className="text-slate-300">•</span>
+
+          <a
+            href="https://instagram.com/dhikastriaaa"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-bold text-pink-600 hover:text-pink-700 transition underline"
+          >
+            <Instagram className="w-3.5 h-3.5" />
+            <span>@dhikastriaaa</span>
+          </a>
+
+          <a
+            href="https://instagram.com/rielllybooth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-bold text-pink-600 hover:text-pink-700 transition underline"
+          >
+            <Instagram className="w-3.5 h-3.5" />
+            <span>@rielllybooth</span>
+          </a>
+        </div>
       </footer>
     </main>
   );

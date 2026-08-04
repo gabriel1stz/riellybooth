@@ -46,9 +46,13 @@ export const stopCameraStream = (stream: MediaStream | null): void => {
   });
 };
 
+/**
+ * Captures video snapshot. Defaults to mirror = false (un-mirrored normal orientation)
+ * so clothing text and faces read correctly!
+ */
 export const captureCanvasSnapshot = (
   video: HTMLVideoElement,
-  mirror: boolean = true
+  mirror: boolean = false
 ): string => {
   const canvas = document.createElement("canvas");
   const width = video.videoWidth || 1280;

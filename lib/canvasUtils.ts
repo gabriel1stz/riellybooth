@@ -2,7 +2,7 @@
  * Canvas Utilities for high-resolution photo strip rendering, layout assembly,
  * CSS & pixel filter effects, Webcam Toy retro filters (Pixel Art, Thermal Heatmap,
  * Vivid Pop Art, VHS Retro CRT), Polkadot frame preset, interactive sticker overlays,
- * and customizable typography branding engine.
+ * flip horizontal toggle, and customizable typography branding engine.
  */
 
 export type LayoutMode = "strip" | "grid";
@@ -47,7 +47,8 @@ function drawImageCover(
   y: number,
   w: number,
   h: number,
-  borderRadius: number = 0
+  borderRadius: number = 0,
+  isFlipped: boolean = false
 ) {
   ctx.save();
 
@@ -55,6 +56,13 @@ function drawImageCover(
     ctx.beginPath();
     ctx.roundRect(x, y, w, h, borderRadius);
     ctx.clip();
+  }
+
+  if (isFlipped) {
+    ctx.translate(x + w, y);
+    ctx.scale(-1, 1);
+    x = 0;
+    y = 0;
   }
 
   const imgW = (img as HTMLVideoElement).videoWidth || img.width;
@@ -130,7 +138,6 @@ function applyCuteFilterOverlay(
     ctx.globalCompositeOperation = "multiply";
     ctx.fillRect(x, y, w, h);
   } else if (cuteFilter === "thermal") {
-    // Webcam Toy Thermal Heatmap Effect
     ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
     ctx.globalCompositeOperation = "difference";
     ctx.fillRect(x, y, w, h);
@@ -139,7 +146,6 @@ function applyCuteFilterOverlay(
     ctx.globalCompositeOperation = "color-dodge";
     ctx.fillRect(x, y, w, h);
   } else if (cuteFilter === "pop_art") {
-    // Webcam Toy Vivid Pop Art Effect
     ctx.fillStyle = "rgba(234, 179, 8, 0.25)";
     ctx.globalCompositeOperation = "hard-light";
     ctx.fillRect(x, y, w, h);
@@ -148,12 +154,10 @@ function applyCuteFilterOverlay(
     ctx.globalCompositeOperation = "overlay";
     ctx.fillRect(x, y, w, h);
   } else if (cuteFilter === "vhs") {
-    // Webcam Toy VHS Retro CRT Scanline Effect
     ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
     ctx.globalCompositeOperation = "color-dodge";
     ctx.fillRect(x, y, w, h);
 
-    // Draw CRT Horizontal Scanlines
     ctx.strokeStyle = "rgba(0, 0, 0, 0.18)";
     ctx.lineWidth = 2;
     for (let sy = y; sy < y + h; sy += 6) {
@@ -163,7 +167,6 @@ function applyCuteFilterOverlay(
       ctx.stroke();
     }
   } else if (cuteFilter === "pixel") {
-    // Pixel Art Grid Effect
     ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
     ctx.lineWidth = 1;
     for (let px = x; px < x + w; px += 12) {
@@ -183,9 +186,6 @@ function applyCuteFilterOverlay(
   ctx.restore();
 }
 
-/**
- * Draw Y2K Star Vector ✨
- */
 function drawY2kStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
   ctx.save();
   ctx.fillStyle = color;
@@ -199,9 +199,6 @@ function drawY2kStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, size
   ctx.restore();
 }
 
-/**
- * Draw Ribbon Bow Vector 🎀
- */
 function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, scale: number = 1) {
   ctx.save();
   ctx.translate(cx, cy);
@@ -263,7 +260,8 @@ export const drawPhotoStrip = (
   customText: string = "rielllybooth ♡",
   fontFamily: FontFamily = "sans",
   subtitleText?: string,
-  stickers: PlacedSticker[] = []
+  stickers: PlacedSticker[] = [],
+  isFlipped: boolean = false
 ): void => {
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length < 4) return;
@@ -282,16 +280,12 @@ export const drawPhotoStrip = (
   const padding = preset === "film" ? 60 : 36;
   const bottomFooterHeight = preset === "newspaper" ? 240 : 220;
 
-  // ==========================================
-  // STEP 1: BACKGROUND & FRAME PRESET STYLING
-  // ==========================================
+  // STEP 1: BACKGROUND & FRAME PRESET
   ctx.save();
   if (preset === "polkadot") {
-    // Polkadot Cute Pastel Background
     ctx.fillStyle = frameColor || "#fce7f3";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw Polka Dot Pattern
     ctx.fillStyle = "#f472b6";
     ctx.globalAlpha = 0.35;
     const dotSpacing = 40;
@@ -365,9 +359,7 @@ export const drawPhotoStrip = (
   }
   ctx.restore();
 
-  // ==========================================
-  // STEP 2: DRAW PHOTOS WITH FILTERS & LAYOUT
-  // ==========================================
+  // STEP 2: DRAW PHOTOS WITH FILTERS & FLIP HORIZONTAL PREFERENCE
   const startYOffset = preset === "newspaper" ? 120 : 0;
 
   if (layout === "strip") {
@@ -381,7 +373,7 @@ export const drawPhotoStrip = (
 
       ctx.save();
       ctx.filter = filterString;
-      drawImageCover(ctx, img, padding, y, photoW, photoH, borderRadius);
+      drawImageCover(ctx, img, padding, y, photoW, photoH, borderRadius, isFlipped);
       ctx.restore();
 
       applyCuteFilterOverlay(ctx, padding, y, photoW, photoH, cuteFilter, borderRadius);
@@ -411,16 +403,14 @@ export const drawPhotoStrip = (
       const borderRadius = preset === "film" ? 4 : preset === "coquette" || preset === "polkadot" ? 20 : 16;
       ctx.save();
       ctx.filter = filterString;
-      drawImageCover(ctx, img, positions[i].x, positions[i].y, photoW, photoH, borderRadius);
+      drawImageCover(ctx, img, positions[i].x, positions[i].y, photoW, photoH, borderRadius, isFlipped);
       ctx.restore();
 
       applyCuteFilterOverlay(ctx, positions[i].x, positions[i].y, photoW, photoH, cuteFilter, borderRadius);
     });
   }
 
-  // ==========================================
   // STEP 3: PRESET DECORATIVE VECTORS
-  // ==========================================
   if (preset === "coquette") {
     drawRibbonBow(ctx, padding + 20, 40, 0.9);
     drawRibbonBow(ctx, canvas.width - padding - 20, 40, 0.9);
@@ -431,24 +421,20 @@ export const drawPhotoStrip = (
     drawY2kStar(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 20, 18, "#f472b6");
   }
 
-  // ==========================================
-  // STEP 4: INTERACTIVE STICKERS OVERLAY
-  // ==========================================
+  // STEP 4: INTERACTIVE DRAGGABLE STICKERS OVERLAY
   if (stickers && stickers.length > 0) {
     ctx.save();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     stickers.forEach((st) => {
-      const fontSize = Math.round((st.scale || 1) * 44);
+      const fontSize = Math.round((st.scale || 1) * 48);
       ctx.font = `${fontSize}px sans-serif`;
       ctx.fillText(st.emoji, st.x, st.y);
     });
     ctx.restore();
   }
 
-  // ==========================================
   // STEP 5: BRANDING FOOTER & TYPOGRAPHY
-  // ==========================================
   ctx.save();
   ctx.filter = "none";
 
