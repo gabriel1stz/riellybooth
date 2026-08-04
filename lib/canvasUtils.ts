@@ -357,7 +357,7 @@ export const drawPhotoStrip = (
 
   const isNewspaper = preset === "newspaper" || layout === "newspaper_grid";
 
-  // Determine target canvas dimensions based on 9 layout modes
+  // Determine target canvas dimensions based on layout modes
   let photoCount = 4;
   let targetW = 600;
   let targetH = 1800;
@@ -379,9 +379,10 @@ export const drawPhotoStrip = (
     targetW = 1000;
     targetH = 1600;
   } else if (isNewspaper) {
+    // Precise 1200 x 1800 Newspaper Canvas Dimensions
     photoCount = 4;
-    targetW = 1100;
-    targetH = 1500;
+    targetW = 1200;
+    targetH = 1800;
   } else if (layout === "strip_2") {
     photoCount = 2;
     targetW = 600;
@@ -398,43 +399,64 @@ export const drawPhotoStrip = (
 
   const filterString = `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) grayscale(${filter.grayscale}%)`;
   const padding = preset === "film" || preset === "receipt" ? 60 : 36;
-  const bottomFooterHeight = isNewspaper || preset === "receipt" || preset === "concert_ticket" ? 220 : 220;
+  const bottomFooterHeight = isNewspaper ? 0 : 220;
 
-  // STEP 1: BACKGROUND & FRAME PRESETS (OVERHAULED NEWSPAPER & GEN Z FRAMES)
+  // STEP 1: BACKGROUND & FRAME PRESETS
   ctx.save();
   if (isNewspaper) {
-    // Authentic Newsprint Paper Texture
+    // 📰 OVERHAULED NEWSPAPER FRAME ENGINE (1200 x 1800 px)
     ctx.fillStyle = "#f4f1ea";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Decorative Header Rule Lines
+    // Outer Decorative Double Rules
     ctx.strokeStyle = "#1c1917";
     ctx.lineWidth = 3;
-    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-
+    ctx.strokeRect(30, 30, 1140, 1740);
     ctx.lineWidth = 1;
+    ctx.strokeRect(36, 36, 1128, 1728);
+
+    // Ribbon Bows on Header Corners
+    drawRibbonBow(ctx, 90, 80, 1.2);
+    drawRibbonBow(ctx, 1110, 80, 1.2);
+
+    // Rule 1: Above Headline
     ctx.beginPath();
-    ctx.moveTo(30, 135);
-    ctx.lineTo(canvas.width - 30, 135);
+    ctx.moveTo(45, 42);
+    ctx.lineTo(1155, 42);
     ctx.stroke();
 
-    // Ribbons on Top Header Left & Right
-    drawRibbonBow(ctx, 60, 55, 1.0);
-    drawRibbonBow(ctx, canvas.width - 60, 55, 1.0);
-
-    // Headline: Bold "RIELLLYBOOTH"
+    // Bold Headline: "THE DAILY RIELLLYBOOTH" (Y = 0 to 300px)
     ctx.fillStyle = "#1c1917";
-    ctx.font = "900 48px 'Georgia', serif";
+    ctx.font = "900 54px 'Georgia', serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("RIELLLYBOOTH", canvas.width / 2, 55);
+    ctx.fillText("THE DAILY RIELLLYBOOTH", canvas.width / 2, 90);
 
-    // Edition Date & Tagline
-    ctx.font = "italic 15px 'Georgia', serif";
-    ctx.fillText("EST. 2026 • EDITION #882 • SPECIAL MEMORIES FOR LIFE", canvas.width / 2, 92);
+    // Rule 2: Below Headline
+    ctx.beginPath();
+    ctx.moveTo(45, 135);
+    ctx.lineTo(1155, 135);
+    ctx.stroke();
 
-    ctx.font = "italic 13px 'Georgia', serif";
-    ctx.fillText('"Today wasn\'t just an ordinary day — it was our timeless scene at rielllybooth."', canvas.width / 2, 118);
+    // Edition Info Line (Y = 160px)
+    ctx.font = "bold 15px 'Georgia', serif";
+    ctx.fillText("EST. 2026  •  VOL. 882  •  EDITION #01  •  SPECIAL MEMORIES FOR LIFE", canvas.width / 2, 160);
+
+    // Rule 3: Below Edition Line
+    ctx.beginPath();
+    ctx.moveTo(45, 185);
+    ctx.lineTo(1155, 185);
+    ctx.stroke();
+
+    // Tagline (Y = 220px)
+    ctx.font = "italic 17px 'Georgia', serif";
+    ctx.fillText('"Today wasn\'t just an ordinary day — it was our timeless scene at rielllybooth."', canvas.width / 2, 220);
+
+    // Rule 4: Divider before Main Photo Slot
+    ctx.beginPath();
+    ctx.moveTo(45, 275);
+    ctx.lineTo(1155, 275);
+    ctx.stroke();
 
   } else if (preset === "polkadot") {
     ctx.fillStyle = frameColor || "#fce7f3";
@@ -556,31 +578,48 @@ export const drawPhotoStrip = (
 
   // STEP 2: DRAW PHOTOS ACCORDING TO THE LAYOUT MODES
   if (isNewspaper) {
-    // OVERHAULED NEWSPAPER LAYOUT: 1 Large main photo on top + 3 smaller photos side-by-side at bottom
-    const topW = canvas.width - padding * 2;
-    const topH = 650;
-    const topY = 150;
+    // 📰 PRECISE NEWSPAPER PHOTO SLOTS & NON-OVERLAPPING ARTICLE COLUMNS
+    // 1. Main Top Photo Slot (Y = 320px, 1080 x 720px)
+    const mainX = 60;
+    const mainY = 320;
+    const mainW = 1080;
+    const mainH = 720;
 
     if (images[0]) {
       ctx.save();
       ctx.filter = filterString;
-      drawImageCover(ctx, images[0], padding, topY, topW, topH, 0, isFlipped);
+      drawImageCover(ctx, images[0], mainX, mainY, mainW, mainH, 0, isFlipped);
       ctx.restore();
-      applyCuteFilterOverlay(ctx, padding, topY, topW, topH, cuteFilter, filter.beautyGlow, 0);
 
-      // Border frame around top main photo
       ctx.strokeStyle = "#1c1917";
       ctx.lineWidth = 3;
-      ctx.strokeRect(padding, topY, topW, topH);
+      ctx.strokeRect(mainX, mainY, mainW, mainH);
+
+      applyCuteFilterOverlay(ctx, mainX, mainY, mainW, mainH, cuteFilter, filter.beautyGlow, 0);
+
+      // Subtitle below Main Top Photo Slot (Y = 1065px)
+      ctx.save();
+      ctx.fillStyle = "#1c1917";
+      ctx.font = "italic 15px 'Georgia', serif";
+      ctx.textAlign = "left";
+      ctx.fillText("▲ FIG 1.0 — Live capture recorded in high definition at rielllybooth studio booth.", mainX, 1065);
+      ctx.restore();
     }
 
-    const botY = topY + topH + 30;
-    const botW = (canvas.width - padding * 4) / 3;
+    // 2. Bottom 3 Photo Slots (Y = 1120px, 340 x 340px each)
+    const botY = 1120;
+    const botW = 340;
     const botH = 340;
-    const captions = ["THE BEST VIBES", "UNFILTERED JOY", "CORE MEMORIES"];
+    const botGap = 30;
+
+    const botPositions = [
+      60,
+      60 + botW + botGap, // 430
+      60 + (botW + botGap) * 2, // 800
+    ];
 
     images.slice(1, 4).forEach((img, i) => {
-      const bx = padding + i * (botW + padding);
+      const bx = botPositions[i];
 
       ctx.save();
       ctx.filter = filterString;
@@ -592,20 +631,78 @@ export const drawPhotoStrip = (
       ctx.strokeRect(bx, botY, botW, botH);
 
       applyCuteFilterOverlay(ctx, bx, botY, botW, botH, cuteFilter, filter.beautyGlow, 0);
-
-      // Newspaper Captions & Column Articles under 3 bottom photos
-      ctx.save();
-      ctx.fillStyle = "#1c1917";
-      ctx.font = "bold 15px 'Georgia', serif";
-      ctx.textAlign = "center";
-      ctx.fillText(captions[i], bx + botW / 2, botY + botH + 24);
-
-      // Newspaper Article Snippet Lines
-      ctx.fillStyle = "#44403c";
-      ctx.font = "10px 'Georgia', serif";
-      ctx.fillText("Special Edition • rielllybooth", bx + botW / 2, botY + botH + 42);
-      ctx.restore();
     });
+
+    // 3. Column Article Captions (Y = 1480px) Strictly BELOW each photo slot
+    const columnTitles = ["THE BEST VIBES", "UNFILTERED JOY", "CORE MEMORIES"];
+    const columnTexts = [
+      "A candid moment captured in full HD resolution. Unfiltered emotions preserved forever in our editorial print.",
+      "Laughter and genuine smiles recorded live at the booth. Every frame tells a story worth remembering.",
+      "Timeless aesthetic photobooth session created with love. Cherishing every single second together.",
+    ];
+
+    // Vertical Divider Rules between column articles
+    ctx.save();
+    ctx.strokeStyle = "rgba(28, 25, 23, 0.25)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(415, 1475);
+    ctx.lineTo(415, 1720);
+    ctx.moveTo(785, 1475);
+    ctx.lineTo(785, 1720);
+    ctx.stroke();
+
+    ctx.fillStyle = "#1c1917";
+    ctx.textBaseline = "top";
+
+    botPositions.forEach((bx, i) => {
+      // Column Title (Y = 1480px)
+      ctx.font = "bold 17px 'Georgia', serif";
+      ctx.textAlign = "center";
+      ctx.fillText(columnTitles[i], bx + botW / 2, 1480);
+
+      // Rule below Column Title
+      ctx.beginPath();
+      ctx.moveTo(bx + 20, 1505);
+      ctx.lineTo(bx + botW - 20, 1505);
+      ctx.stroke();
+
+      // Vintage Serif Body Text (Y = 1515px)
+      ctx.font = "12px 'Georgia', serif";
+      ctx.fillStyle = "#44403c";
+      ctx.textAlign = "left";
+
+      // Simple word wrapper for column text
+      const words = columnTexts[i].split(" ");
+      let line = "";
+      let lineY = 1515;
+      const maxColWidth = botW - 10;
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + " ";
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxColWidth && n > 0) {
+          ctx.fillText(line, bx + 5, lineY);
+          line = words[n] + " ";
+          lineY += 18;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, bx + 5, lineY);
+    });
+
+    // Newspaper Bottom Footer (Y = 1740px)
+    ctx.beginPath();
+    ctx.moveTo(45, 1735);
+    ctx.lineTo(1155, 1735);
+    ctx.stroke();
+
+    ctx.fillStyle = "#1c1917";
+    ctx.font = "italic 13px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.fillText("rielllybooth ♡ — All Rights Reserved 2026 • Published at https://riellybooth.my.id", canvas.width / 2, 1755);
+    ctx.restore();
 
   } else if (layout === "spotlight") {
     // Spotlight Layout: 1 Large Top Main Photo + 3 Bottom Thumbnails
@@ -786,104 +883,98 @@ export const drawPhotoStrip = (
     applyFilmGrainOverlay(ctx, canvas.width, canvas.height, filter.grain);
   }
 
-  // STEP 6: CUSTOM BRAND/EVENT LOGO & TYPOGRAPHY FOOTER
-  ctx.save();
-  ctx.filter = "none";
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
+  // STEP 6: CUSTOM BRAND/EVENT LOGO & TYPOGRAPHY FOOTER (Non-newspaper presets)
+  if (!isNewspaper) {
+    ctx.save();
+    ctx.filter = "none";
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
 
-  const defaultDate = new Date().toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+    const defaultDate = new Date().toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
 
-  const displaySubtitle = subtitleText !== undefined ? subtitleText : `✨ ${defaultDate} ✨`;
+    const displaySubtitle = subtitleText !== undefined ? subtitleText : `✨ ${defaultDate} ✨`;
 
-  let fontCss = "'Plus Jakarta Sans', system-ui, sans-serif";
-  if (fontFamily === "serif") fontCss = "'Georgia', 'Times New Roman', serif";
-  else if (fontFamily === "cursive") fontCss = "'Brush Script MT', 'Comic Sans MS', cursive";
-  else if (fontFamily === "mono") fontCss = "monospace";
+    let fontCss = "'Plus Jakarta Sans', system-ui, sans-serif";
+    if (fontFamily === "serif") fontCss = "'Georgia', 'Times New Roman', serif";
+    else if (fontFamily === "cursive") fontCss = "'Brush Script MT', 'Comic Sans MS', cursive";
+    else if (fontFamily === "mono") fontCss = "monospace";
 
-  // DRAW CUSTOM BRAND/EVENT LOGO IF PROVIDED
-  if (customLogoImg) {
-    const maxLogoW = 240;
-    const maxLogoH = 85;
-    const logoRatio = customLogoImg.width / customLogoImg.height;
+    // DRAW CUSTOM BRAND/EVENT LOGO IF PROVIDED
+    if (customLogoImg) {
+      const maxLogoW = 240;
+      const maxLogoH = 85;
+      const logoRatio = customLogoImg.width / customLogoImg.height;
 
-    let drawW = maxLogoW;
-    let drawH = maxLogoW / logoRatio;
+      let drawW = maxLogoW;
+      let drawH = maxLogoW / logoRatio;
 
-    if (drawH > maxLogoH) {
-      drawH = maxLogoH;
-      drawW = maxLogoH * logoRatio;
-    }
+      if (drawH > maxLogoH) {
+        drawH = maxLogoH;
+        drawW = maxLogoH * logoRatio;
+      }
 
-    const logoX = (canvas.width - drawW) / 2;
-    const logoY = canvas.height - 150;
+      const logoX = (canvas.width - drawW) / 2;
+      const logoY = canvas.height - 150;
 
-    ctx.drawImage(customLogoImg, logoX, logoY, drawW, drawH);
+      ctx.drawImage(customLogoImg, logoX, logoY, drawW, drawH);
 
-    ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
-    ctx.font = `500 18px ${fontCss}`;
-    ctx.textAlign = "center";
-    ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
-  } else {
-    // REGULAR TYPOGRAPHY & GEN Z FOOTERS
-    if (preset === "receipt") {
-      ctx.fillStyle = "#1c1917";
-      ctx.font = "14px monospace";
-      ctx.textAlign = "left";
-
-      const leftX = padding + 10;
-      const rightX = canvas.width - padding - 10;
-      let curY = canvas.height - 175;
-
-      ctx.fillText("1x Cute Pose Snapshot", leftX, curY);
-      ctx.textAlign = "right";
-      ctx.fillText("Rp 0", rightX, curY);
-
-      curY += 24;
-      ctx.textAlign = "left";
-      ctx.fillText("1x Good Vibes Only", leftX, curY);
-      ctx.textAlign = "right";
-      ctx.fillText("Rp 0", rightX, curY);
-
-      curY += 30;
-      ctx.strokeStyle = "#1c1917";
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(leftX, curY);
-      ctx.lineTo(rightX, curY);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      curY += 24;
-      ctx.font = "bold 16px monospace";
-      ctx.textAlign = "left";
-      ctx.fillText("TOTAL", leftX, curY);
-      ctx.textAlign = "right";
-      ctx.fillText("PAID WITH LOVE ♡", rightX, curY);
-    } else if (isNewspaper) {
-      ctx.fillStyle = "#1c1917";
-      ctx.font = "bold 24px 'Georgia', serif";
-      ctx.textAlign = "center";
-      ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 80);
-
-      ctx.font = "italic 15px 'Georgia', serif";
-      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 45);
-    } else {
       ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
-
-      ctx.font = `800 32px ${fontCss}`;
-      ctx.textAlign = "center";
-      ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 120);
-
       ctx.font = `500 18px ${fontCss}`;
-      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 70);
-    }
-  }
+      ctx.textAlign = "center";
+      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
+    } else {
+      // REGULAR TYPOGRAPHY & GEN Z FOOTERS
+      if (preset === "receipt") {
+        ctx.fillStyle = "#1c1917";
+        ctx.font = "14px monospace";
+        ctx.textAlign = "left";
 
-  ctx.restore();
+        const leftX = padding + 10;
+        const rightX = canvas.width - padding - 10;
+        let curY = canvas.height - 175;
+
+        ctx.fillText("1x Cute Pose Snapshot", leftX, curY);
+        ctx.textAlign = "right";
+        ctx.fillText("Rp 0", rightX, curY);
+
+        curY += 24;
+        ctx.textAlign = "left";
+        ctx.fillText("1x Good Vibes Only", leftX, curY);
+        ctx.textAlign = "right";
+        ctx.fillText("Rp 0", rightX, curY);
+
+        curY += 30;
+        ctx.strokeStyle = "#1c1917";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(leftX, curY);
+        ctx.lineTo(rightX, curY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        curY += 24;
+        ctx.font = "bold 16px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("TOTAL", leftX, curY);
+        ctx.textAlign = "right";
+        ctx.fillText("PAID WITH LOVE ♡", rightX, curY);
+      } else {
+        ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
+
+        ctx.font = `800 32px ${fontCss}`;
+        ctx.textAlign = "center";
+        ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 120);
+
+        ctx.font = `500 18px ${fontCss}`;
+        ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 70);
+      }
+    }
+
+    ctx.restore();
+  }
 };

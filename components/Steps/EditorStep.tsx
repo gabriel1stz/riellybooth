@@ -207,7 +207,7 @@ export default function EditorStep({
 
       {/* 2. MIDDLE SECTION: CENTERED CANVAS PREVIEW CARD + CONTROL TABS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
-        {/* Left Interactive Canvas Preview Container (NON-CLIPPING CONTAINER WRAPPER) */}
+        {/* Left Interactive Canvas Preview Container */}
         <div className="lg:col-span-6 flex flex-col items-center gap-2 sticky top-16 z-30 bg-rose-50/95 backdrop-blur-md p-2 rounded-2xl shadow-md overflow-hidden mb-3 lg:mb-0 lg:static lg:bg-transparent lg:p-0 lg:shadow-none w-full">
           {/* Top Status Pill */}
           <div className="w-full flex items-center justify-between px-2 py-1">
@@ -219,10 +219,10 @@ export default function EditorStep({
             </span>
           </div>
 
-          {/* DEDICATED PREVIEW CONTAINER BOX - NEVER CUTS OFF OR CLIPS TOP HEADERS */}
+          {/* RESPONSIVE FLEX CARD CONTAINER BOX FOR MOBILE CANVAS PREVIEW */}
           <div
             ref={containerRef}
-            className="relative w-full max-w-sm sm:max-w-md mx-auto aspect-auto p-4 flex items-center justify-center bg-white rounded-3xl shadow-md overflow-hidden cursor-grab active:cursor-grabbing select-none"
+            className="relative w-full max-w-sm sm:max-w-md mx-auto p-3 flex items-center justify-center bg-white rounded-3xl shadow-md overflow-hidden cursor-grab active:cursor-grabbing select-none"
             onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
             onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
             onMouseUp={handlePointerUp}
@@ -248,7 +248,7 @@ export default function EditorStep({
 
             <canvas
               ref={canvasRef}
-              className="max-w-full max-h-[480px] w-auto h-auto object-contain rounded-xl shadow-inner pointer-events-none"
+              className="max-w-full max-h-[40vh] sm:max-h-[500px] w-auto h-auto object-contain rounded-xl shadow-inner pointer-events-none"
             />
           </div>
 
@@ -314,6 +314,7 @@ export default function EditorStep({
                 <label className="text-xs font-bold text-slate-700">Pilih Layout Potongan Foto (9 Options):</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
+                    { id: "newspaper_grid", label: "Newspaper Grid 📰" },
                     { id: "strip_1x4", label: "Strip 1x4 🎞️" },
                     { id: "strip_3cut", label: "Strip 3-Cut ✂️" },
                     { id: "grid_2x2", label: "Grid 2x2 🏁" },
@@ -321,7 +322,6 @@ export default function EditorStep({
                     { id: "y2k_checker", label: "Y2K Checker Strip ✨" },
                     { id: "scrapbook", label: "Scrapbook Washi 🎨" },
                     { id: "spotlight", label: "Spotlight Grid 🌟" },
-                    { id: "newspaper_grid", label: "Newspaper Grid 📰" },
                     { id: "editorial_vogue", label: "Vogue Magazine 💄" },
                   ].map((item) => (
                     <button

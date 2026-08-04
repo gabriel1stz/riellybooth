@@ -240,19 +240,12 @@ export default function CaptureStep({
               </div>
             )}
 
-            {/* HEAVY SCREEN BLUR EFFECT (backdrop-blur-2xl bg-slate-950/70) DURING COUNTDOWN & SNAPSHOT MOMENTS */}
-            {(countdown !== null || isCapturing) && (
+            {/* CLEAN BACKDROP BLUR & COUNTDOWN OVERLAY (NO "SMILE!" COOLDOWN TEXT) */}
+            {countdown !== null && (
               <div className="absolute inset-0 backdrop-blur-2xl bg-slate-950/70 transition-all duration-500 z-30 flex flex-col items-center justify-center gap-3">
-                {countdown !== null ? (
-                  <span className="text-8xl sm:text-9xl font-black text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] animate-ping">
-                    {countdown}
-                  </span>
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-white animate-pulse">
-                    <Camera className="w-16 h-16 text-pink-400" />
-                    <span className="text-lg font-black tracking-wider uppercase">Smile! 📸</span>
-                  </div>
-                )}
+                <span className="text-8xl sm:text-9xl font-black text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] animate-ping">
+                  {countdown}
+                </span>
               </div>
             )}
           </>
