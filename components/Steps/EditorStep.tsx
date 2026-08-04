@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Download, ArrowLeft, RefreshCw, Layout, Palette, Sparkles, Video, Wand2, FlipHorizontal, Trash2 } from "lucide-react";
+import { Download, ArrowLeft, RefreshCw, Layout, Palette, Sparkles, Video, Wand2, FlipHorizontal, Trash2, Image as ImageIcon, Upload, Share2 } from "lucide-react";
 import { LayoutMode, FramePreset, CuteFilter, FontFamily, FilterState, PlacedSticker } from "@/lib/canvasUtils";
 import ColorPicker from "../UI/ColorPicker";
 import Slider from "../UI/Slider";
@@ -35,6 +35,9 @@ type EditorStepProps = {
   onAddSticker: (emoji: string) => void;
   onClearStickers: () => void;
   onUpdateStickerPos?: (id: string, x: number, y: number) => void;
+  customLogoUrl: string | null;
+  onUploadCustomLogo: (file: File) => void;
+  onClearCustomLogo: () => void;
   selectedForSwap: number | null;
   onSwapPhotos: (index: number) => void;
   frameColor: string;
@@ -48,6 +51,7 @@ type EditorStepProps = {
   onBack: () => void;
   onDownloadPng: () => void;
   onDownloadVideo: () => void;
+  onOpenShareModal: () => void;
   isExportingVideo: boolean;
 };
 
@@ -72,6 +76,9 @@ export default function EditorStep({
   onAddSticker,
   onClearStickers,
   onUpdateStickerPos,
+  customLogoUrl,
+  onUploadCustomLogo,
+  onClearCustomLogo,
   selectedForSwap,
   onSwapPhotos,
   frameColor,
@@ -85,9 +92,11 @@ export default function EditorStep({
   onBack,
   onDownloadPng,
   onDownloadVideo,
+  onOpenShareModal,
   isExportingVideo,
 }: EditorStepProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"frame" | "filter" | "text" | "stickers" | "adjust">("frame");
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
@@ -108,7 +117,6 @@ export default function EditorStep({
     const pos = getCanvasPos(clientX, clientY);
     if (!pos || placedStickers.length === 0) return;
 
-    // Find closest sticker within 50px radius
     let foundId: string | null = null;
     let minDist = 60;
 
@@ -135,6 +143,12 @@ export default function EditorStep({
 
   const handlePointerUp = () => {
     setDraggingId(null);
+  };
+
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      onUploadCustomLogo(e.target.files[0]);
+    }
   };
 
   return (
@@ -178,6 +192,15 @@ export default function EditorStep({
             <Video className="w-4 h-4 text-pink-500" />
             <span>Live Photo 🎥 {isLivePhotoOn ? "ON" : "OFF"}</span>
           </button>
+
+          {/* Share to Story Modal Trigger */}
+          <button
+            type="button"
+            onClick={onOpenShareModal}
+            className="px-3.5 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-bold rounded-xl border border-purple-300 flex items-center gap-1.5 transition shadow-xs"
+          >
+            <Share2 className="w-4 h-4 text-purple-500" /> Share 📲
+          </button>
         </div>
 
         {/* Dual Export Buttons */}
@@ -206,7 +229,7 @@ export default function EditorStep({
       {/* Main Studio Grid: Canvas Preview + Controls Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Interactive Canvas Preview Container */}
-        <div className="lg:col-span-6 flex flex-col items-center gap-3">
+        <div className="lg:col-span-6 flex flex-col items-center gap-3 lg:sticky lg:top-24">
           <div
             ref={containerRef}
             className="relative bg-white border-4 border-pink-300 p-3 sm:p-4 rounded-3xl shadow-2xl overflow-hidden flex items-center justify-center max-h-[75vh] cursor-grab active:cursor-grabbing select-none"
@@ -305,7 +328,7 @@ export default function EditorStep({
                   : "text-slate-600 hover:bg-pink-100"
               }`}
             >
-              <Palette className="w-3.5 h-3.5" /> Teks Header
+              <Palette className="w-3.5 h-3.5" /> Brand Logo & Teks
             </button>
           </div>
 
@@ -375,7 +398,7 @@ export default function EditorStep({
             </div>
           )}
 
-          {/* TAB 2: CUTE & RETRO WEBCAM TOY FILTERS */}
+          {/* TAB 2: CUTE & RETRO WEBCAM TOY FILTERS + GRAIN & BEAUTY GLOW */}
           {activeTab === "filter" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
@@ -410,6 +433,20 @@ export default function EditorStep({
 
               <div className="space-y-3 pt-2">
                 <Slider
+                  label="Film Grain 🎞️ (Analog Noise)"
+                  min={0}
+                  max={100}
+                  value={filter.grain || 0}
+                  onChange={(val) => setFilter((prev) => ({ ...prev, grain: val }))}
+                />
+                <Slider
+                  label="Soft Beauty Glow ✨ (Bloom Effect)"
+                  min={0}
+                  max={100}
+                  value={filter.beautyGlow || 0}
+                  onChange={(val) => setFilter((prev) => ({ ...prev, beautyGlow: val }))}
+                />
+                <Slider
                   label="Kecerahan (Brightness)"
                   min={50}
                   max={150}
@@ -434,7 +471,7 @@ export default function EditorStep({
             </div>
           )}
 
-          {/* TAB 3: EXPANDED 20-STICKER PALETTE */}
+          {/* TAB 3: EXPANDED STICKER PALETTE */}
           {activeTab === "stickers" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="flex justify-between items-center">
@@ -466,19 +503,67 @@ export default function EditorStep({
             </div>
           )}
 
-          {/* TAB 4: TYPOGRAPHY & HEADER EDIT */}
+          {/* TAB 4: CUSTOM LOGO & TYPOGRAPHY HEADER */}
           {activeTab === "text" && (
             <div className="space-y-4 animate-in fade-in duration-200">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Teks Judul Utama Footer:</label>
+              {/* UPLOAD CUSTOM BRAND LOGO SECTION */}
+              <div className="space-y-2 bg-rose-50 border-2 border-pink-200 p-3.5 rounded-2xl">
+                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <ImageIcon className="w-4 h-4 text-pink-500" /> Logo Brand / Event Kustom (PNG):
+                </label>
+                <p className="text-[11px] text-slate-600 font-medium">
+                  Pasang logo acara atau brand milikmu di bagian bawah photo strip.
+                </p>
+
                 <input
-                  type="text"
-                  value={customText}
-                  onChange={(e) => setCustomText(e.target.value)}
-                  placeholder="Contoh: rielllybooth ♡"
-                  className="w-full px-3.5 py-2 rounded-xl border-2 border-pink-200 text-xs font-bold focus:border-pink-500 outline-none transition"
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/png, image/jpeg, image/svg+xml"
+                  onChange={handleLogoFileChange}
+                  className="hidden"
                 />
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    className="flex-1 py-2 px-3 bg-pink-400 hover:bg-pink-500 text-white font-bold text-xs rounded-xl border border-pink-500 transition shadow-xs flex items-center justify-center gap-1.5"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{customLogoUrl ? "Ganti Logo Brand" : "Upload Logo (PNG)"}</span>
+                  </button>
+
+                  {customLogoUrl && (
+                    <button
+                      type="button"
+                      onClick={onClearCustomLogo}
+                      className="py-2 px-3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs rounded-xl border border-rose-300 transition"
+                    >
+                      Hapus Logo
+                    </button>
+                  )}
+                </div>
+
+                {customLogoUrl && (
+                  <div className="flex items-center gap-2 pt-2 border-t border-pink-200">
+                    <span className="text-[11px] font-bold text-pink-600">Logo Aktif:</span>
+                    <img src={customLogoUrl} alt="Custom Logo" className="h-8 max-w-[120px] object-contain border rounded p-1 bg-white" />
+                  </div>
+                )}
               </div>
+
+              {!customLogoUrl && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">Teks Judul Utama Footer:</label>
+                  <input
+                    type="text"
+                    value={customText}
+                    onChange={(e) => setCustomText(e.target.value)}
+                    placeholder="Contoh: rielllybooth ♡"
+                    className="w-full px-3.5 py-2 rounded-xl border-2 border-pink-200 text-xs font-bold focus:border-pink-500 outline-none transition"
+                  />
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700">Teks Subtitle Tanggal / Pesan:</label>

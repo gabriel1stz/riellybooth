@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import confetti from "canvas-confetti";
-import { Instagram, Mail, Heart } from "lucide-react";
+import { Instagram, Mail, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, QrCode, Share2, Download, Copy, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import LandingStep from "@/components/Steps/LandingStep";
 import CaptureStep from "@/components/Steps/CaptureStep";
@@ -32,9 +32,19 @@ export default function RielllyBooth() {
   const [flashFx, setFlashFx] = useState(false);
   const [isAudioOn, setIsAudioOn] = useState(true);
 
-  // Live Photo & Editor State
+  // Modals State
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [downloadedDataUrl, setDownloadedDataUrl] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Live Photo, Custom Logo & Editor State
   const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(null);
+  const [customLogoImg, setCustomLogoImg] = useState<HTMLImageElement | null>(null);
   const [layout, setLayout] = useState<LayoutMode>("strip");
   const [preset, setPreset] = useState<FramePreset>("polkadot");
   const [cuteFilter, setCuteFilter] = useState<CuteFilter>("none");
@@ -50,6 +60,8 @@ export default function RielllyBooth() {
     contrast: 100,
     saturation: 100,
     grayscale: 0,
+    grain: 0,
+    beautyGlow: 0,
   });
   const [isExportingVideo, setIsExportingVideo] = useState(false);
 
@@ -86,6 +98,29 @@ export default function RielllyBooth() {
     setIsAudioOn(true);
     setBgmState(true);
     setStep("capture");
+  };
+
+  // Custom Brand Logo Upload Handler
+  const handleUploadCustomLogo = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        const url = e.target.result as string;
+        setCustomLogoUrl(url);
+
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+          setCustomLogoImg(img);
+        };
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClearCustomLogo = () => {
+    setCustomLogoUrl(null);
+    setCustomLogoImg(null);
   };
 
   // WebRTC Stream Lifecycle Management
@@ -198,10 +233,9 @@ export default function RielllyBooth() {
 
     if (videoRef.current) {
       triggerSnapshotFx();
-      const dataUrl = captureCanvasSnapshot(videoRef.current, false); // false = un-mirrored normal text/face orientation!
+      const dataUrl = captureCanvasSnapshot(videoRef.current, false);
 
       if (retakeIndex !== null) {
-        // Retake single targeted shot
         const updated = [...shots];
         updated[retakeIndex] = { id: Date.now(), dataUrl, videoBlobUrl };
         setShots(updated);
@@ -304,7 +338,8 @@ export default function RielllyBooth() {
           fontFamily,
           subtitleText,
           placedStickers,
-          isFlipped
+          isFlipped,
+          customLogoImg
         );
         return;
       }
@@ -334,13 +369,14 @@ export default function RielllyBooth() {
               fontFamily,
               subtitleText,
               placedStickers,
-              isFlipped
+              isFlipped,
+              customLogoImg
             );
           }
         };
       });
     },
-    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped]
+    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped, customLogoImg]
   );
 
   // Video Animation Loop for Live Photo Canvas Rendering
@@ -379,12 +415,15 @@ export default function RielllyBooth() {
     };
   }, [step, isLivePhotoOn, shots, renderCanvas]);
 
-  // HD PNG Download & Confetti Trigger
+  // HD PNG Download & Confetti Trigger + QR Code Modal
   const handleDownloadPng = () => {
     if (!canvasRef.current) return;
+    const dataUrl = canvasRef.current.toDataURL("image/png");
+    setDownloadedDataUrl(dataUrl);
+
     const link = document.createElement("a");
     link.download = `rielllybooth-${Date.now()}.png`;
-    link.href = canvasRef.current.toDataURL("image/png");
+    link.href = dataUrl;
     link.click();
 
     try {
@@ -394,9 +433,10 @@ export default function RielllyBooth() {
         origin: { y: 0.6 },
         colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
       });
-    } catch (e) {
-      console.log("Confetti trigger:", e);
-    }
+    } catch (e) {}
+
+    // Open QR Code Download Modal
+    setTimeout(() => setShowQrModal(true), 400);
   };
 
   // Live Video (WebM / Boomerang) Export
@@ -430,6 +470,8 @@ export default function RielllyBooth() {
         try {
           confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         } catch (e) {}
+
+        setTimeout(() => setShowQrModal(true), 400);
       };
 
       recorder.start();
@@ -444,11 +486,22 @@ export default function RielllyBooth() {
     }
   };
 
+  const handleCopyShareLink = () => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-rose-50/50 text-slate-800 flex flex-col justify-between font-sans selection:bg-pink-400 selection:text-white">
+    <main className="min-h-screen bg-rose-50/50 text-slate-800 flex flex-col justify-between font-sans selection:bg-pink-400 selection:text-white overflow-x-hidden">
       <Navbar
         isAudioOn={isAudioOn}
         onToggleAudio={() => setIsAudioOn((v) => !v)}
+        onGoHome={() => setStep("landing")}
+        onOpenAbout={() => setShowAboutModal(true)}
+        onOpenSupport={() => setShowSupportModal(true)}
       />
 
       <div className="flex-1 flex flex-col justify-center items-center py-8">
@@ -505,6 +558,9 @@ export default function RielllyBooth() {
             onAddSticker={handleAddSticker}
             onUpdateStickerPos={handleUpdateStickerPos}
             onClearStickers={handleClearStickers}
+            customLogoUrl={customLogoUrl}
+            onUploadCustomLogo={handleUploadCustomLogo}
+            onClearCustomLogo={handleClearCustomLogo}
             selectedForSwap={selectedForSwap}
             onSwapPhotos={handleSwapPhotos}
             frameColor={frameColor}
@@ -518,19 +574,210 @@ export default function RielllyBooth() {
             onBack={() => setStep("review")}
             onDownloadPng={handleDownloadPng}
             onDownloadVideo={handleDownloadVideo}
+            onOpenShareModal={() => setShowShareModal(true)}
             isExportingVideo={isExportingVideo}
           />
         )}
       </div>
 
+      {/* ABOUT MODAL */}
+      {showAboutModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setShowAboutModal(false)}
+              className="absolute top-4 right-4 p-1 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2 text-pink-500">
+              <Sparkles className="w-5 h-5 animate-pulse" />
+              <h3 className="text-2xl font-black">Tentang rielllybooth</h3>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              <strong className="text-pink-600">rielllybooth</strong> adalah aplikasi Virtual Photobooth gratis bergaya Korea & Y2K Aesthetic yang dirancang untuk mengabadikan momen serumu di mana saja tanpa watermark.
+            </p>
+
+            <div className="space-y-2 bg-rose-50 border-2 border-pink-200 p-3 rounded-2xl text-xs font-bold text-slate-700">
+              <div className="flex items-center gap-2">
+                <Camera className="w-4 h-4 text-pink-500" /> Auto-take gesture V-sign (✌️)
+              </div>
+              <div className="flex items-center gap-2">
+                <Video className="w-4 h-4 text-purple-500" /> Live Photo 🎥 moving video
+              </div>
+              <div className="flex items-center gap-2">
+                <Wand2 className="w-4 h-4 text-sky-500" /> Retro & Webcam Toy Filters
+              </div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-500" /> 100% Bebas Watermark
+              </div>
+            </div>
+
+            <div className="text-center pt-2">
+              <button
+                onClick={() => setShowAboutModal(false)}
+                className="w-full py-3 bg-pink-400 hover:bg-pink-500 text-white font-black text-sm rounded-2xl shadow-md border-2 border-pink-500 transition"
+              >
+                Tutup Info ✨
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUPPORT / DONATE MODAL */}
+      {showSupportModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setShowSupportModal(false)}
+              className="absolute top-4 right-4 p-1 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center space-y-1">
+              <div className="inline-flex p-3 bg-pink-100 rounded-full border border-pink-300 text-pink-500">
+                <Coffee className="w-6 h-6 animate-bounce" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-800">Support / Traktir Kopi 💖</h3>
+              <p className="text-xs text-slate-600 font-medium">
+                Bantu rielllybooth tetap gratis & aktif dengan mentraktir secangkir kopi!
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+
+              <a
+                href="https://teer.id/eveexyz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-3 bg-rose-400 hover:bg-rose-500 text-white font-black text-xs rounded-2xl border-2 border-rose-500 flex items-center justify-between transition shadow-xs"
+              >
+                <span>🍧 Trakteer.id</span>
+                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-md font-bold">Support Studio</span>
+              </a>
+
+            </div>
+
+            <div className="text-center pt-1">
+              <button
+                onClick={() => setShowSupportModal(false)}
+                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition"
+              >
+                Kembali
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR CODE DOWNLOAD MODAL */}
+      {showQrModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="absolute top-4 right-4 p-1 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="inline-flex p-3 bg-pink-100 rounded-full border border-pink-300 text-pink-500">
+              <QrCode className="w-6 h-6" />
+            </div>
+
+            <h3 className="text-xl font-black text-slate-800">Scan untuk Simpan di HP 📱</h3>
+            <p className="text-xs text-slate-600 font-medium">
+              Pindai QR code ini memakai kamera HP Anda untuk menyimpan photo strip langsung ke galeri HP!
+            </p>
+
+            <div className="bg-rose-50 border-2 border-pink-200 p-4 rounded-2xl flex flex-col items-center justify-center">
+              {/* QR Code representation */}
+              <div className="w-36 h-36 bg-white p-2 border-2 border-pink-300 rounded-xl shadow-inner flex flex-col items-center justify-center relative">
+                <QrCode className="w-28 h-28 text-slate-800" />
+                <span className="text-[9px] font-black text-pink-600 bg-pink-100 px-2 py-0.5 rounded border border-pink-300 mt-1">
+                  rielllybooth
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="w-full py-2.5 bg-pink-400 hover:bg-pink-500 text-white font-black text-xs rounded-xl shadow-md border-2 border-pink-500 transition"
+            >
+              Selesai ✨
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SHARE TO IG STORY & TIKTOK 9:16 MODAL */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setShowShareModal(false)}
+              className="absolute top-4 right-4 p-1 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="inline-flex p-3 bg-pink-100 rounded-full border border-pink-300 text-pink-500">
+              <Share2 className="w-6 h-6" />
+            </div>
+
+            <h3 className="text-xl font-black text-slate-800">Share to Story 📲</h3>
+            <p className="text-xs text-slate-600 font-medium">
+              Siap di-share ke Instagram Story & TikTok!
+            </p>
+
+            {/* 9:16 Aspect Preview Card */}
+            <div className="w-full aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden border-2 border-pink-300 shadow-md flex items-center justify-center p-2">
+              {downloadedDataUrl ? (
+                <img src={downloadedDataUrl} alt="Story Preview" className="h-full w-auto object-contain rounded-lg" />
+              ) : (
+                <div className="text-white text-xs font-bold space-y-2">
+                  <Sparkles className="w-6 h-6 text-pink-400 mx-auto animate-bounce" />
+                  <p>Klik &ldquo;Simpan PNG HD&rdquo; terlebih dahulu!</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleCopyShareLink}
+                className="flex-1 py-2.5 bg-rose-50 hover:bg-rose-100 text-pink-700 font-bold text-xs rounded-xl border border-pink-200 transition flex items-center justify-center gap-1.5"
+              >
+                {copiedLink ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-pink-500" />}
+                <span>{copiedLink ? "Link Tersalin!" : "Salin Link App"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowShareModal(false)}
+                className="py-2.5 px-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-xs rounded-xl shadow-md border border-pink-500 transition"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* SIGNATURE FOOTER INTEGRATION */}
       <footer className="border-t border-pink-200 py-6 text-center text-xs text-slate-600 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center gap-3 px-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-center gap-2 font-bold text-slate-700">
           <span>&copy; {new Date().getFullYear()}</span>
-          <span className="text-pink-500 font-extrabold text-sm">rielllybooth ♡</span>
+          <span className="text-pink-500 font-extrabold text-sm flex items-center gap-1">
+            rielllybooth <span className="text-xs">🎀</span>
+          </span>
           <span className="text-slate-400">•</span>
           <span className="italic text-slate-600 font-medium">
-            &ldquo;capturing ur cutiest moments everywhere ✨&rdquo;
+            &ldquo;capturing ur cutiest moments everywhere &rdquo;
           </span>
         </div>
 
@@ -564,6 +811,7 @@ export default function RielllyBooth() {
             <Instagram className="w-3.5 h-3.5" />
             <span>@rielllybooth</span>
           </a>
+
         </div>
       </footer>
     </main>

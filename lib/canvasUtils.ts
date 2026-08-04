@@ -1,8 +1,9 @@
 /**
  * Canvas Utilities for high-resolution photo strip rendering, layout assembly,
  * CSS & pixel filter effects, Webcam Toy retro filters (Pixel Art, Thermal Heatmap,
- * Vivid Pop Art, VHS Retro CRT), Polkadot frame preset, interactive sticker overlays,
- * flip horizontal toggle, and customizable typography branding engine.
+ * Vivid Pop Art, VHS Retro CRT), Film Grain 🎞️, Soft Beauty Glow ✨, Polkadot frame preset,
+ * interactive sticker overlays, flip horizontal toggle, custom event logo support,
+ * and customizable typography branding engine.
  */
 
 export type LayoutMode = "strip" | "grid";
@@ -27,6 +28,8 @@ export type FilterState = {
   contrast: number;
   saturation: number;
   grayscale: number;
+  grain: number;
+  beautyGlow: number;
 };
 
 export type PlacedSticker = {
@@ -89,7 +92,7 @@ function drawImageCover(
 }
 
 /**
- * Helper to apply Cute Filters & Webcam Toy Retro Filter FX
+ * Helper to apply Cute Filters, Webcam Toy Retro FX, & Soft Beauty Glow ✨
  */
 function applyCuteFilterOverlay(
   ctx: CanvasRenderingContext2D,
@@ -98,15 +101,25 @@ function applyCuteFilterOverlay(
   w: number,
   h: number,
   cuteFilter: CuteFilter,
+  beautyGlow: number = 0,
   borderRadius: number = 0
 ) {
-  if (cuteFilter === "none") return;
-
   ctx.save();
   if (borderRadius > 0) {
     ctx.beginPath();
     ctx.roundRect(x, y, w, h, borderRadius);
     ctx.clip();
+  }
+
+  // Soft Beauty Glow Filter
+  if (beautyGlow > 0) {
+    ctx.fillStyle = `rgba(255, 255, 255, ${(beautyGlow / 100) * 0.25})`;
+    ctx.globalCompositeOperation = "soft-light";
+    ctx.fillRect(x, y, w, h);
+
+    ctx.fillStyle = `rgba(254, 240, 138, ${(beautyGlow / 100) * 0.15})`;
+    ctx.globalCompositeOperation = "screen";
+    ctx.fillRect(x, y, w, h);
   }
 
   if (cuteFilter === "soft_pink") {
@@ -181,6 +194,35 @@ function applyCuteFilterOverlay(
       ctx.lineTo(x + w, py);
       ctx.stroke();
     }
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Analog Film Grain Generator 🎞️
+ */
+function applyFilmGrainOverlay(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  intensity: number
+) {
+  if (intensity <= 0) return;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "overlay";
+  ctx.fillStyle = "#ffffff";
+
+  const numDots = Math.round((width * height * (intensity / 100)) / 15);
+  for (let i = 0; i < numDots; i++) {
+    const gx = Math.random() * width;
+    const gy = Math.random() * height;
+    const gSize = Math.random() * 1.8 + 0.5;
+    const opacity = Math.random() * 0.25;
+
+    ctx.fillStyle = Math.random() > 0.5 ? `rgba(255,255,255,${opacity})` : `rgba(0,0,0,${opacity})`;
+    ctx.fillRect(gx, gy, gSize, gSize);
   }
 
   ctx.restore();
@@ -261,7 +303,8 @@ export const drawPhotoStrip = (
   fontFamily: FontFamily = "sans",
   subtitleText?: string,
   stickers: PlacedSticker[] = [],
-  isFlipped: boolean = false
+  isFlipped: boolean = false,
+  customLogoImg?: HTMLImageElement | null
 ): void => {
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length < 4) return;
@@ -376,7 +419,7 @@ export const drawPhotoStrip = (
       drawImageCover(ctx, img, padding, y, photoW, photoH, borderRadius, isFlipped);
       ctx.restore();
 
-      applyCuteFilterOverlay(ctx, padding, y, photoW, photoH, cuteFilter, borderRadius);
+      applyCuteFilterOverlay(ctx, padding, y, photoW, photoH, cuteFilter, filter.beautyGlow, borderRadius);
 
       if (preset === "film") {
         ctx.save();
@@ -406,7 +449,7 @@ export const drawPhotoStrip = (
       drawImageCover(ctx, img, positions[i].x, positions[i].y, photoW, photoH, borderRadius, isFlipped);
       ctx.restore();
 
-      applyCuteFilterOverlay(ctx, positions[i].x, positions[i].y, photoW, photoH, cuteFilter, borderRadius);
+      applyCuteFilterOverlay(ctx, positions[i].x, positions[i].y, photoW, photoH, cuteFilter, filter.beautyGlow, borderRadius);
     });
   }
 
@@ -434,7 +477,12 @@ export const drawPhotoStrip = (
     ctx.restore();
   }
 
-  // STEP 5: BRANDING FOOTER & TYPOGRAPHY
+  // STEP 5: ANALOG FILM GRAIN OVERLAY 🎞️
+  if (filter.grain && filter.grain > 0) {
+    applyFilmGrainOverlay(ctx, canvas.width, canvas.height, filter.grain);
+  }
+
+  // STEP 6: CUSTOM BRAND/EVENT LOGO & TYPOGRAPHY FOOTER
   ctx.save();
   ctx.filter = "none";
 
@@ -451,50 +499,76 @@ export const drawPhotoStrip = (
   else if (fontFamily === "cursive") fontCss = "'Brush Script MT', 'Comic Sans MS', cursive";
   else if (fontFamily === "mono") fontCss = "monospace";
 
-  if (preset === "newspaper") {
-    ctx.fillStyle = "#1c1917";
-    ctx.strokeStyle = "#1c1917";
-    ctx.lineWidth = 3;
+  // DRAW CUSTOM BRAND/EVENT LOGO IF PROVIDED
+  if (customLogoImg) {
+    const maxLogoW = 200;
+    const maxLogoH = 70;
+    const logoRatio = customLogoImg.width / customLogoImg.height;
 
-    ctx.beginPath();
-    ctx.moveTo(padding, canvas.height - 130);
-    ctx.lineTo(canvas.width - padding, canvas.height - 130);
-    ctx.stroke();
+    let drawW = maxLogoW;
+    let drawH = maxLogoW / logoRatio;
 
-    ctx.font = `bold 36px ${fontCss}`;
+    if (drawH > maxLogoH) {
+      drawH = maxLogoH;
+      drawW = maxLogoH * logoRatio;
+    }
+
+    const logoX = (canvas.width - drawW) / 2;
+    const logoY = canvas.height - 150;
+
+    ctx.drawImage(customLogoImg, logoX, logoY, drawW, drawH);
+
+    ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
+    ctx.font = `500 18px ${fontCss}`;
     ctx.textAlign = "center";
-    ctx.fillText(customText || "rielllybooth", canvas.width / 2, canvas.height - 85);
-
-    ctx.font = `italic 18px ${fontCss}`;
-    ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 45);
-  } else if (preset === "y2k") {
-    ctx.fillStyle = "#f472b6";
-    ctx.font = `900 44px ${fontCss}`;
-    ctx.textAlign = "center";
-    ctx.fillText(customText || "RIELLLYBOOTH.Y2K", canvas.width / 2, canvas.height - 110);
-
-    ctx.fillStyle = "#38bdf8";
-    ctx.font = `bold 18px ${fontCss}`;
-    ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
-  } else if (preset === "film") {
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `bold 38px ${fontCss}`;
-    ctx.textAlign = "center";
-    ctx.fillText(customText || "rielllybooth 35mm", canvas.width / 2, canvas.height - 110);
-
-    ctx.fillStyle = "#9ca3af";
-    ctx.font = `18px ${fontCss}`;
     ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
   } else {
-    // Classic Clean, Coquette, & Polkadot
-    ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
-    ctx.font = `bold 44px ${fontCss}`;
-    ctx.textAlign = "center";
-    ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 120);
+    // REGULAR TYPOGRAPHY RENDER
+    if (preset === "newspaper") {
+      ctx.fillStyle = "#1c1917";
+      ctx.strokeStyle = "#1c1917";
+      ctx.lineWidth = 3;
 
-    ctx.font = `500 20px ${fontCss}`;
-    ctx.globalAlpha = 0.85;
-    ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 70);
+      ctx.beginPath();
+      ctx.moveTo(padding, canvas.height - 130);
+      ctx.lineTo(canvas.width - padding, canvas.height - 130);
+      ctx.stroke();
+
+      ctx.font = `bold 36px ${fontCss}`;
+      ctx.textAlign = "center";
+      ctx.fillText(customText || "rielllybooth", canvas.width / 2, canvas.height - 85);
+
+      ctx.font = `italic 18px ${fontCss}`;
+      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 45);
+    } else if (preset === "y2k") {
+      ctx.fillStyle = "#f472b6";
+      ctx.font = `900 44px ${fontCss}`;
+      ctx.textAlign = "center";
+      ctx.fillText(customText || "RIELLLYBOOTH.Y2K", canvas.width / 2, canvas.height - 110);
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = `bold 18px ${fontCss}`;
+      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
+    } else if (preset === "film") {
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold 38px ${fontCss}`;
+      ctx.textAlign = "center";
+      ctx.fillText(customText || "rielllybooth 35mm", canvas.width / 2, canvas.height - 110);
+
+      ctx.fillStyle = "#9ca3af";
+      ctx.font = `18px ${fontCss}`;
+      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
+    } else {
+      // Classic Clean, Coquette, & Polkadot
+      ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
+      ctx.font = `bold 44px ${fontCss}`;
+      ctx.textAlign = "center";
+      ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 120);
+
+      ctx.font = `500 20px ${fontCss}`;
+      ctx.globalAlpha = 0.85;
+      ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 70);
+    }
   }
 
   ctx.restore();
