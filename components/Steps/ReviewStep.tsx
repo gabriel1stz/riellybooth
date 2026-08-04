@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Repeat, ArrowRight, Camera, Sparkles, Video, Play } from "lucide-react";
+import { Repeat, ArrowRight, Camera, Sparkles, Video, Play, RefreshCcw } from "lucide-react";
 
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
@@ -25,25 +25,25 @@ export default function ReviewStep({
   const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
 
   return (
-    <div className="w-full max-w-4xl space-y-8 px-4 py-4">
+    <div className="w-full max-w-4xl space-y-6 sm:space-y-8 px-3 sm:px-4 py-3 sm:py-4">
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-pink-100 rounded-full border border-pink-300 text-pink-700 text-xs font-bold shadow-xs">
           <Sparkles className="w-3.5 h-3.5" /> Pratinjau Pose Foto
         </div>
-        <h3 className="text-3xl font-black tracking-tight text-slate-800">
+        <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-800">
           Review Hasil Jepretanmu
         </h3>
-        <p className="text-slate-600 text-sm max-w-md mx-auto font-medium">
+        <p className="text-slate-600 text-xs sm:text-sm max-w-md mx-auto font-medium">
           Kamu bisa mengulang foto tertentu atau langsung lanjut ke Studio Hias.
         </p>
 
         {/* Live Photo Toggle Switch */}
-        <div className="pt-2">
+        <div className="pt-1 sm:pt-2">
           <button
             type="button"
             onClick={() => setIsLivePhotoOn((v) => !v)}
-            className={`inline-flex items-center gap-2 px-5 py-2 rounded-full border-2 text-xs font-bold transition-all duration-300 ease-in-out shadow-xs ${
+            className={`inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full border-2 text-xs font-bold transition-all duration-300 ease-in-out shadow-xs ${
               isLivePhotoOn
                 ? "bg-pink-400 text-white border-pink-500"
                 : "bg-white text-slate-700 border-slate-300"
@@ -55,8 +55,8 @@ export default function ReviewStep({
         </div>
       </div>
 
-      {/* 4 Photo Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* 4 Photo Grid Review Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {shots.map((shot, idx) => (
           <div
             key={shot.id || idx}
@@ -91,14 +91,14 @@ export default function ReviewStep({
               )}
             </div>
 
-            <div className="p-3 bg-white border-t border-pink-100">
+            <div className="p-2.5 sm:p-3 bg-white border-t border-pink-100">
               <button
                 type="button"
                 onClick={() => onRetakeSingle(idx)}
                 disabled={retakeIndex !== null}
-                className="w-full py-2 px-3 bg-rose-50 hover:bg-rose-100 disabled:opacity-50 text-xs font-bold text-rose-700 rounded-xl border border-pink-200 transition-all duration-300 ease-in-out flex items-center justify-center gap-1.5"
+                className="w-full py-2 px-2.5 bg-rose-50 hover:bg-rose-100 disabled:opacity-50 text-[11px] sm:text-xs font-bold text-rose-700 rounded-xl border border-pink-200 transition-all duration-300 ease-in-out flex items-center justify-center gap-1.5"
               >
-                <Repeat className="w-3.5 h-3.5 text-pink-500" /> Foto Ulang #{idx + 1}
+                <Repeat className="w-3.5 h-3.5 text-pink-500" /> Ulangi Foto Ini
               </button>
             </div>
 
@@ -115,21 +115,22 @@ export default function ReviewStep({
         ))}
       </div>
 
-      {/* Navigation & Action Buttons */}
-      <div className="flex flex-wrap justify-center gap-4 pt-4 border-t border-pink-200">
+      {/* Bottom Action Buttons: Secondary Ulangi Semua & Primary Pink Lanjut ke Studio Hias */}
+      <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pt-4 border-t border-pink-200">
         <button
           type="button"
           onClick={onRetakeAll}
-          className="px-6 py-3.5 bg-white hover:bg-slate-50 border-2 border-slate-300 font-bold rounded-2xl text-slate-700 transition-all duration-300 ease-in-out flex items-center gap-2 text-sm shadow-xs"
+          className="w-full sm:w-auto px-6 py-3.5 bg-white hover:bg-slate-50 border-2 border-slate-300 font-bold rounded-2xl text-slate-700 transition-all duration-300 ease-in-out flex items-center justify-center gap-2 text-xs sm:text-sm shadow-xs"
         >
-          <Camera className="w-4 h-4 text-slate-500" /> Ulangi Semua Foto
+          <RefreshCcw className="w-4 h-4 text-slate-500" /> Ulangi Semua (Reset)
         </button>
         <button
           type="button"
           onClick={onNextToEditor}
-          className="px-8 py-3.5 bg-pink-400 hover:bg-pink-500 border-2 border-pink-500 font-black text-white rounded-2xl shadow-md transition-all duration-300 ease-in-out flex items-center gap-2 text-sm hover:scale-105 active:scale-95"
+          className="w-full sm:w-auto px-8 py-3.5 bg-pink-400 hover:bg-pink-500 border-2 border-pink-500 font-black text-white rounded-2xl shadow-md transition-all duration-300 ease-in-out flex items-center justify-center gap-2 text-xs sm:text-sm hover:scale-105 active:scale-95"
         >
-          Lanjut ke Studio Editor <ArrowRight className="w-4 h-4" />
+          <span>Lanjut ke Studio Hias</span>
+          <ArrowRight className="w-4 h-4" />
         </button>
       </div>
     </div>

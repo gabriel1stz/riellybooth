@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Camera, Upload, AlertCircle, RefreshCw, Hand, Sparkles, Image as ImageIcon, SwitchCamera } from "lucide-react";
+import { Camera, Upload, AlertCircle, RefreshCw, Hand, Sparkles, Image as ImageIcon, SwitchCamera, Check } from "lucide-react";
 import { getHandLandmarker, isPeaceSignGesture } from "@/lib/gestureUtils";
+
+type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
 type CaptureStepProps = {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -10,6 +12,7 @@ type CaptureStepProps = {
   countdown: number | null;
   currentShotIndex: number;
   shotsCount: number;
+  shots: Shot[];
   cameraError: string | null;
   onTakeSingleShot: () => void;
   onUploadPhotos: (files: FileList) => void;
@@ -26,6 +29,7 @@ export default function CaptureStep({
   countdown,
   currentShotIndex,
   shotsCount,
+  shots,
   cameraError,
   onTakeSingleShot,
   onUploadPhotos,
@@ -100,8 +104,8 @@ export default function CaptureStep({
             setGestureStatus(null);
             isLockedRef.current = false;
           }
-        } catch (e) {
-          // Silent fallback for detection errors
+        } catch (err) {
+          console.warn("Gesture recognition loop error:", err);
         }
       }
 
@@ -116,7 +120,7 @@ export default function CaptureStep({
       active = false;
       if (animFrameId) cancelAnimationFrame(animFrameId);
     };
-  }, [gestureEnabled, isCapturing, countdown, cameraError, onTakeSingleShot]);
+  }, [gestureEnabled, isCapturing, countdown, cameraError, onTakeSingleShot, videoRef]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -124,15 +128,31 @@ export default function CaptureStep({
     }
   };
 
+  // Dynamic Action Button Label Generator
+  const getButtonLabel = () => {
+    if (countdown !== null) return `Capturing... (${countdown}s)`;
+    if (isCapturing) return "Cooldown...";
+    return `Jepret Manual (3s) 📸`;
+  };
+
   return (
-    <div className="w-full max-w-4xl px-4 py-4 space-y-6 flex flex-col items-center">
-      {/* Flash FX Overlay */}
+    <div className="w-full max-w-4xl px-2 sm:px-4 py-2 sm:py-4 flex flex-col items-center gap-4 sm:gap-6 animate-in fade-in duration-300">
+      {/* Camera Snapshot Flash Screen FX */}
       {flashFx && (
         <div className="fixed inset-0 bg-white z-[100] animate-out fade-out duration-300 pointer-events-none" />
       )}
 
+      {/* Loading Transition Screen Overlay when completing 4 shots */}
+      {shotsCount === 4 && (
+        <div className="fixed inset-0 bg-rose-50/95 backdrop-blur-md z-[90] flex flex-col items-center justify-center p-6 text-center space-y-4 animate-in fade-in duration-300">
+          <Sparkles className="w-12 h-12 text-pink-500 animate-spin" />
+          <h3 className="text-2xl font-black text-slate-800">Memuat Review Foto... ✨</h3>
+          <p className="text-xs text-slate-600 font-medium">Menyusun 4 pose foto terbaikmu ke Studio Review!</p>
+        </div>
+      )}
+
       {/* Top Header Status Badge */}
-      <div className="w-full flex flex-wrap justify-between items-center gap-3 bg-white border-2 border-pink-200 p-4 rounded-2xl shadow-sm">
+      <div className="w-full flex flex-wrap justify-between items-center gap-3 bg-white border-2 border-pink-200 p-3 sm:p-4 rounded-2xl shadow-sm">
         <div className="flex items-center gap-3">
           <span className="px-3 py-1 bg-pink-100 border border-pink-300 text-pink-700 font-extrabold text-xs rounded-full">
             Pose #{currentShotIndex} / 4
@@ -178,8 +198,8 @@ export default function CaptureStep({
         </div>
       </div>
 
-      {/* Main WebRTC Camera Viewport Container */}
-      <div className="relative w-full max-w-2xl aspect-[4/3] bg-slate-900 border-4 border-pink-300 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center">
+      {/* Main WebRTC Camera Viewport Container (EXTRA LARGE MOBILE VIEWPORT) */}
+      <div className="relative w-full max-w-3xl aspect-[3/4] sm:aspect-[4/3] bg-slate-900 border-2 sm:border-4 border-pink-300 rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl flex items-center justify-center">
         {cameraError ? (
           <div className="p-6 text-center space-y-3 text-white max-w-md">
             <AlertCircle className="w-12 h-12 text-rose-400 mx-auto animate-bounce" />
@@ -220,10 +240,10 @@ export default function CaptureStep({
               </div>
             )}
 
-            {/* 3-2-1 Countdown Overlay */}
+            {/* Countdown Overlay */}
             {countdown !== null && (
-              <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs z-30 flex items-center justify-center animate-in zoom-in duration-200">
-                <span className="text-8xl font-black text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] animate-ping">
+              <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs z-30 flex items-center justify-center">
+                <span className="text-8xl sm:text-9xl font-black text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] animate-ping">
                   {countdown}
                 </span>
               </div>
@@ -232,19 +252,50 @@ export default function CaptureStep({
         )}
       </div>
 
-      {/* Primary Action Buttons Bar */}
-      <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+      {/* CIRCULAR STEP TRACKER THUMBNAILS (4 BADGES) */}
+      <div className="flex items-center justify-center gap-3 py-1">
+        {[0, 1, 2, 3].map((idx) => {
+          const shot = shots[idx];
+          const isActive = idx === shotsCount;
+          return (
+            <div key={idx} className="flex flex-col items-center gap-1">
+              <div
+                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 flex items-center justify-center overflow-hidden transition-all duration-300 shadow-md ${
+                  shot
+                    ? "border-pink-500 bg-white scale-105"
+                    : isActive
+                    ? "border-pink-400 bg-pink-100 ring-4 ring-pink-200 animate-pulse"
+                    : "border-slate-300 bg-slate-100 text-slate-400"
+                }`}
+              >
+                {shot ? (
+                  <img src={shot.dataUrl} alt={`Thumb #${idx + 1}`} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xs font-black">0{idx + 1}</span>
+                )}
+              </div>
+              <span className={`text-[10px] font-bold ${shot ? "text-pink-600" : "text-slate-400"}`}>
+                #{idx + 1}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Main Control Action Bar (Dynamic Button Label) */}
+      <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-lg">
+        {/* Main Camera Shutter Trigger Button */}
         <button
           type="button"
           onClick={onTakeSingleShot}
-          disabled={isCapturing || !!cameraError}
-          className="px-10 py-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-lg rounded-2xl border-2 border-pink-500 shadow-xl flex items-center gap-3 transition hover:scale-105 active:scale-95 disabled:opacity-50"
+          disabled={isCapturing || countdown !== null || !!cameraError}
+          className="w-full py-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-base sm:text-lg rounded-2xl border-4 border-pink-500 shadow-xl transition-all duration-150 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          <Camera className="w-6 h-6" />
-          <span>Jepret Pose #{currentShotIndex} 📸</span>
+          <Camera className="w-6 h-6 animate-pulse" />
+          <span>{getButtonLabel()}</span>
         </button>
 
-        {/* Hidden Upload Manual Input */}
+        {/* Manual Gallery Upload Option */}
         <input
           ref={fileInputRef}
           type="file"
@@ -253,17 +304,20 @@ export default function CaptureStep({
           onChange={handleFileChange}
           className="hidden"
         />
-
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          disabled={isCapturing}
-          className="px-6 py-4 bg-white hover:bg-rose-50 text-slate-700 font-bold text-sm rounded-2xl border-2 border-pink-200 shadow-md flex items-center gap-2 transition hover:scale-105 active:scale-95"
+          className="w-full sm:w-auto px-4 py-3 bg-white hover:bg-rose-50 text-slate-700 font-bold text-xs rounded-2xl border-2 border-pink-200 shadow-sm transition flex items-center justify-center gap-2 shrink-0"
         >
-          <Upload className="w-5 h-5 text-pink-500" />
-          <span>Upload 4 Foto</span>
+          <ImageIcon className="w-4 h-4 text-pink-500" />
+          <span>Upload Galeri 🖼️</span>
         </button>
       </div>
+
+      {/* User Helper Directive Badge */}
+      <p className="text-xs text-slate-500 font-medium text-center max-w-md">
+        💡 <strong className="text-pink-600">Tips:</strong> Tunjukkan pose Peace (✌️) di depan kamera untuk otomatis jepret tanpa menyentuh layar!
+      </p>
     </div>
   );
 }

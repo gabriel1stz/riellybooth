@@ -86,6 +86,11 @@ function drawImageCover(
   const imgW = (img as HTMLVideoElement).videoWidth || img.width;
   const imgH = (img as HTMLVideoElement).videoHeight || img.height;
 
+  if (!imgW || !imgH) {
+    ctx.restore();
+    return;
+  }
+
   const imgRatio = imgW / imgH;
   const containerRatio = w / h;
 
@@ -359,29 +364,36 @@ export const drawPhotoStrip = (
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length === 0) return;
 
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-
-  // Determine photo count and canvas dimensions based on layout mode
+  // Determine photo count and target canvas dimensions based on layout mode
   let photoCount = 4;
+  let targetW = 600;
+  let targetH = 1800;
+
   if (layout === "strip_2") {
     photoCount = 2;
-    canvas.width = 600;
-    canvas.height = 1100;
+    targetW = 600;
+    targetH = 1100;
   } else if (layout === "strip_3") {
     photoCount = 3;
-    canvas.width = 600;
-    canvas.height = 1450;
+    targetW = 600;
+    targetH = 1450;
   } else if (layout === "strip_4") {
     photoCount = 4;
-    canvas.width = 600;
-    canvas.height = 1800;
+    targetW = 600;
+    targetH = 1800;
   } else {
     // grid_2x2
     photoCount = 4;
-    canvas.width = 1200;
-    canvas.height = 1400;
+    targetW = 1200;
+    targetH = 1400;
   }
+
+  // Only resize canvas if target dimensions actually change to prevent browser canvas clearing flicker
+  if (canvas.width !== targetW) canvas.width = targetW;
+  if (canvas.height !== targetH) canvas.height = targetH;
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 

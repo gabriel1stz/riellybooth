@@ -80,6 +80,9 @@ export default function RielllyBooth() {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Image cache map for instant flicker-free canvas redraws
+  const loadedImgMapRef = useRef<Map<string, HTMLImageElement>>(new Map());
+
   // Set default subtitle date
   useEffect(() => {
     const today = new Date().toLocaleDateString("id-ID", {
@@ -90,16 +93,32 @@ export default function RielllyBooth() {
     setSubtitleText(`✨ ${today} ✨`);
   }, []);
 
-  // Handle BGM Music lifecycle (ONLY PLAY DURING CAPTURE STEP - DEFERRED LOADING)
+  // Preload captured/uploaded shot images into image map cache for instant drawing
   useEffect(() => {
-    if (step === "capture" && isAudioOn) {
+    shots.forEach((s) => {
+      if (s.dataUrl && !loadedImgMapRef.current.has(s.dataUrl)) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = s.dataUrl;
+        img.onload = () => {
+          loadedImgMapRef.current.set(s.dataUrl, img);
+        };
+      }
+    });
+  }, [shots]);
+
+  // CONTINUOUS BGM MUSIC PLAYBACK ACROSS ALL STEPS (capture -> review -> editor) ONCE STARTED
+  useEffect(() => {
+    if (step !== "landing" && isAudioOn) {
       setBgmState(true);
-    } else {
+    } else if (!isAudioOn) {
       setBgmState(false);
     }
 
     return () => {
-      stopBgm();
+      if (step === "landing") {
+        stopBgm();
+      }
     };
   }, [step, isAudioOn]);
 
@@ -189,10 +208,20 @@ export default function RielllyBooth() {
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
+          const dataUrl = e.target.result as string;
           loadedShots.push({
             index,
-            shot: { id: Date.now() + index + Math.random(), dataUrl: e.target.result as string },
+            shot: { id: Date.now() + index + Math.random(), dataUrl },
           });
+
+          // Preload into cache
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = dataUrl;
+          img.onload = () => {
+            loadedImgMapRef.current.set(dataUrl, img);
+          };
+
           loadedCount++;
 
           if (loadedCount === fileArray.length) {
@@ -253,6 +282,14 @@ export default function RielllyBooth() {
       triggerSnapshotFx();
       const dataUrl = captureCanvasSnapshot(videoRef.current, false);
 
+      // Preload captured snapshot into image map cache
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = dataUrl;
+      img.onload = () => {
+        loadedImgMapRef.current.set(dataUrl, img);
+      };
+
       if (retakeIndex !== null) {
         const updated = [...shots];
         updated[retakeIndex] = { id: Date.now(), dataUrl, videoBlobUrl };
@@ -274,7 +311,7 @@ export default function RielllyBooth() {
         } else {
           setTimeout(() => {
             setStep("review");
-          }, 500);
+          }, 600);
         }
       }
     }
@@ -337,7 +374,7 @@ export default function RielllyBooth() {
     setPlacedStickers([]);
   };
 
-  // Render HTML5 Canvas Output
+  // Render HTML5 Canvas Output (Instant Flicker-Free Sync Render via Image Cache)
   const renderCanvas = useCallback(
     (videoElements?: HTMLVideoElement[]) => {
       if (!canvasRef.current || shots.length === 0) return;
@@ -362,39 +399,44 @@ export default function RielllyBooth() {
         return;
       }
 
-      // Static Image Render
-      const loadedImages: HTMLImageElement[] = [];
-      let count = 0;
-
+      // Static Synchronous Image Render
       const targetCount = layout === "strip_2" ? 2 : layout === "strip_3" ? 3 : 4;
+      const targetShots = shots.slice(0, targetCount);
+      const loadedImages: HTMLImageElement[] = [];
 
-      shots.slice(0, targetCount).forEach((shot, i) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = shot.dataUrl;
-        img.onload = () => {
-          loadedImages[i] = img;
-          count++;
-          if (count === targetCount && canvasRef.current) {
-            drawPhotoStrip(
-              canvasRef.current,
-              loadedImages,
-              layout,
-              frameColor,
-              textColor,
-              filter,
-              preset,
-              cuteFilter,
-              customText,
-              fontFamily,
-              subtitleText,
-              placedStickers,
-              isFlipped,
-              customLogoImg
-            );
-          }
-        };
-      });
+      for (let i = 0; i < targetShots.length; i++) {
+        const cached = loadedImgMapRef.current.get(targetShots[i].dataUrl);
+        if (cached) {
+          loadedImages[i] = cached;
+        } else {
+          // If any image is still loading into cache, instantiate on the fly
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = targetShots[i].dataUrl;
+          img.onload = () => {
+            loadedImgMapRef.current.set(targetShots[i].dataUrl, img);
+            renderCanvas();
+          };
+          return;
+        }
+      }
+
+      drawPhotoStrip(
+        canvasRef.current,
+        loadedImages,
+        layout,
+        frameColor,
+        textColor,
+        filter,
+        preset,
+        cuteFilter,
+        customText,
+        fontFamily,
+        subtitleText,
+        placedStickers,
+        isFlipped,
+        customLogoImg
+      );
     },
     [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped, customLogoImg]
   );
@@ -637,6 +679,7 @@ export default function RielllyBooth() {
             countdown={countdown}
             currentShotIndex={currentShotIndex}
             shotsCount={shots.length}
+            shots={shots}
             onTakeSingleShot={handleTakeSingleShot}
             onUploadPhotos={handleUploadPhotos}
             cameraError={cameraError}
@@ -905,21 +948,21 @@ export default function RielllyBooth() {
         <div className="flex flex-wrap items-center justify-center gap-2 font-bold text-slate-700">
           <span>&copy; {new Date().getFullYear()}</span>
           <span className="text-pink-500 font-extrabold text-sm flex items-center gap-1">
-            rielllybooth <span className="text-xs">🎀</span>
+            rielllybooth ♡ <span className="text-xs">🎀</span>
           </span>
           <span className="text-slate-400">•</span>
           <span className="italic text-slate-600 font-medium">
-            &ldquo;happy captures ✨&rdquo;
+            &ldquo;capturing ur cutiest moments everywhere ✨&rdquo;
           </span>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
           <a
-            href="mailto:rielllybooth@gmail.com"
+            href="mailto:hello.rielllybooth@gmail.com"
             className="inline-flex items-center gap-1.5 font-bold text-slate-700 hover:text-pink-600 transition"
           >
             <Mail className="w-3.5 h-3.5 text-pink-500" />
-            <span>rielllybooth@gmail.com</span>
+            <span>hello.rielllybooth@gmail.com</span>
           </a>
 
           <span className="text-slate-300">•</span>
@@ -934,8 +977,27 @@ export default function RielllyBooth() {
             <span>@dhikastriaaa</span>
           </a>
 
+          <a
+            href="https://instagram.com/rielllybooth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-bold text-pink-600 hover:text-pink-700 transition underline"
+          >
+            <Instagram className="w-3.5 h-3.5" />
+            <span>@rielllybooth</span>
+          </a>
+
           <span className="text-slate-300">•</span>
 
+          <a
+            href="https://tiktok.com/@rielllybooth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-bold text-purple-600 hover:text-purple-700 transition underline"
+          >
+            <Video className="w-3.5 h-3.5 text-purple-500" />
+            <span>TikTok @rielllybooth</span>
+          </a>
         </div>
       </footer>
     </main>
