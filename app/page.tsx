@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import confetti from "canvas-confetti";
-import { Instagram, Mail, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, QrCode, Share2, Download, Copy, Check } from "lucide-react";
+import { Instagram, Mail, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, QrCode, Share2, Download, Copy, Check, Smartphone, Image as ImageIcon } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import LandingStep from "@/components/Steps/LandingStep";
 import CaptureStep from "@/components/Steps/CaptureStep";
@@ -35,9 +35,11 @@ export default function RielllyBooth() {
   // Modals State
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
-  const [showQrModal, setShowQrModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [downloadModalTab, setDownloadModalTab] = useState<"direct" | "qr">("direct");
   const [downloadedDataUrl, setDownloadedDataUrl] = useState<string | null>(null);
+  const [downloadedVideoUrl, setDownloadedVideoUrl] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
   // Live Photo, Custom Logo & Editor State
@@ -415,8 +417,8 @@ export default function RielllyBooth() {
     };
   }, [step, isLivePhotoOn, shots, renderCanvas]);
 
-  // HD PNG Download & Confetti Trigger + QR Code Modal
-  const handleDownloadPng = () => {
+  // Direct Download Trigger Helpers
+  const triggerDirectPngDownload = () => {
     if (!canvasRef.current) return;
     const dataUrl = canvasRef.current.toDataURL("image/png");
     setDownloadedDataUrl(dataUrl);
@@ -425,6 +427,24 @@ export default function RielllyBooth() {
     link.download = `rielllybooth-${Date.now()}.png`;
     link.href = dataUrl;
     link.click();
+  };
+
+  const triggerDirectVideoDownload = () => {
+    if (downloadedVideoUrl) {
+      const link = document.createElement("a");
+      link.download = `rielllybooth-live-${Date.now()}.webm`;
+      link.href = downloadedVideoUrl;
+      link.click();
+    }
+  };
+
+  // HD PNG Download Action & Open Download Modal
+  const handleDownloadPng = () => {
+    if (!canvasRef.current) return;
+    const dataUrl = canvasRef.current.toDataURL("image/png");
+    setDownloadedDataUrl(dataUrl);
+
+    triggerDirectPngDownload();
 
     try {
       confetti({
@@ -435,11 +455,12 @@ export default function RielllyBooth() {
       });
     } catch (e) {}
 
-    // Open QR Code Download Modal
-    setTimeout(() => setShowQrModal(true), 400);
+    // Open Download Modal with Direct Tab Selected
+    setDownloadModalTab("direct");
+    setTimeout(() => setShowDownloadModal(true), 300);
   };
 
-  // Live Video (WebM / Boomerang) Export
+  // Live Video Export Action & Open Download Modal
   const handleDownloadVideo = async () => {
     if (!canvasRef.current || isExportingVideo) return;
     setIsExportingVideo(true);
@@ -461,6 +482,8 @@ export default function RielllyBooth() {
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
+        setDownloadedVideoUrl(url);
+
         const link = document.createElement("a");
         link.download = `rielllybooth-live-${Date.now()}.webm`;
         link.href = url;
@@ -471,7 +494,8 @@ export default function RielllyBooth() {
           confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         } catch (e) {}
 
-        setTimeout(() => setShowQrModal(true), 400);
+        setDownloadModalTab("direct");
+        setTimeout(() => setShowDownloadModal(true), 300);
       };
 
       recorder.start();
@@ -649,9 +673,18 @@ export default function RielllyBooth() {
             </div>
 
             <div className="space-y-2.5">
+              <a
+                href="https://saweria.co/rielllybooth"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-3 bg-amber-400 hover:bg-amber-500 text-slate-900 font-black text-xs rounded-2xl border-2 border-amber-500 flex items-center justify-between transition shadow-xs"
+              >
+                <span>☕ Saweria Support</span>
+                <span className="text-[10px] bg-white px-2 py-0.5 rounded-md font-bold">QRIS / GoPay / OVO</span>
+              </a>
 
               <a
-                href="https://teer.id/eveexyz"
+                href="https://trakteer.id/rielllybooth"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full p-3 bg-rose-400 hover:bg-rose-500 text-white font-black text-xs rounded-2xl border-2 border-rose-500 flex items-center justify-between transition shadow-xs"
@@ -660,6 +693,15 @@ export default function RielllyBooth() {
                 <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-md font-bold">Support Studio</span>
               </a>
 
+              <a
+                href="https://ko-fi.com/rielllybooth"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-3 bg-sky-400 hover:bg-sky-500 text-white font-black text-xs rounded-2xl border-2 border-sky-500 flex items-center justify-between transition shadow-xs"
+              >
+                <span>💙 Ko-fi</span>
+                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-md font-bold">Global Support</span>
+              </a>
             </div>
 
             <div className="text-center pt-1">
@@ -674,39 +716,121 @@ export default function RielllyBooth() {
         </div>
       )}
 
-      {/* QR CODE DOWNLOAD MODAL */}
-      {showQrModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200">
+      {/* OVERHAULED MOBILE & DESKTOP DIRECT DOWNLOAD MODAL */}
+      {showDownloadModal && (
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 text-center relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <button
-              onClick={() => setShowQrModal(false)}
-              className="absolute top-4 right-4 p-1 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
+              onClick={() => setShowDownloadModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="inline-flex p-3 bg-pink-100 rounded-full border border-pink-300 text-pink-500">
-              <QrCode className="w-6 h-6" />
-            </div>
-
-            <h3 className="text-xl font-black text-slate-800">Scan untuk Simpan di HP 📱</h3>
-            <p className="text-xs text-slate-600 font-medium">
-              Pindai QR code ini memakai kamera HP Anda untuk menyimpan photo strip langsung ke galeri HP!
-            </p>
-
-            <div className="bg-rose-50 border-2 border-pink-200 p-4 rounded-2xl flex flex-col items-center justify-center">
-              {/* QR Code representation */}
-              <div className="w-36 h-36 bg-white p-2 border-2 border-pink-300 rounded-xl shadow-inner flex flex-col items-center justify-center relative">
-                <QrCode className="w-28 h-28 text-slate-800" />
-                <span className="text-[9px] font-black text-pink-600 bg-pink-100 px-2 py-0.5 rounded border border-pink-300 mt-1">
-                  rielllybooth
-                </span>
+            <div className="space-y-1">
+              <div className="inline-flex p-3 bg-pink-100 rounded-full border border-pink-300 text-pink-500">
+                <Download className="w-6 h-6 animate-bounce" />
               </div>
+              <h3 className="text-2xl font-black text-slate-800">Unduh Photo Strip 📸</h3>
+              <p className="text-xs text-slate-600 font-medium">
+                Pilih opsi di bawah untuk menyimpan file langsung ke HP atau Laptop!
+              </p>
             </div>
+
+            {/* TAB SELECTOR: Direct Download vs Optional QR Code */}
+            <div className="flex bg-rose-50 p-1.5 rounded-2xl border border-pink-200 gap-1">
+              <button
+                type="button"
+                onClick={() => setDownloadModalTab("direct")}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                  downloadModalTab === "direct"
+                    ? "bg-pink-400 text-white shadow-xs"
+                    : "text-slate-600 hover:bg-pink-100"
+                }`}
+              >
+                <Download className="w-3.5 h-3.5" /> Unduh Langsung ⬇️
+              </button>
+              <button
+                type="button"
+                onClick={() => setDownloadModalTab("qr")}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                  downloadModalTab === "qr"
+                    ? "bg-pink-400 text-white shadow-xs"
+                    : "text-slate-600 hover:bg-pink-100"
+                }`}
+              >
+                <QrCode className="w-3.5 h-3.5" /> Transfer ke HP 📱
+              </button>
+            </div>
+
+            {/* TAB 1: DIRECT DOWNLOAD BUTTONS & MOBILE PRESS-AND-HOLD PREVIEW */}
+            {downloadModalTab === "direct" && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                {/* Direct Action Buttons */}
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={triggerDirectPngDownload}
+                    className="w-full py-3.5 px-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-sm rounded-2xl border-2 border-pink-500 shadow-md flex items-center justify-center gap-2 transition hover:scale-102 active:scale-95"
+                  >
+                    <Download className="w-5 h-5" /> ⬇️ Download Foto Statis (PNG HD)
+                  </button>
+
+                  {downloadedVideoUrl && (
+                    <button
+                      type="button"
+                      onClick={triggerDirectVideoDownload}
+                      className="w-full py-3.5 px-4 bg-purple-500 hover:bg-purple-600 text-white font-black text-sm rounded-2xl border-2 border-purple-600 shadow-md flex items-center justify-center gap-2 transition hover:scale-102 active:scale-95"
+                    >
+                      <Video className="w-5 h-5" /> 🎥 Download Live Video (WebM)
+                    </button>
+                  )}
+                </div>
+
+                {/* Mobile Browser Press & Hold Preview Image with Helpful Hint */}
+                {downloadedDataUrl && (
+                  <div className="bg-rose-50 border-2 border-pink-200 p-3 rounded-2xl space-y-2.5">
+                    <span className="text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1">
+                      <Smartphone className="w-4 h-4 text-pink-500" /> Pratinjau Foto (HP & Tablet):
+                    </span>
+
+                    <div className="flex justify-center max-h-56 overflow-hidden rounded-xl border border-pink-200 bg-white p-1 shadow-inner">
+                      <img
+                        src={downloadedDataUrl}
+                        alt="Photo Strip Download Preview"
+                        className="max-h-52 w-auto object-contain rounded-lg shadow-xs cursor-pointer"
+                      />
+                    </div>
+
+                    <p className="text-[11px] font-bold text-pink-700 bg-pink-100 p-2.5 rounded-xl border border-pink-200 leading-relaxed text-center">
+                      💡 <span className="underline">Petunjuk pengguna HP (iOS / Android)</span>: Kamu juga bisa <strong>Tekan & Tahan</strong> gambar di atas, lalu pilih <strong>&ldquo;Simpan ke Foto / Save Image&rdquo;</strong>!
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 2: OPTIONAL QR CODE TRANSFER FOR DESKTOP */}
+            {downloadModalTab === "qr" && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <p className="text-xs text-slate-600 font-medium">
+                  Scan QR code ini pakai kamera HP kamu untuk membuka link photo strip di HP!
+                </p>
+
+                <div className="bg-rose-50 border-2 border-pink-200 p-4 rounded-2xl flex flex-col items-center justify-center">
+                  <div className="w-36 h-36 bg-white p-2 border-2 border-pink-300 rounded-xl shadow-inner flex flex-col items-center justify-center">
+                    <QrCode className="w-28 h-28 text-slate-800" />
+                    <span className="text-[9px] font-black text-pink-600 bg-pink-100 px-2 py-0.5 rounded border border-pink-300 mt-1">
+                      rielllybooth
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <button
-              onClick={() => setShowQrModal(false)}
-              className="w-full py-2.5 bg-pink-400 hover:bg-pink-500 text-white font-black text-xs rounded-xl shadow-md border-2 border-pink-500 transition"
+              onClick={() => setShowDownloadModal(false)}
+              className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition"
             >
               Selesai ✨
             </button>
@@ -773,21 +897,21 @@ export default function RielllyBooth() {
         <div className="flex flex-wrap items-center justify-center gap-2 font-bold text-slate-700">
           <span>&copy; {new Date().getFullYear()}</span>
           <span className="text-pink-500 font-extrabold text-sm flex items-center gap-1">
-            rielllybooth <span className="text-xs">🎀</span>
+            rielllybooth ♡ <span className="text-xs">🎀</span>
           </span>
           <span className="text-slate-400">•</span>
           <span className="italic text-slate-600 font-medium">
-            &ldquo;capturing ur cutiest moments everywhere &rdquo;
+            &ldquo;capturing ur cutiest moments everywhere ✨&rdquo;
           </span>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
           <a
-            href="mailto:rielllybooth@gmail.com"
+            href="mailto:hello.rielllybooth@gmail.com"
             className="inline-flex items-center gap-1.5 font-bold text-slate-700 hover:text-pink-600 transition"
           >
             <Mail className="w-3.5 h-3.5 text-pink-500" />
-            <span>rielllybooth@gmail.com</span>
+            <span>hello.rielllybooth@gmail.com</span>
           </a>
 
           <span className="text-slate-300">•</span>
@@ -812,6 +936,17 @@ export default function RielllyBooth() {
             <span>@rielllybooth</span>
           </a>
 
+          <span className="text-slate-300">•</span>
+
+          <a
+            href="https://tiktok.com/@rielllybooth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-bold text-purple-600 hover:text-purple-700 transition underline"
+          >
+            <Video className="w-3.5 h-3.5 text-purple-500" />
+            <span>TikTok @rielllybooth</span>
+          </a>
         </div>
       </footer>
     </main>
