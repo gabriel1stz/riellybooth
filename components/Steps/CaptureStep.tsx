@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Camera, Upload, AlertCircle, RefreshCw, Volume2, VolumeX, Hand, Sparkles } from "lucide-react";
+import { Camera, Upload, AlertCircle, RefreshCw, Hand, Sparkles, Image as ImageIcon } from "lucide-react";
 import { getHandLandmarker, isPeaceSignGesture } from "@/lib/gestureUtils";
 
 type CaptureStepProps = {
@@ -87,7 +87,7 @@ export default function CaptureStep({
             } else {
               peaceStartTimeRef.current = null;
               setPeaceProgress(0);
-              setGestureStatus(`✌️ Tunjukkan gesture Peace untuk mengambil Foto #${currentShotIndex}/4`);
+              setGestureStatus(`✌️ Pose Peace untuk Foto #${currentShotIndex}/4`);
             }
           } else {
             peaceStartTimeRef.current = null;
@@ -119,62 +119,48 @@ export default function CaptureStep({
   };
 
   return (
-    <div className="w-full max-w-5xl flex flex-col items-center gap-6 px-4">
-      {/* Step Guide Banner */}
-      <div className="w-full bg-white border-2 border-pink-200 rounded-3xl p-5 flex items-center justify-between shadow-md">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-pink-100 border border-pink-300 rounded-2xl text-pink-600 font-black text-base">
-            #{currentShotIndex} / 4
-          </div>
-          <div>
-            <h4 className="text-base font-black text-slate-800">
-              {shotsCount === 0 && "Pose ✌️ untuk mengambil Foto #1"}
-              {shotsCount === 1 && "Bagus! Pose ✌️ lagi untuk Foto #2"}
-              {shotsCount === 2 && "Keren! Pose ✌️ lagi untuk Foto #3"}
-              {shotsCount === 3 && "Terakhir! Pose ✌️ untuk Foto #4"}
-              {shotsCount >= 4 && "Selesai! Memproses foto..."}
-            </h4>
-            <p className="text-xs text-slate-500 font-medium">
-              Setiap gesture ✌️ mengambil 1 foto. Kumpulkan 4 pose terbaikmu!
-            </p>
-          </div>
+    <div className="w-full max-w-md sm:max-w-lg mx-auto flex flex-col items-center gap-5 px-4 py-2">
+      {/* Top Header Status Pill */}
+      <div className="flex items-center justify-between w-full">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-rose-100 rounded-full border border-rose-300 text-rose-600 text-xs font-black shadow-xs">
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+          <span>STUDIO LIVE 🔴</span>
         </div>
 
-        {/* 4 Dots Progress Indicator */}
-        <div className="flex items-center gap-2">
-          {[0, 1, 2, 3].map((idx) => (
-            <div
-              key={idx}
-              className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
-                idx < shotsCount
-                  ? "bg-pink-500 ring-2 ring-pink-300"
-                  : idx === shotsCount
-                  ? "bg-pink-400 animate-ping"
-                  : "bg-slate-200"
-              }`}
-            />
-          ))}
-        </div>
+        {/* Gesture Toggle Pill */}
+        <button
+          type="button"
+          onClick={() => setGestureEnabled((v) => !v)}
+          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 border-2 flex items-center gap-1.5 shadow-xs ${
+            gestureEnabled
+              ? "bg-pink-400 text-white border-pink-500"
+              : "bg-white text-slate-600 border-slate-300"
+          }`}
+          title="Toggle Gesture Detection ✌️"
+        >
+          <Hand className="w-3.5 h-3.5" />
+          <span>Gesture ✌️ {gestureEnabled ? "ON" : "OFF"}</span>
+        </button>
       </div>
 
-      {/* EXPANDED max-w-5xl VIDEO VIEWPORT CONTAINER */}
-      <div className="relative w-full aspect-video bg-slate-900 rounded-3xl overflow-hidden border-4 border-pink-300 shadow-2xl flex items-center justify-center">
+      {/* PORTRAIT CAMERA VIEWPORT CONTAINER (ASPECT 3/4 WITH ROUNDED-[32px]) */}
+      <div className="relative w-full aspect-[3/4] bg-slate-900 rounded-[32px] overflow-hidden border-4 border-pink-300 shadow-2xl flex items-center justify-center">
         {/* FLASH FX OVERLAY */}
         {flashFx && (
           <div className="absolute inset-0 bg-white z-50 animate-out fade-out duration-300 pointer-events-none" />
         )}
 
         {cameraError ? (
-          <div className="p-8 text-center space-y-4 max-w-md z-10 bg-white border-2 border-rose-200 rounded-3xl shadow-xl">
-            <div className="p-4 bg-rose-100 rounded-full border border-rose-300 inline-block">
-              <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
+          <div className="p-6 text-center space-y-4 max-w-xs z-10 bg-white border-2 border-rose-200 rounded-3xl shadow-xl">
+            <div className="p-3 bg-rose-100 rounded-full border border-rose-300 inline-block">
+              <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
             </div>
-            <h4 className="text-xl font-bold text-rose-600">Kamera Tidak Tersedia</h4>
-            <p className="text-xs text-slate-600 leading-relaxed bg-rose-50 p-3 rounded-xl border border-rose-200 font-medium">
+            <h4 className="text-lg font-bold text-rose-600">Kamera Tidak Tersedia</h4>
+            <p className="text-xs text-slate-600 leading-relaxed bg-rose-50 p-2.5 rounded-xl border border-rose-200 font-medium">
               {cameraError}
             </p>
-            <p className="text-xs text-slate-500">
-              💡 Tutup aplikasi lain yang sedang memakai kamera lalu refresh halaman.
+            <p className="text-[11px] text-slate-500">
+              💡 Tutup aplikasi lain yang memakai kamera, lalu refresh halaman.
             </p>
           </div>
         ) : (
@@ -189,52 +175,20 @@ export default function CaptureStep({
           />
         )}
 
-        {/* Live Shot Counter Badge */}
+        {/* Overlaid Badge Top-Right: SHOT X / 4 */}
         {!cameraError && (
-          <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full text-xs font-bold border border-pink-200 text-pink-600 flex items-center gap-2 shadow-md z-20">
-            <span className="w-2.5 h-2.5 rounded-full bg-pink-500 animate-pulse" />
-            <span>Pose Foto #{currentShotIndex} dari 4</span>
-          </div>
-        )}
-
-        {/* Top-Right Controls: Gesture Toggle & Audio Toggle */}
-        {!cameraError && (
-          <div className="absolute top-5 right-5 flex items-center gap-2 z-20">
-            <button
-              type="button"
-              onClick={() => setGestureEnabled((v) => !v)}
-              className={`px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md border-2 transition-all duration-300 ease-in-out flex items-center gap-1.5 shadow-md ${
-                gestureEnabled
-                  ? "bg-pink-400 text-white border-pink-500"
-                  : "bg-white/90 text-slate-600 border-slate-300"
-              }`}
-              title="Toggle Gesture Detection ✌️"
-            >
-              <Hand className="w-4 h-4" />
-              <span>Gesture ✌️ {gestureEnabled ? "ON" : "OFF"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={onToggleAudio}
-              className={`p-2.5 rounded-full backdrop-blur-md border-2 text-xs font-bold transition-all duration-300 ease-in-out shadow-md ${
-                isAudioOn
-                  ? "bg-pink-400 text-white border-pink-500"
-                  : "bg-white/90 text-slate-600 border-slate-300"
-              }`}
-              title="Toggle Audio BGM"
-            >
-              {isAudioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
+          <div className="absolute top-4 right-4 bg-slate-950/70 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-black border border-white/20 text-white flex items-center gap-1.5 shadow-lg z-20">
+            <ImageIcon className="w-3.5 h-3.5 text-pink-400" />
+            <span>SHOT {currentShotIndex} / 4</span>
           </div>
         )}
 
         {/* Gesture Progress Overlay */}
         {gestureEnabled && !isCapturing && gestureStatus && (
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-2xl border-2 border-pink-300 text-xs font-bold text-slate-800 flex items-center gap-3 shadow-xl z-20">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-pink-300 text-xs font-bold text-slate-800 flex items-center gap-2.5 shadow-xl z-20 w-[90%] justify-center text-center">
             <span>{gestureStatus}</span>
             {peaceProgress > 0 && (
-              <div className="w-20 h-2.5 bg-slate-100 rounded-full overflow-hidden border border-pink-300">
+              <div className="w-14 h-2 bg-slate-100 rounded-full overflow-hidden border border-pink-300">
                 <div
                   className="h-full bg-pink-500 transition-all duration-100"
                   style={{ width: `${peaceProgress}%` }}
@@ -259,25 +213,55 @@ export default function CaptureStep({
         )}
       </div>
 
-      {/* Control Action Buttons */}
+      {/* SHOT PROGRESS TRACKER (CIRCULAR STEP BADGES 01, 02, 03, 04) */}
+      <div className="w-full bg-white border-2 border-pink-200 rounded-2xl p-3 flex items-center justify-between shadow-sm">
+        <span className="text-xs font-black text-slate-700 pl-1">Kemajuan Pose:</span>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {[1, 2, 3, 4].map((num, idx) => {
+            const isCompleted = idx < shotsCount;
+            const isCurrent = idx === shotsCount;
+            return (
+              <div
+                key={num}
+                className={`relative flex items-center justify-center w-9 h-9 rounded-full text-xs font-black border-2 transition-all duration-300 ${
+                  isCompleted
+                    ? "bg-pink-400 border-pink-500 text-white shadow-xs"
+                    : isCurrent
+                    ? "bg-pink-100 border-pink-400 text-pink-700 ring-2 ring-pink-300"
+                    : "bg-slate-50 border-slate-200 text-slate-400"
+                }`}
+              >
+                <span>0{num}</span>
+                {isCompleted && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-pink-500 border border-white" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* MAIN ACTION BUTTON (PROMINENT PINK ROUNDED PILL) */}
       {!isCapturing && (
-        <div className="flex flex-wrap justify-center items-center gap-4 w-full">
+        <div className="w-full space-y-2.5">
           {!cameraError ? (
             <button
               onClick={onTakeSingleShot}
-              className="px-10 py-4.5 bg-pink-400 hover:bg-pink-500 font-black text-white text-lg rounded-3xl shadow-md border-2 border-pink-500 flex items-center gap-3 transition-all duration-300 ease-in-out hover:scale-105 active:scale-95"
+              className="w-full py-4 px-6 bg-pink-400 hover:bg-pink-500 text-white font-black text-base sm:text-lg rounded-full shadow-md shadow-pink-200 border-2 border-pink-500 flex items-center justify-center gap-3 transition-all duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.98]"
             >
-              <Camera className="w-6 h-6" /> Jepret Foto #{currentShotIndex} Sekarang
+              <Camera className="w-5 h-5" />
+              <span>Ambil Foto ✌️ (Manual / Gesture)</span>
             </button>
           ) : (
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-4 bg-rose-100 hover:bg-rose-200 text-rose-700 border-2 border-rose-300 font-bold rounded-2xl transition flex items-center gap-2 text-sm shadow-xs"
+              className="w-full py-3.5 bg-rose-100 hover:bg-rose-200 text-rose-700 border-2 border-rose-300 font-bold rounded-full transition flex items-center justify-center gap-2 text-sm"
             >
               <RefreshCw className="w-4 h-4" /> Coba Lagi / Refresh
             </button>
           )}
 
+          {/* Upload Device Alternative */}
           <input
             ref={fileInputRef}
             type="file"
@@ -289,19 +273,24 @@ export default function CaptureStep({
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-8 py-4.5 bg-white hover:bg-slate-50 border-2 border-slate-300 font-bold text-slate-700 rounded-3xl transition-all duration-300 ease-in-out flex items-center gap-2 text-base shadow-sm"
+            className="w-full py-3 bg-white hover:bg-slate-50 border-2 border-slate-200 font-bold text-slate-700 rounded-full transition flex items-center justify-center gap-2 text-xs shadow-xs"
           >
-            <Upload className="w-5 h-5 text-pink-500" /> Upload Foto dari Perangkat
+            <Upload className="w-3.5 h-3.5 text-pink-500" /> Upload Foto dari Perangkat
           </button>
         </div>
       )}
 
       {isCapturing && (
         <div className="text-center text-xs font-bold text-pink-600 bg-pink-100 px-5 py-2.5 rounded-full border-2 border-pink-300 animate-pulse flex items-center gap-2 shadow-xs">
-          <Sparkles className="w-4 h-4" />
-          <span>📸 Mengambil Foto & Merekam Live Snippet 1.5 detik...</span>
+          <Sparkles className="w-4 h-4 text-pink-500" />
+          <span>📸 Merekam Live Snippet & menjepret foto...</span>
         </div>
       )}
+
+      {/* Cute Footer Tagline */}
+      <p className="text-[11px] font-bold text-pink-600/80 text-center pt-1">
+        rielllybooth • capture ur moments everywhere ✨
+      </p>
     </div>
   );
 }

@@ -27,9 +27,9 @@ export default function RielllyBooth() {
   const [shots, setShots] = useState<Shot[]>([]);
   const [retakeIndex, setRetakeIndex] = useState<number | null>(null);
 
-  // FX & Audio State
+  // FX & Audio State - DEFAULT AUDIO ON FOR CAPTURE SESSION
   const [flashFx, setFlashFx] = useState(false);
-  const [isAudioOn, setIsAudioOn] = useState(false);
+  const [isAudioOn, setIsAudioOn] = useState(true);
 
   // Live Photo & Editor State
   const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
@@ -233,6 +233,7 @@ export default function RielllyBooth() {
   const handleRetakeAll = () => {
     setShots([]);
     setCurrentShotIndex(1);
+    setIsAudioOn(true);
     setStep("capture");
   };
 
@@ -427,7 +428,10 @@ export default function RielllyBooth() {
 
   return (
     <main className="min-h-screen bg-rose-50/50 text-slate-800 flex flex-col justify-between font-sans selection:bg-pink-400 selection:text-white">
-      <Navbar />
+      <Navbar
+        isAudioOn={isAudioOn}
+        onToggleAudio={() => setIsAudioOn((v) => !v)}
+      />
 
       <div className="flex-1 flex flex-col justify-center items-center py-8">
         {step === "landing" && (
@@ -435,6 +439,7 @@ export default function RielllyBooth() {
             onStart={() => {
               setShots([]);
               setCurrentShotIndex(1);
+              setIsAudioOn(true); // Automatically turn BGM audio ON when starting session!
               setStep("capture");
             }}
           />
