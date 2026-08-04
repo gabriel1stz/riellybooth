@@ -63,7 +63,7 @@ export default function RielllyBooth() {
     setSubtitleText(`✨ ${today} ✨`);
   }, []);
 
-  // Handle BGM Music toggle
+  // Handle BGM Music lifecycle (ONLY PLAY DURING CAPTURE STEP)
   useEffect(() => {
     if (step === "capture" && isAudioOn) {
       setBgmState(true);
@@ -75,6 +75,16 @@ export default function RielllyBooth() {
       stopBgm();
     };
   }, [step, isAudioOn]);
+
+  // Direct Click Handler to Start Photobooth Session & BGM
+  const handleStartCapture = () => {
+    setShots([]);
+    setCurrentShotIndex(1);
+    setIsAudioOn(true);
+    // Explicitly start audio inside user click event stack
+    setBgmState(true);
+    setStep("capture");
+  };
 
   // WebRTC Stream Lifecycle Management
   useEffect(() => {
@@ -234,6 +244,7 @@ export default function RielllyBooth() {
     setShots([]);
     setCurrentShotIndex(1);
     setIsAudioOn(true);
+    setBgmState(true);
     setStep("capture");
   };
 
@@ -435,14 +446,7 @@ export default function RielllyBooth() {
 
       <div className="flex-1 flex flex-col justify-center items-center py-8">
         {step === "landing" && (
-          <LandingStep
-            onStart={() => {
-              setShots([]);
-              setCurrentShotIndex(1);
-              setIsAudioOn(true); // Automatically turn BGM audio ON when starting session!
-              setStep("capture");
-            }}
-          />
+          <LandingStep onStart={handleStartCapture} />
         )}
 
         {step === "capture" && (

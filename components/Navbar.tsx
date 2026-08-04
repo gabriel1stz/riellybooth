@@ -36,7 +36,7 @@ export default function Navbar({ isAudioOn = true, onToggleAudio }: NavbarProps)
             {isAudioOn ? (
               <>
                 <Volume2 className="w-4 h-4 text-pink-500" />
-                <span>BGM 🎵 ON</span>
+                <span>Sal Priadi 🎵 ON</span>
                 <span className="flex gap-0.5 items-end h-3">
                   <span className="w-1 h-3 bg-pink-500 rounded-full animate-pulse" />
                   <span className="w-1 h-2 bg-pink-400 rounded-full animate-bounce" />
