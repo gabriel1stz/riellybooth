@@ -1,10 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
-import { Sparkles, ArrowLeft, Download, ArrowLeftRight, Palette, Sliders, RotateCcw, Frame, Heart, Film, Newspaper, Sparkle, Video, Type, Wand2 } from "lucide-react";
+import React from "react";
+import {
+  Sparkles,
+  ArrowLeft,
+  Download,
+  ArrowLeftRight,
+  Palette,
+  Sliders,
+  RotateCcw,
+  Frame,
+  Heart,
+  Film,
+  Newspaper,
+  Sparkle,
+  Video,
+  Type,
+  Wand2,
+  Sticker,
+  CircleDot,
+  Trash2,
+} from "lucide-react";
 import Slider from "../UI/Slider";
 import ColorPicker from "../UI/ColorPicker";
-import { LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily } from "@/lib/canvasUtils";
+import { LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
 
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
@@ -25,6 +44,9 @@ type EditorStepProps = {
   setSubtitleText: (sub: string) => void;
   isLivePhotoOn: boolean;
   setIsLivePhotoOn: (val: boolean | ((prev: boolean) => boolean)) => void;
+  placedStickers: PlacedSticker[];
+  onAddSticker: (emoji: string) => void;
+  onClearStickers: () => void;
   selectedForSwap: number | null;
   onSwapPhotos: (index: number) => void;
   frameColor: string;
@@ -38,6 +60,16 @@ type EditorStepProps = {
   onDownloadVideo: () => void;
   isExportingVideo: boolean;
 };
+
+const STICKER_PALETTE = [
+  { emoji: "🎀", name: "Ribbon" },
+  { emoji: "💖", name: "Heart" },
+  { emoji: "🍒", name: "Cherry" },
+  { emoji: "🧸", name: "Teddy" },
+  { emoji: "✨", name: "Sparkles" },
+  { emoji: "👑", name: "Crown" },
+  { emoji: "✌️", name: "Peace" },
+];
 
 const DEFAULT_FILTER: FilterState = {
   brightness: 100,
@@ -63,6 +95,9 @@ export default function EditorStep({
   setSubtitleText,
   isLivePhotoOn,
   setIsLivePhotoOn,
+  placedStickers,
+  onAddSticker,
+  onClearStickers,
   selectedForSwap,
   onSwapPhotos,
   frameColor,
@@ -84,23 +119,23 @@ export default function EditorStep({
   return (
     <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start px-4 py-4">
       {/* LEFT: CANVAS PREVIEW AREA */}
-      <div className="lg:col-span-6 flex flex-col items-center justify-center bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 shadow-2xl relative">
+      <div className="lg:col-span-6 flex flex-col items-center justify-center bg-white border-2 border-pink-200 rounded-3xl p-6 shadow-xl relative">
         <div className="flex items-center justify-between w-full mb-3 z-10">
-          <div className="bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium text-pink-300 border border-white/10 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-pink-400" /> Pratinjau Canvas HD
+          <div className="bg-pink-100 px-3.5 py-1.5 rounded-full text-xs font-bold text-pink-700 border border-pink-300 flex items-center gap-1.5 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-pink-500" /> Pratinjau Canvas HD
           </div>
 
           {/* Live Photo Toggle */}
           <button
             type="button"
             onClick={() => setIsLivePhotoOn((v) => !v)}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition border flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ease-in-out border-2 flex items-center gap-1.5 shadow-xs ${
               isLivePhotoOn
-                ? "bg-pink-500/20 text-pink-300 border-pink-500/40"
-                : "bg-slate-950/80 text-slate-400 border-white/10"
+                ? "bg-pink-400 text-white border-pink-500"
+                : "bg-white text-slate-700 border-slate-300"
             }`}
           >
-            <Video className="w-3.5 h-3.5 text-pink-400" />
+            <Video className="w-3.5 h-3.5 text-pink-500" />
             <span>Live Video 🎥: {isLivePhotoOn ? "ON" : "OFF"}</span>
           </button>
         </div>
@@ -108,107 +143,124 @@ export default function EditorStep({
         <div className="w-full flex items-center justify-center py-2 min-h-[480px]">
           <canvas
             ref={canvasRef}
-            className="max-h-[580px] w-auto max-w-full shadow-2xl rounded-2xl border border-slate-700/80 object-contain transition-all duration-300"
+            className="max-h-[580px] w-auto max-w-full shadow-2xl rounded-2xl border-2 border-pink-200 object-contain transition-all duration-300 ease-in-out"
           />
         </div>
 
-        <p className="text-[11px] text-slate-500 text-center pt-2">
-          * Canvas dirender secara real-time. Kamu dapat mengekspor dalam format PNG Statis atau Video Live (WebM/MP4).
+        <p className="text-[11px] text-slate-500 font-medium text-center pt-2">
+          * Canvas dirender secara real-time. Kamu dapat mengekspor dalam format PNG Statis atau Video Live (WebM / Boomerang).
         </p>
       </div>
 
       {/* RIGHT: CONTROLS STUDIO PANEL */}
-      <div className="lg:col-span-6 space-y-6 bg-slate-900/90 border border-slate-800/90 rounded-3xl p-6 shadow-2xl backdrop-blur-xl">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-          <h3 className="text-xl font-black text-white flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-pink-400" /> Studio Hias Photo Strip
+      <div className="lg:col-span-6 space-y-6 bg-white border-2 border-pink-200 rounded-3xl p-6 shadow-xl">
+        <div className="flex items-center justify-between border-b border-pink-200 pb-4">
+          <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-pink-500" /> Studio Hias Photo Strip
           </h3>
-          <span className="text-xs bg-pink-500/10 text-pink-300 px-3 py-1 rounded-full border border-pink-500/20 font-medium">
-            Custom Style v3.0
+          <span className="text-xs bg-pink-100 text-pink-700 px-3.5 py-1 rounded-full border border-pink-300 font-bold">
+            Light Aesthetic v4.0
           </span>
         </div>
 
-        {/* 1. FRAME PRESET SELECTOR */}
+        {/* 1. FRAME PRESET SELECTOR (INCLUDES POLKADOT CUTE) */}
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <Frame className="w-3.5 h-3.5 text-pink-400" /> Pilih Tema Frame Preset
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <Frame className="w-3.5 h-3.5 text-pink-500" /> Pilih Tema Frame Preset
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             <button
               type="button"
               onClick={() => setPreset("clean")}
-              className={`p-2.5 rounded-2xl border text-xs font-bold transition flex flex-col items-center gap-1 ${
+              className={`p-2.5 rounded-2xl border-2 text-xs font-bold transition-all duration-300 ease-in-out flex flex-col items-center gap-1 ${
                 preset === "clean"
-                  ? "bg-pink-500/20 border-pink-500 text-pink-300 ring-2 ring-pink-500/30"
-                  : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                  ? "bg-pink-100 border-pink-400 text-pink-700 shadow-xs"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
               }`}
             >
-              <Frame className="w-4 h-4 text-pink-400" />
+              <Frame className="w-4 h-4 text-pink-500" />
               <span>Classic Clean</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setPreset("coquette")}
-              className={`p-2.5 rounded-2xl border text-xs font-bold transition flex flex-col items-center gap-1 ${
-                preset === "coquette"
-                  ? "bg-pink-500/20 border-pink-500 text-pink-300 ring-2 ring-pink-500/30"
-                  : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+              onClick={() => setPreset("polkadot")}
+              className={`p-2.5 rounded-2xl border-2 text-xs font-bold transition-all duration-300 ease-in-out flex flex-col items-center gap-1 ${
+                preset === "polkadot"
+                  ? "bg-pink-100 border-pink-400 text-pink-700 shadow-xs"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
               }`}
             >
-              <Heart className="w-4 h-4 text-pink-400" />
+              <CircleDot className="w-4 h-4 text-pink-500" />
+              <span>Polkadot Cute 💖</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPreset("coquette")}
+              className={`p-2.5 rounded-2xl border-2 text-xs font-bold transition-all duration-300 ease-in-out flex flex-col items-center gap-1 ${
+                preset === "coquette"
+                  ? "bg-pink-100 border-pink-400 text-pink-700 shadow-xs"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+              }`}
+            >
+              <Heart className="w-4 h-4 text-pink-500" />
               <span>Coquette 🎀</span>
             </button>
 
             <button
               type="button"
               onClick={() => setPreset("y2k")}
-              className={`p-2.5 rounded-2xl border text-xs font-bold transition flex flex-col items-center gap-1 ${
+              className={`p-2.5 rounded-2xl border-2 text-xs font-bold transition-all duration-300 ease-in-out flex flex-col items-center gap-1 ${
                 preset === "y2k"
-                  ? "bg-pink-500/20 border-pink-500 text-pink-300 ring-2 ring-pink-500/30"
-                  : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                  ? "bg-pink-100 border-pink-400 text-pink-700 shadow-xs"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
               }`}
             >
-              <Sparkle className="w-4 h-4 text-sky-400" />
+              <Sparkle className="w-4 h-4 text-sky-500" />
               <span>Y2K Cyber ✨</span>
             </button>
 
             <button
               type="button"
               onClick={() => setPreset("newspaper")}
-              className={`p-2.5 rounded-2xl border text-xs font-bold transition flex flex-col items-center gap-1 ${
+              className={`p-2.5 rounded-2xl border-2 text-xs font-bold transition-all duration-300 ease-in-out flex flex-col items-center gap-1 ${
                 preset === "newspaper"
-                  ? "bg-pink-500/20 border-pink-500 text-pink-300 ring-2 ring-pink-500/30"
-                  : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                  ? "bg-pink-100 border-pink-400 text-pink-700 shadow-xs"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
               }`}
             >
-              <Newspaper className="w-4 h-4 text-amber-400" />
+              <Newspaper className="w-4 h-4 text-amber-500" />
               <span>Newspaper 📰</span>
             </button>
 
             <button
               type="button"
               onClick={() => setPreset("film")}
-              className={`p-2.5 rounded-2xl border text-xs font-bold transition flex flex-col items-center gap-1 ${
+              className={`p-2.5 rounded-2xl border-2 text-xs font-bold transition-all duration-300 ease-in-out flex flex-col items-center gap-1 ${
                 preset === "film"
-                  ? "bg-pink-500/20 border-pink-500 text-pink-300 ring-2 ring-pink-500/30"
-                  : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                  ? "bg-pink-100 border-pink-400 text-pink-700 shadow-xs"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
               }`}
             >
-              <Film className="w-4 h-4 text-emerald-400" />
+              <Film className="w-4 h-4 text-emerald-500" />
               <span>Film Strip 🎞️</span>
             </button>
           </div>
         </div>
 
-        {/* 2. CUTE COLOR GRADE FILTERS */}
+        {/* 2. WEBCAM TOY RETRO FILTERS & CUTE FILTERS */}
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <Wand2 className="w-3.5 h-3.5 text-pink-400" /> Cute Filter Color Grade
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <Wand2 className="w-3.5 h-3.5 text-pink-500" /> Webcam Toy & Cute Filters
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[
               { id: "none", label: "Normal" },
+              { id: "pixel", label: "Pixel Art 👾" },
+              { id: "thermal", label: "Thermal Heatmap 🌈" },
+              { id: "pop_art", label: "Vivid Pop Art 🎨" },
+              { id: "vhs", label: "VHS Retro CRT 📺" },
               { id: "soft_pink", label: "Soft Pink 🌸" },
               { id: "warm_cafe", label: "Warm Cafe ☕" },
               { id: "cyber_glow", label: "Cyber Glow ⚡" },
@@ -218,10 +270,10 @@ export default function EditorStep({
                 key={item.id}
                 type="button"
                 onClick={() => setCuteFilter(item.id as CuteFilter)}
-                className={`py-2 px-3 rounded-xl border text-xs font-semibold transition ${
+                className={`py-2 px-3 rounded-xl border-2 text-xs font-bold transition-all duration-300 ease-in-out ${
                   cuteFilter === item.id
-                    ? "bg-pink-500/20 border-pink-500 text-pink-300"
-                    : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                    ? "bg-pink-100 border-pink-400 text-pink-700 shadow-xs"
+                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
               >
                 {item.label}
@@ -230,38 +282,70 @@ export default function EditorStep({
           </div>
         </div>
 
-        {/* 3. CUSTOM TEXT & TYPOGRAPHY EDITOR */}
-        <div className="space-y-3 p-3.5 bg-slate-950/40 rounded-2xl border border-slate-800/80">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <Type className="w-3.5 h-3.5 text-pink-400" /> Custom Text & Font Footer
+        {/* 3. INTERACTIVE STICKER PICKER */}
+        <div className="space-y-2.5 p-3.5 bg-rose-50/60 rounded-2xl border-2 border-pink-200">
+          <div className="flex justify-between items-center">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <Sticker className="w-3.5 h-3.5 text-pink-500" /> Tambah Stiker Interaktif
+            </label>
+            {placedStickers.length > 0 && (
+              <button
+                type="button"
+                onClick={onClearStickers}
+                className="text-[11px] text-rose-600 hover:text-rose-700 font-bold transition flex items-center gap-1"
+              >
+                <Trash2 className="w-3 h-3" /> Hapus Stiker ({placedStickers.length})
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {STICKER_PALETTE.map((st) => (
+              <button
+                key={st.emoji}
+                type="button"
+                onClick={() => onAddSticker(st.emoji)}
+                className="px-3 py-2 bg-white border-2 border-pink-200 hover:border-pink-400 hover:scale-110 rounded-xl text-lg font-bold shadow-xs transition-all duration-300 ease-in-out"
+                title={`Tambah ${st.name}`}
+              >
+                {st.emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 4. CUSTOM TEXT & TYPOGRAPHY EDITOR */}
+        <div className="space-y-3 p-3.5 bg-rose-50/60 rounded-2xl border-2 border-pink-200">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <Type className="w-3.5 h-3.5 text-pink-500" /> Custom Text & Font Footer
           </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] font-semibold text-slate-400">Judul Header/Footer</label>
+              <label className="text-[11px] font-bold text-slate-600">Judul Header/Footer</label>
               <input
                 type="text"
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
                 placeholder="rielllybooth ♡"
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+                className="w-full bg-white border-2 border-pink-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-bold placeholder-slate-400 focus:outline-none focus:border-pink-400"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-slate-400">Tanggal / Subtitle</label>
+              <label className="text-[11px] font-bold text-slate-600">Tanggal / Subtitle</label>
               <input
                 type="text"
                 value={subtitleText}
                 onChange={(e) => setSubtitleText(e.target.value)}
                 placeholder="✨ 04 Aug 2026 ✨"
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+                className="w-full bg-white border-2 border-pink-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-bold placeholder-slate-400 focus:outline-none focus:border-pink-400"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] font-semibold text-slate-400">Gaya Font Typography</label>
+            <label className="text-[11px] font-bold text-slate-600">Gaya Font Typography</label>
             <div className="grid grid-cols-4 gap-2 pt-1">
               {[
                 { id: "sans", label: "Sans" },
@@ -273,10 +357,10 @@ export default function EditorStep({
                   key={f.id}
                   type="button"
                   onClick={() => setFontFamily(f.id as FontFamily)}
-                  className={`py-1.5 px-2 rounded-lg border text-xs font-semibold transition ${
+                  className={`py-1.5 px-2 rounded-xl border-2 text-xs font-bold transition-all duration-300 ease-in-out ${
                     fontFamily === f.id
-                      ? "bg-pink-500/20 border-pink-500 text-pink-300"
-                      : "bg-slate-900 border-slate-800 text-slate-400"
+                      ? "bg-pink-100 border-pink-400 text-pink-700 shadow-xs"
+                      : "bg-white border-slate-200 text-slate-600"
                   }`}
                 >
                   {f.label}
@@ -286,19 +370,19 @@ export default function EditorStep({
           </div>
         </div>
 
-        {/* 4. LAYOUT MODE */}
+        {/* 5. LAYOUT MODE */}
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <Sliders className="w-3.5 h-3.5 text-pink-400" /> Layout Frame
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <Sliders className="w-3.5 h-3.5 text-pink-500" /> Layout Frame
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setLayout("strip")}
-              className={`py-2.5 px-4 rounded-2xl border text-xs font-bold transition flex items-center justify-center gap-2 ${
+              className={`py-2.5 px-4 rounded-2xl border-2 text-xs font-bold transition-all duration-300 ease-in-out flex items-center justify-center gap-2 ${
                 layout === "strip"
-                  ? "bg-pink-500/20 border-pink-500 text-pink-300 ring-2 ring-pink-500/30"
-                  : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                  ? "bg-pink-100 border-pink-400 text-pink-700 shadow-xs"
+                  : "bg-white border-slate-200 text-slate-600"
               }`}
             >
               <span>Strip 1x4 (Vertikal)</span>
@@ -307,10 +391,10 @@ export default function EditorStep({
             <button
               type="button"
               onClick={() => setLayout("grid")}
-              className={`py-2.5 px-4 rounded-2xl border text-xs font-bold transition flex items-center justify-center gap-2 ${
+              className={`py-2.5 px-4 rounded-2xl border-2 text-xs font-bold transition-all duration-300 ease-in-out flex items-center justify-center gap-2 ${
                 layout === "grid"
-                  ? "bg-pink-500/20 border-pink-500 text-pink-300 ring-2 ring-pink-500/30"
-                  : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                  ? "bg-pink-100 border-pink-400 text-pink-700 shadow-xs"
+                  : "bg-white border-slate-200 text-slate-600"
               }`}
             >
               <span>Grid 2x2 (Kotak)</span>
@@ -318,29 +402,29 @@ export default function EditorStep({
           </div>
         </div>
 
-        {/* 5. SWAP PHOTO POSITIONS */}
+        {/* 6. SWAP PHOTO POSITIONS */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <ArrowLeftRight className="w-3.5 h-3.5 text-pink-400" /> Tukar Urutan Foto
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <ArrowLeftRight className="w-3.5 h-3.5 text-pink-500" /> Tukar Urutan Foto
             </label>
             {selectedForSwap !== null && (
-              <span className="text-[11px] text-pink-400 animate-pulse font-semibold">
+              <span className="text-[11px] text-pink-600 animate-pulse font-bold">
                 Pilih foto ke-2 untuk ditukar dengan #{selectedForSwap + 1}
               </span>
             )}
           </div>
 
-          <div className="grid grid-cols-4 gap-2.5 bg-slate-950/40 p-2.5 rounded-2xl border border-slate-800/80">
+          <div className="grid grid-cols-4 gap-2.5 bg-rose-50/60 p-2.5 rounded-2xl border-2 border-pink-200">
             {shots.slice(0, 4).map((shot, idx) => (
               <button
                 key={shot.id || idx}
                 type="button"
                 onClick={() => onSwapPhotos(idx)}
-                className={`relative rounded-xl overflow-hidden border-2 transition-all duration-200 aspect-square ${
+                className={`relative rounded-xl overflow-hidden border-2 transition-all duration-300 ease-in-out aspect-square ${
                   selectedForSwap === idx
-                    ? "border-pink-500 scale-95 ring-4 ring-pink-500/40"
-                    : "border-slate-800 hover:border-slate-600"
+                    ? "border-pink-500 scale-95 ring-4 ring-pink-300 shadow-md"
+                    : "border-slate-200 hover:border-slate-400"
                 }`}
               >
                 <img
@@ -348,7 +432,7 @@ export default function EditorStep({
                   className="w-full h-full object-cover"
                   alt={`Thumb ${idx + 1}`}
                 />
-                <span className="absolute bottom-1 right-1 bg-slate-950/80 text-[10px] text-white px-1.5 py-0.5 rounded font-mono font-bold border border-white/10">
+                <span className="absolute bottom-1 right-1 bg-white/90 text-slate-800 text-[10px] px-1.5 py-0.5 rounded font-bold border border-pink-200">
                   #{idx + 1}
                 </span>
               </button>
@@ -356,11 +440,11 @@ export default function EditorStep({
           </div>
         </div>
 
-        {/* 6. COLOR PICKERS (ACTIVE FOR CLEAN PRESET) */}
-        {preset === "clean" && (
+        {/* 7. COLOR PICKERS (ACTIVE FOR CLEAN & POLKADOT PRESETS) */}
+        {(preset === "clean" || preset === "polkadot") && (
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Palette className="w-3.5 h-3.5 text-pink-400" /> Kustom Skema Warna
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <Palette className="w-3.5 h-3.5 text-pink-500" /> Kustom Skema Warna
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <ColorPicker
@@ -377,16 +461,16 @@ export default function EditorStep({
           </div>
         )}
 
-        {/* 7. SLIDER ADJUSTMENTS */}
-        <div className="space-y-3 pt-3 border-t border-slate-800">
+        {/* 8. SLIDER ADJUSTMENTS */}
+        <div className="space-y-3 pt-3 border-t border-pink-200">
           <div className="flex justify-between items-center">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-pink-400" /> Brightness & Contrast Sliders
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5 text-pink-500" /> Brightness & Contrast Sliders
             </label>
             <button
               type="button"
               onClick={handleResetFilters}
-              className="text-[11px] text-slate-400 hover:text-pink-400 transition flex items-center gap-1"
+              className="text-[11px] text-slate-500 hover:text-pink-600 font-bold transition flex items-center gap-1"
             >
               <RotateCcw className="w-3 h-3" /> Reset Filter
             </button>
@@ -424,13 +508,13 @@ export default function EditorStep({
           </div>
         </div>
 
-        {/* 8. DUAL EXPORT ACTIONS (PNG & LIVE VIDEO) */}
-        <div className="pt-4 border-t border-slate-800 flex flex-col gap-3">
+        {/* 9. DUAL EXPORT ACTIONS (PNG & LIVE VIDEO) - SOLID PASTEL BUTTONS */}
+        <div className="pt-4 border-t border-pink-200 flex flex-col gap-3">
           <div className="flex gap-3">
             <button
               type="button"
               onClick={onBack}
-              className="px-5 py-3.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl text-slate-300 font-semibold text-xs flex items-center gap-2 transition"
+              className="px-5 py-3.5 bg-white hover:bg-slate-50 border-2 border-slate-300 rounded-2xl text-slate-700 font-bold text-xs flex items-center gap-2 transition-all duration-300 ease-in-out shadow-xs"
             >
               <ArrowLeft className="w-4 h-4" /> Kembali
             </button>
@@ -438,7 +522,7 @@ export default function EditorStep({
             <button
               type="button"
               onClick={onDownloadPng}
-              className="flex-1 py-3.5 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-xl shadow-pink-500/25 flex items-center justify-center gap-2 transition hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 py-3.5 bg-pink-400 hover:bg-pink-500 border-2 border-pink-500 text-white font-black text-xs sm:text-sm rounded-2xl shadow-md transition-all duration-300 ease-in-out flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
             >
               <Download className="w-4 h-4" /> Simpan Foto Statis (PNG HD)
             </button>
@@ -448,9 +532,9 @@ export default function EditorStep({
             type="button"
             onClick={onDownloadVideo}
             disabled={isExportingVideo}
-            className="w-full py-3.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-pink-300 border border-pink-500/30 font-bold text-xs sm:text-sm rounded-2xl shadow-lg transition flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-white hover:bg-rose-50 disabled:opacity-50 text-pink-600 border-2 border-pink-300 font-black text-xs sm:text-sm rounded-2xl shadow-xs transition-all duration-300 ease-in-out flex items-center justify-center gap-2"
           >
-            <Video className="w-4 h-4 text-pink-400" />
+            <Video className="w-4 h-4 text-pink-500" />
             <span>
               {isExportingVideo
                 ? "Merekam Live Video Canvas..."

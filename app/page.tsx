@@ -8,7 +8,7 @@ import CaptureStep from "@/components/Steps/CaptureStep";
 import ReviewStep from "@/components/Steps/ReviewStep";
 import EditorStep from "@/components/Steps/EditorStep";
 import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet } from "@/lib/cameraUtils";
-import { drawPhotoStrip, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily } from "@/lib/canvasUtils";
+import { drawPhotoStrip, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
 import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
 
 type Step = "landing" | "capture" | "review" | "editor";
@@ -34,14 +34,15 @@ export default function RielllyBooth() {
   // Live Photo & Editor State
   const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
   const [layout, setLayout] = useState<LayoutMode>("strip");
-  const [preset, setPreset] = useState<FramePreset>("clean");
+  const [preset, setPreset] = useState<FramePreset>("polkadot");
   const [cuteFilter, setCuteFilter] = useState<CuteFilter>("none");
   const [customText, setCustomText] = useState("rielllybooth ♡");
   const [fontFamily, setFontFamily] = useState<FontFamily>("sans");
   const [subtitleText, setSubtitleText] = useState("");
+  const [placedStickers, setPlacedStickers] = useState<PlacedSticker[]>([]);
   const [selectedForSwap, setSelectedForSwap] = useState<number | null>(null);
-  const [frameColor, setFrameColor] = useState("#ffffff");
-  const [textColor, setTextColor] = useState("#000000");
+  const [frameColor, setFrameColor] = useState("#fce7f3");
+  const [textColor, setTextColor] = useState("#db2777");
   const [filter, setFilter] = useState<FilterState>({
     brightness: 100,
     contrast: 100,
@@ -180,7 +181,6 @@ export default function RielllyBooth() {
 
     let videoBlobUrl = "";
     if (mediaStreamRef.current) {
-      // Record 1.5s video snippet concurrently
       videoBlobUrl = await recordLiveVideoSnippet(mediaStreamRef.current, 1500);
     }
 
@@ -199,7 +199,6 @@ export default function RielllyBooth() {
       if (updatedShots.length < 4) {
         setCurrentShotIndex(updatedShots.length + 1);
       } else {
-        // 4 Shots Complete! Transition to review
         setTimeout(() => {
           setStep("review");
         }, 500);
@@ -253,6 +252,22 @@ export default function RielllyBooth() {
     }
   };
 
+  // Handle Adding Stickers to Canvas
+  const handleAddSticker = (emoji: string) => {
+    const newSticker: PlacedSticker = {
+      id: Date.now().toString() + Math.random().toString(),
+      emoji,
+      x: 100 + Math.random() * 400,
+      y: 200 + Math.random() * 1100,
+      scale: 1,
+    };
+    setPlacedStickers((prev) => [...prev, newSticker]);
+  };
+
+  const handleClearStickers = () => {
+    setPlacedStickers([]);
+  };
+
   // Render HTML5 Canvas Output
   const renderCanvas = useCallback(
     (videoElements?: HTMLVideoElement[]) => {
@@ -270,7 +285,8 @@ export default function RielllyBooth() {
           cuteFilter,
           customText,
           fontFamily,
-          subtitleText
+          subtitleText,
+          placedStickers
         );
         return;
       }
@@ -298,13 +314,14 @@ export default function RielllyBooth() {
               cuteFilter,
               customText,
               fontFamily,
-              subtitleText
+              subtitleText,
+              placedStickers
             );
           }
         };
       });
     },
-    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn]
+    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers]
   );
 
   // Video Animation Loop for Live Photo Canvas Rendering
@@ -409,7 +426,7 @@ export default function RielllyBooth() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans selection:bg-pink-500 selection:text-white">
+    <main className="min-h-screen bg-rose-50/50 text-slate-800 flex flex-col justify-between font-sans selection:bg-pink-400 selection:text-white">
       <Navbar />
 
       <div className="flex-1 flex flex-col justify-center items-center py-8">
@@ -468,6 +485,9 @@ export default function RielllyBooth() {
             setSubtitleText={setSubtitleText}
             isLivePhotoOn={isLivePhotoOn}
             setIsLivePhotoOn={setIsLivePhotoOn}
+            placedStickers={placedStickers}
+            onAddSticker={handleAddSticker}
+            onClearStickers={handleClearStickers}
             selectedForSwap={selectedForSwap}
             onSwapPhotos={handleSwapPhotos}
             frameColor={frameColor}
@@ -484,8 +504,8 @@ export default function RielllyBooth() {
         )}
       </div>
 
-      <footer className="border-t border-slate-900 py-4 text-center text-xs text-slate-500 backdrop-blur-md bg-slate-950/40">
-        &copy; {new Date().getFullYear()} <span className="text-pink-400 font-bold">rielllybooth</span> ♡ Virtual Photobooth Aesthetic. All rights reserved.
+      <footer className="border-t border-pink-200 py-4 text-center text-xs text-slate-600 bg-white/80 backdrop-blur-md">
+        &copy; {new Date().getFullYear()} <span className="text-pink-500 font-bold">rielllybooth</span> ♡ Virtual Photobooth Aesthetic. All rights reserved.
       </footer>
     </main>
   );

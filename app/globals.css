@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-rose-50/50 text-slate-800 font-sans antialiased;
+  }
+}

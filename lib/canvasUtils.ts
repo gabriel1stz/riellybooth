@@ -1,14 +1,24 @@
 /**
  * Canvas Utilities for high-resolution photo strip rendering, layout assembly,
- * CSS filter effects, 5 aesthetic frame presets, Cute Color Grade presets,
+ * CSS & pixel filter effects, Webcam Toy retro filters (Pixel Art, Thermal Heatmap,
+ * Vivid Pop Art, VHS Retro CRT), Polkadot frame preset, interactive sticker overlays,
  * and customizable typography branding engine.
  */
 
 export type LayoutMode = "strip" | "grid";
 
-export type FramePreset = "clean" | "coquette" | "y2k" | "newspaper" | "film";
+export type FramePreset = "clean" | "coquette" | "y2k" | "newspaper" | "film" | "polkadot";
 
-export type CuteFilter = "none" | "soft_pink" | "warm_cafe" | "cyber_glow" | "vintage_90s";
+export type CuteFilter =
+  | "none"
+  | "soft_pink"
+  | "warm_cafe"
+  | "cyber_glow"
+  | "vintage_90s"
+  | "pixel"
+  | "thermal"
+  | "pop_art"
+  | "vhs";
 
 export type FontFamily = "sans" | "serif" | "cursive" | "mono";
 
@@ -17,6 +27,14 @@ export type FilterState = {
   contrast: number;
   saturation: number;
   grayscale: number;
+};
+
+export type PlacedSticker = {
+  id: string;
+  emoji: string;
+  x: number;
+  y: number;
+  scale?: number;
 };
 
 /**
@@ -63,7 +81,7 @@ function drawImageCover(
 }
 
 /**
- * Helper to apply cute color grade overlays onto photo slots
+ * Helper to apply Cute Filters & Webcam Toy Retro Filter FX
  */
 function applyCuteFilterOverlay(
   ctx: CanvasRenderingContext2D,
@@ -84,15 +102,15 @@ function applyCuteFilterOverlay(
   }
 
   if (cuteFilter === "soft_pink") {
-    ctx.fillStyle = "rgba(244, 114, 182, 0.12)";
+    ctx.fillStyle = "rgba(244, 114, 182, 0.14)";
     ctx.globalCompositeOperation = "color-burn";
     ctx.fillRect(x, y, w, h);
 
-    ctx.fillStyle = "rgba(251, 207, 232, 0.15)";
+    ctx.fillStyle = "rgba(251, 207, 232, 0.18)";
     ctx.globalCompositeOperation = "soft-light";
     ctx.fillRect(x, y, w, h);
   } else if (cuteFilter === "warm_cafe") {
-    ctx.fillStyle = "rgba(180, 83, 9, 0.18)";
+    ctx.fillStyle = "rgba(180, 83, 9, 0.20)";
     ctx.globalCompositeOperation = "color";
     ctx.fillRect(x, y, w, h);
 
@@ -100,24 +118,73 @@ function applyCuteFilterOverlay(
     ctx.globalCompositeOperation = "soft-light";
     ctx.fillRect(x, y, w, h);
   } else if (cuteFilter === "cyber_glow") {
-    ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
+    ctx.fillStyle = "rgba(56, 189, 248, 0.18)";
     ctx.globalCompositeOperation = "overlay";
     ctx.fillRect(x, y, w, h);
 
-    ctx.fillStyle = "rgba(217, 70, 239, 0.12)";
+    ctx.fillStyle = "rgba(217, 70, 239, 0.15)";
     ctx.globalCompositeOperation = "color-dodge";
     ctx.fillRect(x, y, w, h);
   } else if (cuteFilter === "vintage_90s") {
-    ctx.fillStyle = "rgba(120, 53, 15, 0.15)";
+    ctx.fillStyle = "rgba(120, 53, 15, 0.18)";
     ctx.globalCompositeOperation = "multiply";
     ctx.fillRect(x, y, w, h);
+  } else if (cuteFilter === "thermal") {
+    // Webcam Toy Thermal Heatmap Effect
+    ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
+    ctx.globalCompositeOperation = "difference";
+    ctx.fillRect(x, y, w, h);
+
+    ctx.fillStyle = "rgba(59, 130, 246, 0.3)";
+    ctx.globalCompositeOperation = "color-dodge";
+    ctx.fillRect(x, y, w, h);
+  } else if (cuteFilter === "pop_art") {
+    // Webcam Toy Vivid Pop Art Effect
+    ctx.fillStyle = "rgba(234, 179, 8, 0.25)";
+    ctx.globalCompositeOperation = "hard-light";
+    ctx.fillRect(x, y, w, h);
+
+    ctx.fillStyle = "rgba(236, 72, 153, 0.2)";
+    ctx.globalCompositeOperation = "overlay";
+    ctx.fillRect(x, y, w, h);
+  } else if (cuteFilter === "vhs") {
+    // Webcam Toy VHS Retro CRT Scanline Effect
+    ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
+    ctx.globalCompositeOperation = "color-dodge";
+    ctx.fillRect(x, y, w, h);
+
+    // Draw CRT Horizontal Scanlines
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.18)";
+    ctx.lineWidth = 2;
+    for (let sy = y; sy < y + h; sy += 6) {
+      ctx.beginPath();
+      ctx.moveTo(x, sy);
+      ctx.lineTo(x + w, sy);
+      ctx.stroke();
+    }
+  } else if (cuteFilter === "pixel") {
+    // Pixel Art Grid Effect
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 1;
+    for (let px = x; px < x + w; px += 12) {
+      ctx.beginPath();
+      ctx.moveTo(px, y);
+      ctx.lineTo(px, y + h);
+      ctx.stroke();
+    }
+    for (let py = y; py < y + h; py += 12) {
+      ctx.beginPath();
+      ctx.moveTo(x, py);
+      ctx.lineTo(x + w, py);
+      ctx.stroke();
+    }
   }
 
   ctx.restore();
 }
 
 /**
- * Draw decorative 4-point Y2K chrome star vector ✨
+ * Draw Y2K Star Vector ✨
  */
 function drawY2kStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
   ctx.save();
@@ -133,7 +200,7 @@ function drawY2kStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, size
 }
 
 /**
- * Draw Coquette Ribbon Bow vector 🎀
+ * Draw Ribbon Bow Vector 🎀
  */
 function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, scale: number = 1) {
   ctx.save();
@@ -144,19 +211,16 @@ function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, sc
   ctx.strokeStyle = "#db2777";
   ctx.lineWidth = 2;
 
-  // Left Loop
   ctx.beginPath();
   ctx.ellipse(-18, -4, 16, 10, -Math.PI / 8, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
 
-  // Right Loop
   ctx.beginPath();
   ctx.ellipse(18, -4, 16, 10, Math.PI / 8, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
 
-  // Ribbon Tails
   ctx.beginPath();
   ctx.moveTo(-6, 2);
   ctx.quadraticCurveTo(-16, 18, -22, 28);
@@ -175,7 +239,6 @@ function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, sc
   ctx.fill();
   ctx.stroke();
 
-  // Center Knot
   ctx.fillStyle = "#ec4899";
   ctx.beginPath();
   ctx.roundRect(-6, -6, 12, 12, 4);
@@ -199,12 +262,12 @@ export const drawPhotoStrip = (
   cuteFilter: CuteFilter = "none",
   customText: string = "rielllybooth ♡",
   fontFamily: FontFamily = "sans",
-  subtitleText?: string
+  subtitleText?: string,
+  stickers: PlacedSticker[] = []
 ): void => {
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length < 4) return;
 
-  // Set high resolution canvas dimensions
   if (layout === "strip") {
     canvas.width = 600;
     canvas.height = 1800;
@@ -223,7 +286,25 @@ export const drawPhotoStrip = (
   // STEP 1: BACKGROUND & FRAME PRESET STYLING
   // ==========================================
   ctx.save();
-  if (preset === "coquette") {
+  if (preset === "polkadot") {
+    // Polkadot Cute Pastel Background
+    ctx.fillStyle = frameColor || "#fce7f3";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Polka Dot Pattern
+    ctx.fillStyle = "#f472b6";
+    ctx.globalAlpha = 0.35;
+    const dotSpacing = 40;
+    const dotRadius = 8;
+    for (let dx = 20; dx < canvas.width; dx += dotSpacing) {
+      for (let dy = 20; dy < canvas.height; dy += dotSpacing) {
+        ctx.beginPath();
+        ctx.arc(dx, dy, dotRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1.0;
+  } else if (preset === "coquette") {
     ctx.fillStyle = "#fff1f2";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -233,14 +314,10 @@ export const drawPhotoStrip = (
     ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
     ctx.setLineDash([]);
   } else if (preset === "y2k") {
-    const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    grad.addColorStop(0, "#0f172a");
-    grad.addColorStop(0.5, "#334155");
-    grad.addColorStop(1, "#1e293b");
-    ctx.fillStyle = grad;
+    ctx.fillStyle = "#1e293b";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = "rgba(244, 114, 182, 0.15)";
+    ctx.strokeStyle = "rgba(244, 114, 182, 0.2)";
     ctx.lineWidth = 1;
     for (let x = 0; x < canvas.width; x += 40) {
       ctx.beginPath();
@@ -283,7 +360,7 @@ export const drawPhotoStrip = (
       ctx.fill();
     }
   } else {
-    ctx.fillStyle = frameColor;
+    ctx.fillStyle = frameColor || "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   ctx.restore();
@@ -300,14 +377,13 @@ export const drawPhotoStrip = (
 
     images.slice(0, 4).forEach((img, i) => {
       const y = startYOffset + padding + i * (photoH + padding);
-      const borderRadius = preset === "film" ? 4 : preset === "coquette" ? 16 : 12;
+      const borderRadius = preset === "film" ? 4 : preset === "coquette" || preset === "polkadot" ? 16 : 12;
 
       ctx.save();
       ctx.filter = filterString;
       drawImageCover(ctx, img, padding, y, photoW, photoH, borderRadius);
       ctx.restore();
 
-      // Apply Cute Color Grade Filter Overlay
       applyCuteFilterOverlay(ctx, padding, y, photoW, photoH, cuteFilter, borderRadius);
 
       if (preset === "film") {
@@ -320,7 +396,6 @@ export const drawPhotoStrip = (
       }
     });
   } else {
-    // 2x2 Grid Layout
     const photoW = (canvas.width - padding * 3) / 2;
     const availableH = canvas.height - bottomFooterHeight - padding * 3 - startYOffset;
     const photoH = availableH / 2;
@@ -333,19 +408,18 @@ export const drawPhotoStrip = (
     ];
 
     images.slice(0, 4).forEach((img, i) => {
-      const borderRadius = preset === "film" ? 4 : preset === "coquette" ? 20 : 16;
+      const borderRadius = preset === "film" ? 4 : preset === "coquette" || preset === "polkadot" ? 20 : 16;
       ctx.save();
       ctx.filter = filterString;
       drawImageCover(ctx, img, positions[i].x, positions[i].y, photoW, photoH, borderRadius);
       ctx.restore();
 
-      // Apply Cute Color Grade Filter Overlay
       applyCuteFilterOverlay(ctx, positions[i].x, positions[i].y, photoW, photoH, cuteFilter, borderRadius);
     });
   }
 
   // ==========================================
-  // STEP 3: PRESET DECORATIVE VECTORS & STICKERS
+  // STEP 3: PRESET DECORATIVE VECTORS
   // ==========================================
   if (preset === "coquette") {
     drawRibbonBow(ctx, padding + 20, 40, 0.9);
@@ -358,7 +432,22 @@ export const drawPhotoStrip = (
   }
 
   // ==========================================
-  // STEP 4: CUSTOM BRANDING FOOTER & TYPOGRAPHY
+  // STEP 4: INTERACTIVE STICKERS OVERLAY
+  // ==========================================
+  if (stickers && stickers.length > 0) {
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    stickers.forEach((st) => {
+      const fontSize = Math.round((st.scale || 1) * 44);
+      ctx.font = `${fontSize}px sans-serif`;
+      ctx.fillText(st.emoji, st.x, st.y);
+    });
+    ctx.restore();
+  }
+
+  // ==========================================
+  // STEP 5: BRANDING FOOTER & TYPOGRAPHY
   // ==========================================
   ctx.save();
   ctx.filter = "none";
@@ -371,7 +460,6 @@ export const drawPhotoStrip = (
 
   const displaySubtitle = subtitleText !== undefined ? subtitleText : `✨ ${defaultDate} ✨`;
 
-  // Font family mapping
   let fontCss = "'Plus Jakarta Sans', system-ui, sans-serif";
   if (fontFamily === "serif") fontCss = "'Georgia', 'Times New Roman', serif";
   else if (fontFamily === "cursive") fontCss = "'Brush Script MT', 'Comic Sans MS', cursive";
@@ -412,8 +500,8 @@ export const drawPhotoStrip = (
     ctx.font = `18px ${fontCss}`;
     ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
   } else {
-    // Classic Clean & Coquette
-    ctx.fillStyle = preset === "coquette" ? "#db2777" : textColor;
+    // Classic Clean, Coquette, & Polkadot
+    ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
     ctx.font = `bold 44px ${fontCss}`;
     ctx.textAlign = "center";
     ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 120);

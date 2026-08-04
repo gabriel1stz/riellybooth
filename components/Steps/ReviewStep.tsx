@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Repeat, ArrowRight, Camera, Sparkles, Video, Play, Pause } from "lucide-react";
+import { Repeat, ArrowRight, Camera, Sparkles, Video, Play } from "lucide-react";
 
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
@@ -28,13 +28,13 @@ export default function ReviewStep({
     <div className="w-full max-w-4xl space-y-8 px-4 py-4">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-pink-500/10 rounded-full border border-pink-500/20 text-pink-300 text-xs font-semibold">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-pink-100 rounded-full border border-pink-300 text-pink-700 text-xs font-bold shadow-xs">
           <Sparkles className="w-3.5 h-3.5" /> Pratinjau Pose Foto
         </div>
-        <h3 className="text-3xl font-black tracking-tight text-white">
+        <h3 className="text-3xl font-black tracking-tight text-slate-800">
           Review Hasil Jepretanmu
         </h3>
-        <p className="text-slate-400 text-sm max-w-md mx-auto">
+        <p className="text-slate-600 text-sm max-w-md mx-auto font-medium">
           Kamu bisa mengulang foto tertentu atau langsung lanjut ke Studio Hias.
         </p>
 
@@ -43,13 +43,13 @@ export default function ReviewStep({
           <button
             type="button"
             onClick={() => setIsLivePhotoOn((v) => !v)}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-bold transition shadow-lg ${
+            className={`inline-flex items-center gap-2 px-5 py-2 rounded-full border-2 text-xs font-bold transition-all duration-300 ease-in-out shadow-xs ${
               isLivePhotoOn
-                ? "bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-pink-500/10"
-                : "bg-slate-900 text-slate-400 border-slate-800"
+                ? "bg-pink-400 text-white border-pink-500"
+                : "bg-white text-slate-700 border-slate-300"
             }`}
           >
-            <Video className="w-4 h-4 text-pink-400" />
+            <Video className="w-4 h-4 text-pink-500" />
             <span>Live Photo 🎥 (Moving Video) : {isLivePhotoOn ? "AKTIF 🔥" : "MATI"}</span>
           </button>
         </div>
@@ -60,9 +60,9 @@ export default function ReviewStep({
         {shots.map((shot, idx) => (
           <div
             key={shot.id || idx}
-            className="relative bg-slate-900/90 rounded-2xl overflow-hidden border border-slate-800/90 shadow-xl group flex flex-col justify-between"
+            className="relative bg-white rounded-2xl overflow-hidden border-2 border-pink-200 shadow-md group flex flex-col justify-between transition-all duration-300 hover:shadow-xl"
           >
-            <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-950 flex items-center justify-center">
+            <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 flex items-center justify-center">
               {isLivePhotoOn && shot.videoBlobUrl ? (
                 <video
                   src={shot.videoBlobUrl}
@@ -80,35 +80,35 @@ export default function ReviewStep({
                 />
               )}
 
-              <span className="absolute top-2 left-2 bg-slate-950/80 backdrop-blur-md text-[10px] text-pink-300 font-bold px-2 py-0.5 rounded-md border border-white/10">
+              <span className="absolute top-2 left-2 bg-white/90 backdrop-blur-md text-[10px] text-pink-600 font-black px-2 py-0.5 rounded-md border border-pink-200 shadow-xs">
                 #{idx + 1}
               </span>
 
               {isLivePhotoOn && shot.videoBlobUrl && (
-                <span className="absolute top-2 right-2 bg-pink-500/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs flex items-center gap-1">
+                <span className="absolute top-2 right-2 bg-pink-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow-xs">
                   <Play className="w-2.5 h-2.5 fill-current" /> Live
                 </span>
               )}
             </div>
 
-            <div className="p-3 bg-slate-900/80 border-t border-slate-800">
+            <div className="p-3 bg-white border-t border-pink-100">
               <button
                 type="button"
                 onClick={() => onRetakeSingle(idx)}
                 disabled={retakeIndex !== null}
-                className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-xs font-semibold text-slate-200 rounded-xl transition flex items-center justify-center gap-1.5"
+                className="w-full py-2 px-3 bg-rose-50 hover:bg-rose-100 disabled:opacity-50 text-xs font-bold text-rose-700 rounded-xl border border-pink-200 transition-all duration-300 ease-in-out flex items-center justify-center gap-1.5"
               >
-                <Repeat className="w-3.5 h-3.5 text-pink-400" /> Foto Ulang #{idx + 1}
+                <Repeat className="w-3.5 h-3.5 text-pink-500" /> Foto Ulang #{idx + 1}
               </button>
             </div>
 
             {/* Individual Countdown Overlay */}
             {retakeIndex === idx && (
-              <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs z-20 flex flex-col items-center justify-center gap-2">
-                <span className="text-5xl font-black text-pink-400 animate-ping">
+              <div className="absolute inset-0 bg-white/90 backdrop-blur-xs z-20 flex flex-col items-center justify-center gap-2">
+                <span className="text-5xl font-black text-pink-500 animate-ping">
                   {countdown}
                 </span>
-                <span className="text-xs font-bold text-slate-300">Ulang Foto #{idx + 1}...</span>
+                <span className="text-xs font-bold text-slate-700">Ulang Foto #{idx + 1}...</span>
               </div>
             )}
           </div>
@@ -116,18 +116,18 @@ export default function ReviewStep({
       </div>
 
       {/* Navigation & Action Buttons */}
-      <div className="flex flex-wrap justify-center gap-4 pt-4 border-t border-slate-800/80">
+      <div className="flex flex-wrap justify-center gap-4 pt-4 border-t border-pink-200">
         <button
           type="button"
           onClick={onRetakeAll}
-          className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 font-semibold rounded-2xl text-slate-300 transition flex items-center gap-2 text-sm"
+          className="px-6 py-3.5 bg-white hover:bg-slate-50 border-2 border-slate-300 font-bold rounded-2xl text-slate-700 transition-all duration-300 ease-in-out flex items-center gap-2 text-sm shadow-xs"
         >
-          <Camera className="w-4 h-4 text-slate-400" /> Ulangi Semua Foto
+          <Camera className="w-4 h-4 text-slate-500" /> Ulangi Semua Foto
         </button>
         <button
           type="button"
           onClick={onNextToEditor}
-          className="px-8 py-3.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 font-bold text-white rounded-2xl shadow-xl shadow-pink-500/25 transition flex items-center gap-2 text-sm hover:scale-105"
+          className="px-8 py-3.5 bg-pink-400 hover:bg-pink-500 border-2 border-pink-500 font-black text-white rounded-2xl shadow-md transition-all duration-300 ease-in-out flex items-center gap-2 text-sm hover:scale-105 active:scale-95"
         >
           Lanjut ke Studio Editor <ArrowRight className="w-4 h-4" />
         </button>
