@@ -419,7 +419,7 @@ export const drawPhotoStrip = (
   // STEP 1: BACKGROUND & FRAME PRESETS
   ctx.save();
   if (isNewspaper) {
-    // 📰 AUTHENTIC VINTAGE NEWSPAPER FRAME ENGINE (NO EMOJIS / NO RIBBON BOWS)
+    // 📰 AUTHENTIC VINTAGE NEWSPAPER FRAME ENGINE ($1200x1800px CANVAS)
     ctx.fillStyle = "#f4f1ea";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -430,43 +430,39 @@ export const drawPhotoStrip = (
     ctx.lineWidth = 1;
     ctx.strokeRect(36, 36, 1128, 1728);
 
-    // Rule 1: Above Headline
-    ctx.beginPath();
-    ctx.moveTo(45, 42);
-    ctx.lineTo(1155, 42);
-    ctx.stroke();
-
-    // Bold Headline: "THE DAILY RIELLLYBOOTH" (Y = 0 to 320px)
+    // 1. Top Info Bar (Y = 60px)
     ctx.fillStyle = "#1c1917";
-    ctx.font = "900 56px 'Georgia', serif";
+    ctx.font = "bold 16px 'Georgia', 'Times New Roman', serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("THE DAILY RIELLLYBOOTH", canvas.width / 2, 90);
+    ctx.fillText("★ NEWSPAPER PHOTOBOOTH ★   •   EDISI SPESIAL • JAKARTA & SURABAYA   •   VOL. IV NO. 104", canvas.width / 2, 60);
 
-    // Rule 2: Below Headline
+    // Top Double Divider Rule Line (Y = 85px)
     ctx.beginPath();
-    ctx.moveTo(45, 135);
-    ctx.lineTo(1155, 135);
+    ctx.moveTo(45, 83);
+    ctx.lineTo(1155, 83);
+    ctx.moveTo(45, 87);
+    ctx.lineTo(1155, 87);
     ctx.stroke();
 
-    // Edition Info Line (Y = 160px)
-    ctx.font = "bold 15px 'Georgia', serif";
-    ctx.fillText("KABAR UTAMA  •  EDISI SPESIAL HARIAN RIELLLYBOOTH  •  HARI INI", canvas.width / 2, 160);
+    // Main Header Title: "RIELLLYBOOTH" (Y = 160px, 72px BOLD SERIF)
+    ctx.font = "bold 72px 'Georgia', 'Times New Roman', serif";
+    ctx.fillText("RIELLLYBOOTH", canvas.width / 2, 155);
 
-    // Rule 3: Below Edition Line
+    // Divider Rule Line (Y = 195px)
     ctx.beginPath();
-    ctx.moveTo(45, 185);
-    ctx.lineTo(1155, 185);
+    ctx.moveTo(45, 195);
+    ctx.lineTo(1155, 195);
     ctx.stroke();
 
-    // Tagline (Y = 220px)
-    ctx.font = "italic 17px 'Georgia', serif";
-    ctx.fillText('"Hari ini bukan sekadar hari biasa — ini adalah momen abadi di rielllybooth."', canvas.width / 2, 220);
+    // Tagline (Y = 220px, 20px ITALIC SERIF)
+    ctx.font = "italic 20px 'Georgia', 'Times New Roman', serif";
+    ctx.fillText('"Today wasn\'t just an ordinary day — it was our timeless scene at rielllybooth."', canvas.width / 2, 222);
 
-    // Rule 4: Divider before Main Photo Slot
+    // Middle Divider Rule Line (Y = 245px)
     ctx.beginPath();
-    ctx.moveTo(45, 275);
-    ctx.lineTo(1155, 275);
+    ctx.moveTo(45, 245);
+    ctx.lineTo(1155, 245);
     ctx.stroke();
 
   } else if (preset === "polkadot") {
@@ -609,11 +605,11 @@ export const drawPhotoStrip = (
   // STEP 2: DRAW PHOTOS ACCORDING TO THE LAYOUT MODES WITH STRICT CLIPPING
   if (isNewspaper) {
     // 📰 PRECISE NEWSPAPER PHOTO BOUNDS & NON-OVERLAPPING ARTICLE COLUMNS
-    // 1. Main Top Photo Slot (Header Y=0-320px, Top Photo Y=340px, 1080 x 680px)
-    const mainX = 60;
-    const mainY = 340;
-    const mainW = 1080;
-    const mainH = 680;
+    // 2. Top Large Main Photo Slot: X = 70px, Y = 260px, W = 1060px, H = 600px
+    const mainX = 70;
+    const mainY = 260;
+    const mainW = 1060;
+    const mainH = 600;
 
     if (images[0]) {
       ctx.save();
@@ -628,26 +624,22 @@ export const drawPhotoStrip = (
 
       applyCuteFilterOverlay(ctx, mainX, mainY, mainW, mainH, cuteFilter, filter.beautyGlow, 0, filterIntensity);
 
-      // Subtitle below Main Top Photo Slot (Y = 1035px)
+      // Photo Figure Caption (Y = 880px, 16px ITALIC SERIF)
       ctx.save();
       ctx.fillStyle = "#1c1917";
-      ctx.font = "italic 15px 'Georgia', serif";
+      ctx.font = "italic 16px 'Georgia', 'Times New Roman', serif";
       ctx.textAlign = "left";
-      ctx.fillText("▲ FIG 1.0 — Bukti nyata momen estetik diabadikan secara resmi tanpa watermark.", mainX, 1035);
+      ctx.textBaseline = "top";
+      ctx.fillText("▲ FIG 1.0 — Live capture recorded in high definition at rielllybooth studio booth.", mainX, 880);
       ctx.restore();
     }
 
-    // 2. Bottom 3 Photo Slots (Y = 1080px, 340 x 340px each)
-    const botY = 1080;
-    const botW = 340;
-    const botH = 340;
-    const botGap = 30;
+    // 3. Bottom 3 Small Photo Slots (Y = 920px, 330 x 330px each)
+    const botY = 920;
+    const botW = 330;
+    const botH = 330;
 
-    const botPositions = [
-      60,
-      60 + botW + botGap, // 430
-      60 + (botW + botGap) * 2, // 800
-    ];
+    const botPositions = [70, 435, 800];
 
     images.slice(1, 4).forEach((img, i) => {
       const bx = botPositions[i];
@@ -665,53 +657,53 @@ export const drawPhotoStrip = (
       applyCuteFilterOverlay(ctx, bx, botY, botW, botH, cuteFilter, filter.beautyGlow, 0, filterIntensity);
     });
 
-    // 3. FUNNY INDONESIAN MEME NEWSPAPER ARTICLES (Strictly BELOW Y = 1440px)
+    // 4. BOTTOM ARTICLE CAPTIONS & PARAGRAPHS (STRICT SPACING AT Y = 1280px)
     const columnTitles = [
-      "FOTO DULU, MASALAH BELAKANGAN",
-      "GAYA PEACE KEMBALI TRENDING",
+      "FOTO DULU AJA BLAY",
+      "OUR STORY",
       "AWAS GAGAL MOVE ON"
     ];
     const columnTexts = [
-      "Riset tim Rielllybooth Gazette menyatakan 99% anak muda sepakat abadikan foto estetik lebih penting dibanding mikirin beban hidup.",
-      "Pose V-sign klasik terbukti menaikkan kecantikan & ketampanan hingga 85%. Para ahli sarankan foto rutin 4x sehari.",
-      "Warga diimbau tidak menatap photo strip ini terlalu lama apabila belum sepenuhnya ikhlas dan move on dari mantan."
+      "Berhenti jadi pelangi untuk orang yang buta warna ya blay.",
+      "Beda temen beda aksi, Salah temen bocor informasi.",
+      "Warga diimbau tidak menatap photo strip ini terlalu lama apabila belum sepenuhnya move on."
     ];
 
     // Vertical Divider Rules between column articles
     ctx.save();
-    ctx.strokeStyle = "rgba(28, 25, 23, 0.3)";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(28, 25, 23, 0.35)";
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(415, 1440);
-    ctx.lineTo(415, 1720);
-    ctx.moveTo(785, 1440);
-    ctx.lineTo(785, 1720);
+    ctx.moveTo(417.5, 1280);
+    ctx.lineTo(417.5, 1680);
+    ctx.moveTo(782.5, 1280);
+    ctx.lineTo(782.5, 1680);
     ctx.stroke();
 
     ctx.fillStyle = "#1c1917";
     ctx.textBaseline = "top";
 
     botPositions.forEach((bx, i) => {
-      // Column Title (Y = 1440px) - BOLD LEGIBLE SERIF
-      ctx.font = "900 18px 'Georgia', serif";
+      // Column Headline (Y = 1280px) - 20px BOLD SERIF
+      ctx.font = "bold 20px 'Georgia', 'Times New Roman', serif";
       ctx.textAlign = "center";
-      ctx.fillText(columnTitles[i], bx + botW / 2, 1440);
+      ctx.fillText(columnTitles[i], bx + botW / 2, 1280);
 
-      // Rule below Column Title
+      // Rule below Column Headline
       ctx.beginPath();
-      ctx.moveTo(bx + 15, 1468);
-      ctx.lineTo(bx + botW - 15, 1468);
+      ctx.moveTo(bx + 10, 1308);
+      ctx.lineTo(bx + botW - 10, 1308);
       ctx.stroke();
 
-      // Vintage Serif Body Text (Y = 1478px) - 14px LEGIBLE SERIF
-      ctx.font = "14px 'Georgia', serif";
-      ctx.fillStyle = "#262626";
+      // Body Paragraph Text (Y = 1320px) - 15px SERIF with 22px Line Height
+      ctx.font = "15px 'Georgia', 'Times New Roman', serif";
+      ctx.fillStyle = "#1c1917";
       ctx.textAlign = "left";
 
-      // Word wrapper for column text with line spacing
+      // Word wrapper inside 330px column bounds
       const words = columnTexts[i].split(" ");
       let line = "";
-      let lineY = 1478;
+      let lineY = 1320;
       const maxColWidth = botW - 12;
 
       for (let n = 0; n < words.length; n++) {
@@ -720,7 +712,7 @@ export const drawPhotoStrip = (
         if (metrics.width > maxColWidth && n > 0) {
           ctx.fillText(line, bx + 6, lineY);
           line = words[n] + " ";
-          lineY += 20;
+          lineY += 22;
         } else {
           line = testLine;
         }
@@ -728,16 +720,17 @@ export const drawPhotoStrip = (
       ctx.fillText(line, bx + 6, lineY);
     });
 
-    // Newspaper Bottom Footer (Y = 1740px)
+    // 5. FOOTER GAZETTE BAR (Y = 1700px)
     ctx.beginPath();
-    ctx.moveTo(45, 1735);
-    ctx.lineTo(1155, 1735);
+    ctx.moveTo(45, 1685);
+    ctx.lineTo(1155, 1685);
     ctx.stroke();
 
     ctx.fillStyle = "#1c1917";
-    ctx.font = "italic 14px 'Georgia', serif";
+    ctx.font = "bold 15px 'Georgia', 'Times New Roman', serif";
     ctx.textAlign = "center";
-    ctx.fillText("rielllybooth Gazette — Hak Cipta Dilindungi 2026 • Diterbitkan secara resmi di https://riellybooth.my.id", canvas.width / 2, 1752);
+    ctx.textBaseline = "middle";
+    ctx.fillText("RIELLLYBOOTH GAZETTE  •  ALL RIGHTS RESERVED 2026  •  OFFICIAL EDITION  •  WWW.RIELLLYBOOTH.MY.ID", canvas.width / 2, 1715);
     ctx.restore();
 
   } else if (layout === "spotlight") {
