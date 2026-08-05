@@ -3,7 +3,7 @@
  * CSS & pixel filter effects, Webcam Toy retro filters (Pixel Art, Thermal Heatmap,
  * Vivid Pop Art, VHS Retro CRT), Film Grain 🎞️, Soft Beauty Glow ✨, 11 Frame Presets
  * (including Gen Z Viral Presets: Coquette Ribbon 🎀, Y2K Cyber ✨, Receipt Paper 🧾,
- * K-Pop Photocard 💖, Concert Ticket 🎫, Galau Quote ☕, Newspaper 📰),
+ * K-Pop Photocard 💖, Concert Ticket 🎫, Galau Quote ☕, Authentic Newspaper 📰),
  * 9 Layout Modes, interactive sticker overlays with rotation & scale transforms,
  * strict canvas photo bounds clipping, custom event logo sharp rendering, and typography branding engine.
  */
@@ -419,7 +419,7 @@ export const drawPhotoStrip = (
   // STEP 1: BACKGROUND & FRAME PRESETS
   ctx.save();
   if (isNewspaper) {
-    // 📰 OVERHAULED NEWSPAPER FRAME ENGINE (1200 x 1800 px)
+    // 📰 AUTHENTIC VINTAGE NEWSPAPER FRAME ENGINE (NO EMOJIS / NO RIBBON BOWS)
     ctx.fillStyle = "#f4f1ea";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -430,10 +430,6 @@ export const drawPhotoStrip = (
     ctx.lineWidth = 1;
     ctx.strokeRect(36, 36, 1128, 1728);
 
-    // Ribbon Bows on Header Corners
-    drawRibbonBow(ctx, 90, 80, 1.2);
-    drawRibbonBow(ctx, 1110, 80, 1.2);
-
     // Rule 1: Above Headline
     ctx.beginPath();
     ctx.moveTo(45, 42);
@@ -442,7 +438,7 @@ export const drawPhotoStrip = (
 
     // Bold Headline: "THE DAILY RIELLLYBOOTH" (Y = 0 to 320px)
     ctx.fillStyle = "#1c1917";
-    ctx.font = "900 54px 'Georgia', serif";
+    ctx.font = "900 56px 'Georgia', serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("THE DAILY RIELLLYBOOTH", canvas.width / 2, 90);
@@ -455,7 +451,7 @@ export const drawPhotoStrip = (
 
     // Edition Info Line (Y = 160px)
     ctx.font = "bold 15px 'Georgia', serif";
-    ctx.fillText("EST. 2026  •  VOL. 882  •  EDITION #01  •  SPECIAL MEMORIES FOR LIFE", canvas.width / 2, 160);
+    ctx.fillText("KABAR UTAMA  •  EDISI SPESIAL HARIAN RIELLLYBOOTH  •  HARI INI", canvas.width / 2, 160);
 
     // Rule 3: Below Edition Line
     ctx.beginPath();
@@ -465,7 +461,7 @@ export const drawPhotoStrip = (
 
     // Tagline (Y = 220px)
     ctx.font = "italic 17px 'Georgia', serif";
-    ctx.fillText('"Today wasn\'t just an ordinary day — it was our timeless scene at rielllybooth."', canvas.width / 2, 220);
+    ctx.fillText('"Hari ini bukan sekadar hari biasa — ini adalah momen abadi di rielllybooth."', canvas.width / 2, 220);
 
     // Rule 4: Divider before Main Photo Slot
     ctx.beginPath();
@@ -637,7 +633,7 @@ export const drawPhotoStrip = (
       ctx.fillStyle = "#1c1917";
       ctx.font = "italic 15px 'Georgia', serif";
       ctx.textAlign = "left";
-      ctx.fillText("▲ FIG 1.0 — Live capture recorded in high definition at rielllybooth studio booth.", mainX, 1035);
+      ctx.fillText("▲ FIG 1.0 — Bukti nyata momen estetik diabadikan secara resmi tanpa watermark.", mainX, 1035);
       ctx.restore();
     }
 
@@ -669,17 +665,21 @@ export const drawPhotoStrip = (
       applyCuteFilterOverlay(ctx, bx, botY, botW, botH, cuteFilter, filter.beautyGlow, 0, filterIntensity);
     });
 
-    // 3. Column Article Captions (Strictly BELOW Y = 1440px)
-    const columnTitles = ["THE BEST VIBES", "UNFILTERED JOY", "CORE MEMORIES"];
+    // 3. FUNNY INDONESIAN MEME NEWSPAPER ARTICLES (Strictly BELOW Y = 1440px)
+    const columnTitles = [
+      "FOTO DULU, MASALAH BELAKANGAN",
+      "GAYA PEACE KEMBALI TRENDING",
+      "AWAS GAGAL MOVE ON"
+    ];
     const columnTexts = [
-      "A candid moment captured in full HD resolution. Unfiltered emotions preserved forever in our editorial print.",
-      "Laughter and genuine smiles recorded live at the booth. Every frame tells a story worth remembering.",
-      "Timeless aesthetic photobooth session created with love. Cherishing every single second together.",
+      "Riset tim Rielllybooth Gazette menyatakan 99% anak muda sepakat abadikan foto estetik lebih penting dibanding mikirin beban hidup.",
+      "Pose V-sign klasik terbukti menaikkan kecantikan & ketampanan hingga 85%. Para ahli sarankan foto rutin 4x sehari.",
+      "Warga diimbau tidak menatap photo strip ini terlalu lama apabila belum sepenuhnya ikhlas dan move on dari mantan."
     ];
 
     // Vertical Divider Rules between column articles
     ctx.save();
-    ctx.strokeStyle = "rgba(28, 25, 23, 0.25)";
+    ctx.strokeStyle = "rgba(28, 25, 23, 0.3)";
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(415, 1440);
@@ -692,40 +692,40 @@ export const drawPhotoStrip = (
     ctx.textBaseline = "top";
 
     botPositions.forEach((bx, i) => {
-      // Column Title (Y = 1440px)
-      ctx.font = "bold 17px 'Georgia', serif";
+      // Column Title (Y = 1440px) - BOLD LEGIBLE SERIF
+      ctx.font = "900 18px 'Georgia', serif";
       ctx.textAlign = "center";
       ctx.fillText(columnTitles[i], bx + botW / 2, 1440);
 
       // Rule below Column Title
       ctx.beginPath();
-      ctx.moveTo(bx + 20, 1465);
-      ctx.lineTo(bx + botW - 20, 1465);
+      ctx.moveTo(bx + 15, 1468);
+      ctx.lineTo(bx + botW - 15, 1468);
       ctx.stroke();
 
-      // Vintage Serif Body Text (Y = 1475px)
-      ctx.font = "12px 'Georgia', serif";
-      ctx.fillStyle = "#44403c";
+      // Vintage Serif Body Text (Y = 1478px) - 14px LEGIBLE SERIF
+      ctx.font = "14px 'Georgia', serif";
+      ctx.fillStyle = "#262626";
       ctx.textAlign = "left";
 
-      // Word wrapper for column text
+      // Word wrapper for column text with line spacing
       const words = columnTexts[i].split(" ");
       let line = "";
-      let lineY = 1475;
-      const maxColWidth = botW - 10;
+      let lineY = 1478;
+      const maxColWidth = botW - 12;
 
       for (let n = 0; n < words.length; n++) {
         const testLine = line + words[n] + " ";
         const metrics = ctx.measureText(testLine);
         if (metrics.width > maxColWidth && n > 0) {
-          ctx.fillText(line, bx + 5, lineY);
+          ctx.fillText(line, bx + 6, lineY);
           line = words[n] + " ";
-          lineY += 18;
+          lineY += 20;
         } else {
           line = testLine;
         }
       }
-      ctx.fillText(line, bx + 5, lineY);
+      ctx.fillText(line, bx + 6, lineY);
     });
 
     // Newspaper Bottom Footer (Y = 1740px)
@@ -735,9 +735,9 @@ export const drawPhotoStrip = (
     ctx.stroke();
 
     ctx.fillStyle = "#1c1917";
-    ctx.font = "italic 13px 'Georgia', serif";
+    ctx.font = "italic 14px 'Georgia', serif";
     ctx.textAlign = "center";
-    ctx.fillText("rielllybooth ♡ — All Rights Reserved 2026 • Published at https://riellybooth.my.id", canvas.width / 2, 1755);
+    ctx.fillText("rielllybooth Gazette — Hak Cipta Dilindungi 2026 • Diterbitkan secara resmi di https://riellybooth.my.id", canvas.width / 2, 1752);
     ctx.restore();
 
   } else if (layout === "spotlight") {
