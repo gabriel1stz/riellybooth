@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Download, ArrowLeft, RefreshCw, Layout, Palette, Sparkles, Video, Wand2, FlipHorizontal, Trash2, Image as ImageIcon, Upload, Share2, RefreshCcw } from "lucide-react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { Download, ArrowLeft, RefreshCw, Layout, Palette, Sparkles, Video, Wand2, FlipHorizontal, Trash2, Image as ImageIcon, Upload, Share2, RefreshCcw, Undo2, Redo2, RotateCw, ZoomIn, X } from "lucide-react";
 import { LayoutMode, FramePreset, CuteFilter, FontFamily, FilterState, PlacedSticker } from "@/lib/canvasUtils";
 import ColorPicker from "../UI/ColorPicker";
 import Slider from "../UI/Slider";
@@ -13,6 +13,20 @@ const STICKER_LIBRARY = [
   "🐰", "🌸", "🍭", "🕶️", "👻", "⭐", "🍓", "🦋",
   "🍩", "🐾", "🍦", "🎈"
 ];
+
+type HistoryState = {
+  layout: LayoutMode;
+  preset: FramePreset;
+  cuteFilter: CuteFilter;
+  customText: string;
+  fontFamily: FontFamily;
+  subtitleText: string;
+  placedStickers: PlacedSticker[];
+  frameColor: string;
+  textColor: string;
+  filter: FilterState;
+  isFlipped: boolean;
+};
 
 type EditorStepProps = {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -35,6 +49,8 @@ type EditorStepProps = {
   onAddSticker: (emoji: string) => void;
   onClearStickers: () => void;
   onUpdateStickerPos?: (id: string, x: number, y: number) => void;
+  onUpdateStickerTransform?: (id: string, scale: number, rotation: number) => void;
+  onDeleteSticker?: (id: string) => void;
   customLogoUrl: string | null;
   onUploadCustomLogo: (file: File) => void;
   onClearCustomLogo: () => void;
@@ -76,6 +92,8 @@ export default function EditorStep({
   onAddSticker,
   onClearStickers,
   onUpdateStickerPos,
+  onUpdateStickerTransform,
+  onDeleteSticker,
   customLogoUrl,
   onUploadCustomLogo,
   onClearCustomLogo,
@@ -99,7 +117,103 @@ export default function EditorStep({
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"layout" | "frame" | "filter" | "stickers">("layout");
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [isUpdatingCanvas, setIsUpdatingCanvas] = useState(false);
+
+  // Undo / Redo History Stack State
+  const historyRef = useRef<HistoryState[]>([]);
+  const historyIndexRef = useRef<number>(-1);
+  const isUndoRedoActionRef = useRef<boolean>(false);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+
+  // Function to push current state to History Stack
+  const pushHistoryState = useCallback(() => {
+    if (isUndoRedoActionRef.current) {
+      isUndoRedoActionRef.current = false;
+      return;
+    }
+    const currentState: HistoryState = {
+      layout,
+      preset,
+      cuteFilter,
+      customText,
+      fontFamily,
+      subtitleText,
+      placedStickers: JSON.parse(JSON.stringify(placedStickers)),
+      frameColor,
+      textColor,
+      filter: { ...filter },
+      isFlipped,
+    };
+
+    // Trim redo stack if we're not at the end
+    const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
+    newHistory.push(currentState);
+    historyRef.current = newHistory;
+    historyIndexRef.current = newHistory.length - 1;
+
+    setCanUndo(historyIndexRef.current > 0);
+    setCanRedo(false);
+  }, [layout, preset, cuteFilter, customText, fontFamily, subtitleText, placedStickers, frameColor, textColor, filter, isFlipped]);
+
+  // Initial history snapshot
+  useEffect(() => {
+    if (historyRef.current.length === 0) {
+      pushHistoryState();
+    }
+  }, [pushHistoryState]);
+
+  // Push to history when user edits options (debounced / track state changes)
+  useEffect(() => {
+    pushHistoryState();
+  }, [layout, preset, cuteFilter, frameColor, textColor, filter.filterIntensity, filter.grain, filter.beautyGlow, filter.brightness, filter.contrast, filter.saturation, placedStickers, isFlipped]);
+
+  // Perform Undo
+  const handleUndo = () => {
+    if (historyIndexRef.current > 0) {
+      isUndoRedoActionRef.current = true;
+      historyIndexRef.current -= 1;
+      const targetState = historyRef.current[historyIndexRef.current];
+      if (targetState) {
+        setLayout(targetState.layout);
+        setPreset(targetState.preset);
+        setCuteFilter(targetState.cuteFilter);
+        setCustomText(targetState.customText);
+        setFontFamily(targetState.fontFamily);
+        setSubtitleText(targetState.subtitleText);
+        setFrameColor(targetState.frameColor);
+        setTextColor(targetState.textColor);
+        setFilter(targetState.filter);
+        setIsFlipped(targetState.isFlipped);
+      }
+      setCanUndo(historyIndexRef.current > 0);
+      setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
+    }
+  };
+
+  // Perform Redo
+  const handleRedo = () => {
+    if (historyIndexRef.current < historyRef.current.length - 1) {
+      isUndoRedoActionRef.current = true;
+      historyIndexRef.current += 1;
+      const targetState = historyRef.current[historyIndexRef.current];
+      if (targetState) {
+        setLayout(targetState.layout);
+        setPreset(targetState.preset);
+        setCuteFilter(targetState.cuteFilter);
+        setCustomText(targetState.customText);
+        setFontFamily(targetState.fontFamily);
+        setSubtitleText(targetState.subtitleText);
+        setFrameColor(targetState.frameColor);
+        setTextColor(targetState.textColor);
+        setFilter(targetState.filter);
+        setIsFlipped(targetState.isFlipped);
+      }
+      setCanUndo(historyIndexRef.current > 0);
+      setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
+    }
+  };
 
   // Trigger anti-flicker brief loading overlay during layout/preset/filter transitions
   useEffect(() => {
@@ -121,12 +235,24 @@ export default function EditorStep({
     };
   };
 
+  const getDOMPos = (x: number, y: number) => {
+    if (!canvasRef.current) return null;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = rect.width / canvasRef.current.width;
+    const scaleY = rect.height / canvasRef.current.height;
+
+    return {
+      left: x * scaleX,
+      top: y * scaleY,
+    };
+  };
+
   const handlePointerDown = (clientX: number, clientY: number) => {
     const pos = getCanvasPos(clientX, clientY);
     if (!pos || placedStickers.length === 0) return;
 
     let foundId: string | null = null;
-    let minDist = 60;
+    let minDist = 70;
 
     placedStickers.forEach((st) => {
       const dist = Math.hypot(st.x - pos.x, st.y - pos.y);
@@ -138,6 +264,9 @@ export default function EditorStep({
 
     if (foundId) {
       setDraggingId(foundId);
+      setSelectedStickerId(foundId);
+    } else {
+      setSelectedStickerId(null);
     }
   };
 
@@ -161,17 +290,44 @@ export default function EditorStep({
     }
   };
 
+  const selectedSticker = placedStickers.find((st) => st.id === selectedStickerId);
+
   return (
     <div className="w-full max-w-6xl px-2 sm:px-4 py-3 space-y-4 sm:space-y-6">
-      {/* 1. TOP SECTION: ACTION HEADER & NAVIGATION BAR */}
+      {/* 1. TOP SECTION: ACTION HEADER & NAVIGATION BAR WITH UNDO / REDO */}
       <div className="flex flex-wrap justify-between items-center gap-3 bg-white border-2 border-pink-200 p-3 sm:p-4 rounded-2xl shadow-sm">
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition border border-slate-300"
-        >
-          <ArrowLeft className="w-4 h-4" /> Review Foto
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition border border-slate-300"
+          >
+            <ArrowLeft className="w-4 h-4" /> Review Foto
+          </button>
+
+          {/* UNDO & REDO BUTTONS */}
+          <button
+            type="button"
+            onClick={handleUndo}
+            disabled={!canUndo}
+            className="p-2 bg-slate-100 hover:bg-pink-100 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 rounded-xl transition border border-slate-300 flex items-center gap-1 text-xs font-bold"
+            title="Batal / Undo (↺)"
+          >
+            <Undo2 className="w-4 h-4 text-pink-500" />
+            <span className="hidden sm:inline">Undo</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleRedo}
+            disabled={!canRedo}
+            className="p-2 bg-slate-100 hover:bg-pink-100 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 rounded-xl transition border border-slate-300 flex items-center gap-1 text-xs font-bold"
+            title="Ulang / Redo (↻)"
+          >
+            <Redo2 className="w-4 h-4 text-pink-500" />
+            <span className="hidden sm:inline">Redo</span>
+          </button>
+        </div>
 
         <div className="flex items-center gap-2">
           {/* Flip Horizontal Toggle */}
@@ -250,6 +406,30 @@ export default function EditorStep({
               ref={canvasRef}
               className="max-w-full max-h-[40vh] sm:max-h-[500px] w-auto h-auto object-contain rounded-xl shadow-inner pointer-events-none"
             />
+
+            {/* DELETE (X) BADGE OVER SELECTED STICKER ON CANVAS OVERLAY */}
+            {selectedSticker && (() => {
+              const domPos = getDOMPos(selectedSticker.x, selectedSticker.y);
+              if (!domPos) return null;
+              return (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onDeleteSticker) onDeleteSticker(selectedSticker.id);
+                    setSelectedStickerId(null);
+                  }}
+                  style={{
+                    left: `${domPos.left + 15}px`,
+                    top: `${domPos.top - 15}px`,
+                  }}
+                  className="absolute z-50 p-1 bg-rose-500 hover:bg-rose-600 text-white rounded-full shadow-lg border border-white transition transform hover:scale-110 active:scale-95"
+                  title="Hapus Stiker Ini (x)"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              );
+            })()}
           </div>
 
           <p className="hidden lg:block text-[11px] font-bold text-slate-500 text-center">
@@ -411,7 +591,7 @@ export default function EditorStep({
             </div>
           )}
 
-          {/* TAB 3: CUTE & RETRO WEBCAM TOY FILTERS + SLIDERS */}
+          {/* TAB 3: CUTE & RETRO WEBCAM TOY FILTERS + INTENSITY SLIDER */}
           {activeTab === "filter" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
@@ -445,6 +625,14 @@ export default function EditorStep({
               </div>
 
               <div className="space-y-3 pt-2">
+                {/* FILTER INTENSITY SLIDER (0% to 100%) */}
+                <Slider
+                  label="Intensitas Filter 🎨 (Filter Blend)"
+                  min={0}
+                  max={100}
+                  value={filter.filterIntensity ?? 100}
+                  onChange={(val) => setFilter((prev) => ({ ...prev, filterIntensity: val }))}
+                />
                 <Slider
                   label="Film Grain 🎞️ (Analog Noise)"
                   min={0}
@@ -484,9 +672,46 @@ export default function EditorStep({
             </div>
           )}
 
-          {/* TAB 4: STICKERS & CUSTOM LOGO */}
+          {/* TAB 4: STICKERS & TRANSFORM CONTROLS & CUSTOM LOGO */}
           {activeTab === "stickers" && (
             <div className="space-y-4 animate-in fade-in duration-200">
+              {/* STICKER TRANSFORM CONTROLS FOR SELECTED STICKER */}
+              {selectedSticker && onUpdateStickerTransform && (
+                <div className="space-y-3 bg-pink-50 border-2 border-pink-300 p-3.5 rounded-2xl shadow-xs animate-in zoom-in-95 duration-150">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-pink-700 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-pink-500" /> Kontrol Stiker {selectedSticker.emoji}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onDeleteSticker) onDeleteSticker(selectedSticker.id);
+                        setSelectedStickerId(null);
+                      }}
+                      className="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-bold rounded-lg transition flex items-center gap-1 shadow-xs"
+                    >
+                      <Trash2 className="w-3 h-3" /> Hapus Stiker (x)
+                    </button>
+                  </div>
+
+                  <Slider
+                    label={`Ukuran Stiker (Scale: ${((selectedSticker.scale || 1) * 100).toFixed(0)}%)`}
+                    min={30}
+                    max={300}
+                    value={Math.round((selectedSticker.scale || 1) * 100)}
+                    onChange={(val) => onUpdateStickerTransform(selectedSticker.id, val / 100, selectedSticker.rotation || 0)}
+                  />
+
+                  <Slider
+                    label={`Rotasi Stiker (${selectedSticker.rotation || 0}°)`}
+                    min={-180}
+                    max={180}
+                    value={selectedSticker.rotation || 0}
+                    onChange={(val) => onUpdateStickerTransform(selectedSticker.id, selectedSticker.scale || 1, val)}
+                  />
+                </div>
+              )}
+
               {/* UPLOAD CUSTOM BRAND LOGO SECTION */}
               <div className="space-y-2 bg-rose-50 border-2 border-pink-200 p-3.5 rounded-2xl">
                 <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">

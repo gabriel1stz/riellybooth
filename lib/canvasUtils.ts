@@ -4,8 +4,8 @@
  * Vivid Pop Art, VHS Retro CRT), Film Grain 🎞️, Soft Beauty Glow ✨, 11 Frame Presets
  * (including Gen Z Viral Presets: Coquette Ribbon 🎀, Y2K Cyber ✨, Receipt Paper 🧾,
  * K-Pop Photocard 💖, Concert Ticket 🎫, Galau Quote ☕, Newspaper 📰),
- * 9 Layout Modes, interactive sticker overlays, flip horizontal toggle,
- * custom event logo high-res sharp rendering, and customizable typography branding engine.
+ * 9 Layout Modes, interactive sticker overlays with rotation & scale transforms,
+ * strict canvas photo bounds clipping, custom event logo sharp rendering, and typography branding engine.
  */
 
 export type LayoutMode =
@@ -55,6 +55,7 @@ export type FilterState = {
   grayscale: number;
   grain: number;
   beautyGlow: number;
+  filterIntensity?: number; // 0% to 100%
 };
 
 export type PlacedSticker = {
@@ -63,10 +64,11 @@ export type PlacedSticker = {
   x: number;
   y: number;
   scale?: number;
+  rotation?: number; // angle in degrees
 };
 
 /**
- * Helper to draw an image centered and covering its container slot without stretching.
+ * Helper to draw an image centered and covering its container slot with strict boundary clipping.
  */
 function drawImageCover(
   ctx: CanvasRenderingContext2D,
@@ -82,11 +84,14 @@ function drawImageCover(
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
+  // Strict Clipping Path around container bounds
+  ctx.beginPath();
   if (borderRadius > 0) {
-    ctx.beginPath();
     ctx.roundRect(x, y, w, h, borderRadius);
-    ctx.clip();
+  } else {
+    ctx.rect(x, y, w, h);
   }
+  ctx.clip();
 
   if (isFlipped) {
     ctx.translate(x + w, y);
@@ -124,7 +129,7 @@ function drawImageCover(
 }
 
 /**
- * Helper to apply Cute Filters, Webcam Toy Retro FX, & Soft Beauty Glow ✨
+ * Helper to apply Cute Filters, Webcam Toy Retro FX, & Soft Beauty Glow ✨ (with Filter Intensity blending)
  */
 function applyCuteFilterOverlay(
   ctx: CanvasRenderingContext2D,
@@ -134,14 +139,23 @@ function applyCuteFilterOverlay(
   h: number,
   cuteFilter: CuteFilter,
   beautyGlow: number = 0,
-  borderRadius: number = 0
+  borderRadius: number = 0,
+  filterIntensity: number = 100
 ) {
+  if (cuteFilter === "none" && beautyGlow <= 0) return;
+
+  const alphaMult = Math.max(0, Math.min(100, filterIntensity)) / 100;
+
   ctx.save();
+  ctx.globalAlpha = alphaMult;
+
+  ctx.beginPath();
   if (borderRadius > 0) {
-    ctx.beginPath();
     ctx.roundRect(x, y, w, h, borderRadius);
-    ctx.clip();
+  } else {
+    ctx.rect(x, y, w, h);
   }
+  ctx.clip();
 
   if (beautyGlow > 0) {
     ctx.fillStyle = `rgba(255, 255, 255, ${(beautyGlow / 100) * 0.25})`;
@@ -399,7 +413,8 @@ export const drawPhotoStrip = (
 
   const filterString = `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) grayscale(${filter.grayscale}%)`;
   const padding = preset === "film" || preset === "receipt" ? 60 : 36;
-  const bottomFooterHeight = isNewspaper ? 0 : 220;
+  const bottomFooterHeight = isNewspaper ? 0 : preset === "concert_ticket" ? 240 : 220;
+  const filterIntensity = filter.filterIntensity ?? 100;
 
   // STEP 1: BACKGROUND & FRAME PRESETS
   ctx.save();
@@ -425,7 +440,7 @@ export const drawPhotoStrip = (
     ctx.lineTo(1155, 42);
     ctx.stroke();
 
-    // Bold Headline: "THE DAILY RIELLLYBOOTH" (Y = 0 to 300px)
+    // Bold Headline: "THE DAILY RIELLLYBOOTH" (Y = 0 to 320px)
     ctx.fillStyle = "#1c1917";
     ctx.font = "900 54px 'Georgia', serif";
     ctx.textAlign = "center";
@@ -529,7 +544,7 @@ export const drawPhotoStrip = (
     ctx.textAlign = "center";
     ctx.fillText("RECEIPT #88219 • RIELLLYBOOTH", canvas.width / 2, 50);
   } else if (preset === "concert_ticket") {
-    // 🎟️ MUSIC FESTIVAL CONCERT TICKET STUB
+    // 🎟️ MUSIC FESTIVAL CONCERT TICKET STUB WITH BARCODE & PERFORATED BOUNDS
     ctx.fillStyle = "#0f172a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -541,6 +556,25 @@ export const drawPhotoStrip = (
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("🎟️ RIELLLYBOOTH FESTIVAL VIP", canvas.width / 2, 45);
+
+    // Perforated Dashed Rule Line
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([12, 10]);
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height - 180);
+    ctx.lineTo(canvas.width, canvas.height - 180);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Ticket Stub Barcode Lines at Bottom
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(40, canvas.height - 160, canvas.width - 80, 60);
+
+    ctx.fillStyle = "#0f172a";
+    for (let bx = 60; bx < canvas.width - 60; bx += Math.floor(Math.random() * 10 + 6)) {
+      ctx.fillRect(bx, canvas.height - 150, Math.random() > 0.5 ? 4 : 2, 40);
+    }
   } else if (preset === "photocard") {
     // 💖 K-POP PHOTOCARD BINDER SLEEVE
     const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -576,18 +610,19 @@ export const drawPhotoStrip = (
   }
   ctx.restore();
 
-  // STEP 2: DRAW PHOTOS ACCORDING TO THE LAYOUT MODES
+  // STEP 2: DRAW PHOTOS ACCORDING TO THE LAYOUT MODES WITH STRICT CLIPPING
   if (isNewspaper) {
-    // 📰 PRECISE NEWSPAPER PHOTO SLOTS & NON-OVERLAPPING ARTICLE COLUMNS
-    // 1. Main Top Photo Slot (Y = 320px, 1080 x 720px)
+    // 📰 PRECISE NEWSPAPER PHOTO BOUNDS & NON-OVERLAPPING ARTICLE COLUMNS
+    // 1. Main Top Photo Slot (Header Y=0-320px, Top Photo Y=340px, 1080 x 680px)
     const mainX = 60;
-    const mainY = 320;
+    const mainY = 340;
     const mainW = 1080;
-    const mainH = 720;
+    const mainH = 680;
 
     if (images[0]) {
       ctx.save();
       ctx.filter = filterString;
+      // Strict Clip Main Photo Box
       drawImageCover(ctx, images[0], mainX, mainY, mainW, mainH, 0, isFlipped);
       ctx.restore();
 
@@ -595,19 +630,19 @@ export const drawPhotoStrip = (
       ctx.lineWidth = 3;
       ctx.strokeRect(mainX, mainY, mainW, mainH);
 
-      applyCuteFilterOverlay(ctx, mainX, mainY, mainW, mainH, cuteFilter, filter.beautyGlow, 0);
+      applyCuteFilterOverlay(ctx, mainX, mainY, mainW, mainH, cuteFilter, filter.beautyGlow, 0, filterIntensity);
 
-      // Subtitle below Main Top Photo Slot (Y = 1065px)
+      // Subtitle below Main Top Photo Slot (Y = 1035px)
       ctx.save();
       ctx.fillStyle = "#1c1917";
       ctx.font = "italic 15px 'Georgia', serif";
       ctx.textAlign = "left";
-      ctx.fillText("▲ FIG 1.0 — Live capture recorded in high definition at rielllybooth studio booth.", mainX, 1065);
+      ctx.fillText("▲ FIG 1.0 — Live capture recorded in high definition at rielllybooth studio booth.", mainX, 1035);
       ctx.restore();
     }
 
-    // 2. Bottom 3 Photo Slots (Y = 1120px, 340 x 340px each)
-    const botY = 1120;
+    // 2. Bottom 3 Photo Slots (Y = 1080px, 340 x 340px each)
+    const botY = 1080;
     const botW = 340;
     const botH = 340;
     const botGap = 30;
@@ -623,6 +658,7 @@ export const drawPhotoStrip = (
 
       ctx.save();
       ctx.filter = filterString;
+      // Strict Clip Bottom Photo Boxes
       drawImageCover(ctx, img, bx, botY, botW, botH, 0, isFlipped);
       ctx.restore();
 
@@ -630,10 +666,10 @@ export const drawPhotoStrip = (
       ctx.lineWidth = 2;
       ctx.strokeRect(bx, botY, botW, botH);
 
-      applyCuteFilterOverlay(ctx, bx, botY, botW, botH, cuteFilter, filter.beautyGlow, 0);
+      applyCuteFilterOverlay(ctx, bx, botY, botW, botH, cuteFilter, filter.beautyGlow, 0, filterIntensity);
     });
 
-    // 3. Column Article Captions (Y = 1480px) Strictly BELOW each photo slot
+    // 3. Column Article Captions (Strictly BELOW Y = 1440px)
     const columnTitles = ["THE BEST VIBES", "UNFILTERED JOY", "CORE MEMORIES"];
     const columnTexts = [
       "A candid moment captured in full HD resolution. Unfiltered emotions preserved forever in our editorial print.",
@@ -646,9 +682,9 @@ export const drawPhotoStrip = (
     ctx.strokeStyle = "rgba(28, 25, 23, 0.25)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(415, 1475);
+    ctx.moveTo(415, 1440);
     ctx.lineTo(415, 1720);
-    ctx.moveTo(785, 1475);
+    ctx.moveTo(785, 1440);
     ctx.lineTo(785, 1720);
     ctx.stroke();
 
@@ -656,26 +692,26 @@ export const drawPhotoStrip = (
     ctx.textBaseline = "top";
 
     botPositions.forEach((bx, i) => {
-      // Column Title (Y = 1480px)
+      // Column Title (Y = 1440px)
       ctx.font = "bold 17px 'Georgia', serif";
       ctx.textAlign = "center";
-      ctx.fillText(columnTitles[i], bx + botW / 2, 1480);
+      ctx.fillText(columnTitles[i], bx + botW / 2, 1440);
 
       // Rule below Column Title
       ctx.beginPath();
-      ctx.moveTo(bx + 20, 1505);
-      ctx.lineTo(bx + botW - 20, 1505);
+      ctx.moveTo(bx + 20, 1465);
+      ctx.lineTo(bx + botW - 20, 1465);
       ctx.stroke();
 
-      // Vintage Serif Body Text (Y = 1515px)
+      // Vintage Serif Body Text (Y = 1475px)
       ctx.font = "12px 'Georgia', serif";
       ctx.fillStyle = "#44403c";
       ctx.textAlign = "left";
 
-      // Simple word wrapper for column text
+      // Word wrapper for column text
       const words = columnTexts[i].split(" ");
       let line = "";
-      let lineY = 1515;
+      let lineY = 1475;
       const maxColWidth = botW - 10;
 
       for (let n = 0; n < words.length; n++) {
@@ -716,7 +752,7 @@ export const drawPhotoStrip = (
       ctx.filter = filterString;
       drawImageCover(ctx, images[0], padding, padding, topW, topH, 16, isFlipped);
       ctx.restore();
-      applyCuteFilterOverlay(ctx, padding, padding, topW, topH, cuteFilter, filter.beautyGlow, 16);
+      applyCuteFilterOverlay(ctx, padding, padding, topW, topH, cuteFilter, filter.beautyGlow, 16, filterIntensity);
     }
 
     images.slice(1, 4).forEach((img, i) => {
@@ -726,7 +762,7 @@ export const drawPhotoStrip = (
       ctx.filter = filterString;
       drawImageCover(ctx, img, bx, by, botW, botH, 12, isFlipped);
       ctx.restore();
-      applyCuteFilterOverlay(ctx, bx, by, botW, botH, cuteFilter, filter.beautyGlow, 12);
+      applyCuteFilterOverlay(ctx, bx, by, botW, botH, cuteFilter, filter.beautyGlow, 12, filterIntensity);
     });
   } else if (layout === "editorial_vogue") {
     // Vogue Magazine Grid: 1 Hero Photo + 3 Side/Bottom Magazine Grid
@@ -740,7 +776,7 @@ export const drawPhotoStrip = (
       ctx.filter = filterString;
       drawImageCover(ctx, images[0], padding, padding, heroW, heroH, 16, isFlipped);
       ctx.restore();
-      applyCuteFilterOverlay(ctx, padding, padding, heroW, heroH, cuteFilter, filter.beautyGlow, 16);
+      applyCuteFilterOverlay(ctx, padding, padding, heroW, heroH, cuteFilter, filter.beautyGlow, 16, filterIntensity);
     }
 
     images.slice(1, 4).forEach((img, i) => {
@@ -750,15 +786,16 @@ export const drawPhotoStrip = (
       ctx.filter = filterString;
       drawImageCover(ctx, img, sx, sy, sideW, sideH, 12, isFlipped);
       ctx.restore();
-      applyCuteFilterOverlay(ctx, sx, sy, sideW, sideH, cuteFilter, filter.beautyGlow, 12);
+      applyCuteFilterOverlay(ctx, sx, sy, sideW, sideH, cuteFilter, filter.beautyGlow, 12, filterIntensity);
     });
   } else if (layout.startsWith("strip") || layout === "y2k_checker") {
+    const topMargin = preset === "concert_ticket" ? 100 : padding;
     const photoW = canvas.width - padding * 2;
-    const availableH = canvas.height - bottomFooterHeight - padding * (photoCount + 1);
+    const availableH = canvas.height - topMargin - bottomFooterHeight - padding * photoCount;
     const photoH = availableH / photoCount;
 
     images.slice(0, photoCount).forEach((img, i) => {
-      const y = padding + i * (photoH + padding);
+      const y = topMargin + i * (photoH + padding);
       const borderRadius =
         preset === "film"
           ? 4
@@ -781,7 +818,7 @@ export const drawPhotoStrip = (
         ctx.strokeRect(padding, y, photoW, photoH);
       }
 
-      applyCuteFilterOverlay(ctx, padding, y, photoW, photoH, cuteFilter, filter.beautyGlow, borderRadius);
+      applyCuteFilterOverlay(ctx, padding, y, photoW, photoH, cuteFilter, filter.beautyGlow, borderRadius, filterIntensity);
 
       if (preset === "film") {
         ctx.save();
@@ -794,15 +831,16 @@ export const drawPhotoStrip = (
     });
   } else {
     // grid_2x2, purikura_4cut, scrapbook
+    const topMargin = preset === "concert_ticket" ? 100 : padding;
     const photoW = (canvas.width - padding * 3) / 2;
-    const availableH = canvas.height - bottomFooterHeight - padding * 3;
+    const availableH = canvas.height - topMargin - bottomFooterHeight - padding * 2;
     const photoH = availableH / 2;
 
     const positions = [
-      { x: padding, y: padding },
-      { x: padding * 2 + photoW, y: padding },
-      { x: padding, y: padding * 2 + photoH },
-      { x: padding * 2 + photoW, y: padding * 2 + photoH },
+      { x: padding, y: topMargin },
+      { x: padding * 2 + photoW, y: topMargin },
+      { x: padding, y: topMargin + photoH + padding },
+      { x: padding * 2 + photoW, y: topMargin + photoH + padding },
     ];
 
     images.slice(0, 4).forEach((img, i) => {
@@ -830,7 +868,7 @@ export const drawPhotoStrip = (
         ctx.strokeRect(positions[i].x, positions[i].y, photoW, photoH);
       }
 
-      applyCuteFilterOverlay(ctx, positions[i].x, positions[i].y, photoW, photoH, cuteFilter, filter.beautyGlow, borderRadius);
+      applyCuteFilterOverlay(ctx, positions[i].x, positions[i].y, photoW, photoH, cuteFilter, filter.beautyGlow, borderRadius, filterIntensity);
     });
   }
 
@@ -865,15 +903,21 @@ export const drawPhotoStrip = (
     ctx.restore();
   }
 
-  // STEP 4: INTERACTIVE DRAGGABLE STICKERS OVERLAY
+  // STEP 4: INTERACTIVE DRAGGABLE STICKERS OVERLAY WITH ROTATION & SCALE TRANSFORMS
   if (stickers && stickers.length > 0) {
     ctx.save();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     stickers.forEach((st) => {
+      ctx.save();
+      ctx.translate(st.x, st.y);
+      if (st.rotation) {
+        ctx.rotate((st.rotation * Math.PI) / 180);
+      }
       const fontSize = Math.round((st.scale || 1) * 48);
       ctx.font = `${fontSize}px sans-serif`;
-      ctx.fillText(st.emoji, st.x, st.y);
+      ctx.fillText(st.emoji, 0, 0);
+      ctx.restore();
     });
     ctx.restore();
   }
@@ -963,6 +1007,13 @@ export const drawPhotoStrip = (
         ctx.fillText("TOTAL", leftX, curY);
         ctx.textAlign = "right";
         ctx.fillText("PAID WITH LOVE ♡", rightX, curY);
+      } else if (preset === "concert_ticket") {
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `bold 24px ${fontCss}`;
+        ctx.textAlign = "center";
+        ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 85);
+        ctx.font = `500 16px ${fontCss}`;
+        ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 45);
       } else {
         ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
 
