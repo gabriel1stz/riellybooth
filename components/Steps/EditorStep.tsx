@@ -555,9 +555,15 @@ export default function EditorStep({
                 <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z Indonesia:</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
-                    { id: "newspaper", label: "Newspaper 📰" },
                     { id: "coquette", label: "Coquette Ribbon 🎀" },
+                    { id: "coquette_black", label: "Coquette Black 🖤" },
                     { id: "y2k", label: "Y2K Cyber ✨" },
+                    { id: "y2k_bubbles", label: "Y2K Bubbles 🫧" },
+                    { id: "cute_cat_paw", label: "Cute Cat Paw 🐾" },
+                    { id: "pastel_floral", label: "Pastel Floral 🌸" },
+                    { id: "goth_grunge", label: "Goth Grunge 🖤" },
+                    { id: "polaroid_vintage", label: "Polaroid Vintage 📸" },
+                    { id: "newspaper", label: "Newspaper 📰" },
                     { id: "receipt", label: "Struk Belanja 🧾" },
                     { id: "photocard", label: "K-Pop Photocard 💖" },
                     { id: "concert_ticket", label: "Tiket Konser 🎟️" },

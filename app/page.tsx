@@ -6,20 +6,12 @@ import confetti from "canvas-confetti";
 import { Instagram, Mail, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, Share2, Download, Copy, Check, MessageCircle, Twitter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import LandingStep from "@/components/Steps/LandingStep";
-import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet } from "@/lib/cameraUtils";
+import CaptureStep from "@/components/Steps/CaptureStep";
+import ReviewStep from "@/components/Steps/ReviewStep";
+import EditorStep from "@/components/Steps/EditorStep";
+import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet, revokeBlobUrl } from "@/lib/cameraUtils";
 import { drawPhotoStrip, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
 import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
-
-// Dynamic Imports for Heavy Step Components to optimize Initial JS Bundle & LCP
-const CaptureStep = dynamic(() => import("@/components/Steps/CaptureStep"), {
-  loading: () => <div className="p-8 text-center text-pink-500 font-bold animate-pulse">Memuat Studio Kamera... 📸</div>,
-});
-const ReviewStep = dynamic(() => import("@/components/Steps/ReviewStep"), {
-  loading: () => <div className="p-8 text-center text-pink-500 font-bold animate-pulse">Memuat Review Foto... ✨</div>,
-});
-const EditorStep = dynamic(() => import("@/components/Steps/EditorStep"), {
-  loading: () => <div className="p-8 text-center text-pink-500 font-bold animate-pulse">Memuat Studio Editor... 🎨</div>,
-});
 
 type Step = "landing" | "capture" | "review" | "editor";
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
@@ -124,6 +116,7 @@ export default function RielllyBooth() {
 
   // Direct Click Handler to Start Photobooth Session & BGM
   const handleStartCapture = () => {
+    shots.forEach((s) => revokeBlobUrl(s.videoBlobUrl));
     setShots([]);
     setCurrentShotIndex(1);
     setRetakeIndex(null);
@@ -157,6 +150,8 @@ export default function RielllyBooth() {
 
   // Toggle Camera Facing Mode (Front / Back)
   const handleToggleFacingMode = () => {
+    stopCameraStream(mediaStreamRef.current);
+    mediaStreamRef.current = null;
     setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
   };
 
@@ -164,8 +159,22 @@ export default function RielllyBooth() {
   useEffect(() => {
     let isActive = true;
 
-    if (step === "capture" || retakeIndex !== null) {
+    if (step === "capture" || step === "review") {
       setCameraError(null);
+
+      const existingStream = mediaStreamRef.current;
+      const isStreamAlive =
+        existingStream &&
+        existingStream.active &&
+        existingStream.getVideoTracks().some((t) => t.readyState === "live");
+
+      if (isStreamAlive) {
+        if (videoRef.current && videoRef.current.srcObject !== existingStream) {
+          videoRef.current.srcObject = existingStream;
+        }
+        return;
+      }
+
       startCameraStream(facingMode)
         .then((stream) => {
           if (!isActive) {
@@ -194,10 +203,11 @@ export default function RielllyBooth() {
     return () => {
       isActive = false;
     };
-  }, [step, retakeIndex, facingMode]);
+  }, [step, facingMode]);
 
   // Handle Upload 4 Photos from Device
   const handleUploadPhotos = (files: FileList) => {
+    shots.forEach((s) => revokeBlobUrl(s.videoBlobUrl));
     const fileArray = Array.from(files).slice(0, 4);
     if (fileArray.length === 0) return;
 
@@ -292,6 +302,9 @@ export default function RielllyBooth() {
 
       if (retakeIndex !== null) {
         const updated = [...shots];
+        if (updated[retakeIndex]?.videoBlobUrl) {
+          revokeBlobUrl(updated[retakeIndex].videoBlobUrl);
+        }
         updated[retakeIndex] = { id: Date.now(), dataUrl, videoBlobUrl };
         setShots(updated);
         setRetakeIndex(null);
@@ -309,9 +322,7 @@ export default function RielllyBooth() {
         if (updatedShots.length < 4) {
           setCurrentShotIndex(updatedShots.length + 1);
         } else {
-          setTimeout(() => {
-            setStep("review");
-          }, 600);
+          setStep("review");
         }
       }
     }
@@ -321,6 +332,9 @@ export default function RielllyBooth() {
 
   // Single Photo Retake Trigger
   const handleRetakeSingle = (index: number) => {
+    if (shots[index]?.videoBlobUrl) {
+      revokeBlobUrl(shots[index].videoBlobUrl);
+    }
     setRetakeIndex(index);
     setCurrentShotIndex(index + 1);
     setStep("capture");
@@ -328,6 +342,7 @@ export default function RielllyBooth() {
 
   // Retake All Shots
   const handleRetakeAll = () => {
+    shots.forEach((s) => revokeBlobUrl(s.videoBlobUrl));
     setShots([]);
     setCurrentShotIndex(1);
     setRetakeIndex(null);

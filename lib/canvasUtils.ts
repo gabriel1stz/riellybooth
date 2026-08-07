@@ -25,7 +25,9 @@ export type LayoutMode =
 export type FramePreset =
   | "clean"
   | "coquette"
+  | "coquette_black"
   | "y2k"
+  | "y2k_bubbles"
   | "newspaper"
   | "film"
   | "polkadot"
@@ -33,7 +35,11 @@ export type FramePreset =
   | "concert_ticket"
   | "photocard"
   | "retro_manga"
-  | "galau_quote";
+  | "galau_quote"
+  | "cute_cat_paw"
+  | "pastel_floral"
+  | "goth_grunge"
+  | "polaroid_vintage";
 
 export type CuteFilter =
   | "none"
@@ -301,13 +307,21 @@ function drawY2kStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, size
   ctx.restore();
 }
 
-function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, scale: number = 1) {
+function drawRibbonBow(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  scale: number = 1,
+  primaryColor: string = "#f472b6",
+  strokeColor: string = "#db2777",
+  knotColor: string = "#ec4899"
+) {
   ctx.save();
   ctx.translate(cx, cy);
   ctx.scale(scale, scale);
 
-  ctx.fillStyle = "#f472b6";
-  ctx.strokeStyle = "#db2777";
+  ctx.fillStyle = primaryColor;
+  ctx.strokeStyle = strokeColor;
   ctx.lineWidth = 2;
 
   ctx.beginPath();
@@ -338,11 +352,84 @@ function drawRibbonBow(ctx: CanvasRenderingContext2D, cx: number, cy: number, sc
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = "#ec4899";
+  ctx.fillStyle = knotColor;
   ctx.beginPath();
   ctx.roundRect(-6, -6, 12, 12, 4);
   ctx.fill();
   ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawGlossyBubble(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 18) {
+  ctx.save();
+  const grad = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.1, cx, cy, radius);
+  grad.addColorStop(0, "rgba(255, 255, 255, 0.8)");
+  grad.addColorStop(0.5, "rgba(56, 189, 248, 0.3)");
+  grad.addColorStop(1, "rgba(236, 72, 153, 0.2)");
+
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(cx - radius * 0.4, cy - radius * 0.4, radius * 0.25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawCatPaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 16, mainColor: string = "#f472b6") {
+  ctx.save();
+  ctx.fillStyle = mainColor;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + size * 0.2, size * 0.6, size * 0.45, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  const toeOffsets = [
+    { x: -size * 0.5, y: -size * 0.35, r: size * 0.22 },
+    { x: -size * 0.2, y: -size * 0.55, r: size * 0.22 },
+    { x: size * 0.2, y: -size * 0.55, r: size * 0.22 },
+    { x: size * 0.5, y: -size * 0.35, r: size * 0.22 },
+  ];
+
+  toeOffsets.forEach((t) => {
+    ctx.beginPath();
+    ctx.arc(cx + t.x, cy + t.y, t.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
+
+  ctx.restore();
+}
+
+function drawCherryBlossom(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 14, petalColor: string = "#f472b6") {
+  ctx.save();
+  ctx.fillStyle = petalColor;
+
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+    const px = cx + Math.cos(angle) * (size * 0.5);
+    const py = cy + Math.sin(angle) * (size * 0.5);
+
+    ctx.beginPath();
+    ctx.ellipse(px, py, size * 0.45, size * 0.3, angle, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "#fbbf24";
+  ctx.beginPath();
+  ctx.arc(cx, cy, size * 0.2, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.restore();
 }
@@ -412,7 +499,7 @@ export const drawPhotoStrip = (
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const filterString = `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) grayscale(${filter.grayscale}%)`;
-  const padding = preset === "film" || preset === "receipt" ? 60 : 36;
+  const padding = preset === "film" || preset === "receipt" || preset === "polaroid_vintage" ? 60 : 36;
   const bottomFooterHeight = isNewspaper ? 0 : preset === "concert_ticket" ? 240 : 220;
   const filterIntensity = filter.filterIntensity ?? 100;
 
@@ -490,6 +577,43 @@ export const drawPhotoStrip = (
     ctx.setLineDash([8, 8]);
     ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
     ctx.setLineDash([]);
+  } else if (preset === "coquette_black") {
+    ctx.fillStyle = frameColor || "#fce7f3";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#18181b";
+    ctx.lineWidth = 4;
+    ctx.setLineDash([8, 8]);
+    ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+    ctx.setLineDash([]);
+  } else if (preset === "y2k_bubbles") {
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    grad.addColorStop(0, "#f1f5f9");
+    grad.addColorStop(0.5, "#e2e8f0");
+    grad.addColorStop(1, "#cbd5e1");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (preset === "cute_cat_paw") {
+    ctx.fillStyle = frameColor || "#fffbeb";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (preset === "pastel_floral") {
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, "#fdf4ff");
+    grad.addColorStop(0.5, "#fae8ff");
+    grad.addColorStop(1, "#fce7f3");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (preset === "goth_grunge") {
+    ctx.fillStyle = "#09090b";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#27272a";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+    ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+  } else if (preset === "polaroid_vintage") {
+    ctx.fillStyle = frameColor || "#fafaf9";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   } else if (preset === "y2k" || layout === "y2k_checker") {
     ctx.fillStyle = "#1e293b";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -870,6 +994,41 @@ export const drawPhotoStrip = (
     drawRibbonBow(ctx, padding + 20, 40, 0.9);
     drawRibbonBow(ctx, canvas.width - padding - 20, 40, 0.9);
     drawRibbonBow(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 10, 1.1);
+  } else if (preset === "coquette_black") {
+    drawRibbonBow(ctx, padding + 20, 40, 0.9, "#18181b", "#000000", "#3f3f46");
+    drawRibbonBow(ctx, canvas.width - padding - 20, 40, 0.9, "#18181b", "#000000", "#3f3f46");
+    drawRibbonBow(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 10, 1.1, "#18181b", "#000000", "#3f3f46");
+  } else if (preset === "y2k_bubbles") {
+    drawGlossyBubble(ctx, 50, 60, 22);
+    drawGlossyBubble(ctx, canvas.width - 60, 120, 16);
+    drawGlossyBubble(ctx, 80, canvas.height - 180, 26);
+    drawGlossyBubble(ctx, canvas.width - 70, canvas.height - 80, 20);
+    drawY2kStar(ctx, padding + 15, 30, 14, "#06b6d4");
+    drawY2kStar(ctx, canvas.width - padding - 15, 30, 14, "#ec4899");
+    drawY2kStar(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 20, 18, "#94a3b8");
+  } else if (preset === "cute_cat_paw") {
+    drawCatPaw(ctx, 45, 45, 16, "#f472b6");
+    drawCatPaw(ctx, canvas.width - 45, 45, 16, "#f472b6");
+    drawCatPaw(ctx, 55, canvas.height - bottomFooterHeight + 25, 18, "#ec4899");
+    drawCatPaw(ctx, canvas.width - 55, canvas.height - bottomFooterHeight + 25, 18, "#ec4899");
+  } else if (preset === "pastel_floral") {
+    drawCherryBlossom(ctx, 45, 45, 14, "#f472b6");
+    drawCherryBlossom(ctx, canvas.width - 45, 45, 14, "#f472b6");
+    drawCherryBlossom(ctx, 50, canvas.height - bottomFooterHeight + 25, 16, "#ec4899");
+    drawCherryBlossom(ctx, canvas.width - 50, canvas.height - bottomFooterHeight + 25, 16, "#ec4899");
+  } else if (preset === "goth_grunge") {
+    drawY2kStar(ctx, padding + 15, 30, 16, "#06b6d4");
+    drawY2kStar(ctx, canvas.width - padding - 15, 30, 16, "#e11d48");
+    drawY2kStar(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 20, 20, "#06b6d4");
+  } else if (preset === "polaroid_vintage") {
+    ctx.save();
+    ctx.fillStyle = "#ef4444";
+    ctx.font = "bold 18px 'Courier New', monospace";
+    ctx.textAlign = "right";
+    const todayStr = new Date();
+    const dateStamp = `'${todayStr.getFullYear().toString().substring(2)} ${String(todayStr.getMonth() + 1).padStart(2, "0")} ${String(todayStr.getDate()).padStart(2, "0")}`;
+    ctx.fillText(dateStamp, canvas.width - 30, canvas.height - 30);
+    ctx.restore();
   } else if (preset === "y2k") {
     drawY2kStar(ctx, padding + 15, 30, 14, "#ec4899");
     drawY2kStar(ctx, canvas.width - padding - 15, 30, 14, "#38bdf8");
@@ -959,14 +1118,14 @@ export const drawPhotoStrip = (
 
       ctx.drawImage(customLogoImg, logoX, logoY, drawW, drawH);
 
-      ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
+      ctx.fillStyle = textColor || "#000000";
       ctx.font = `500 18px ${fontCss}`;
       ctx.textAlign = "center";
       ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
     } else {
       // REGULAR TYPOGRAPHY & GEN Z FOOTERS
       if (preset === "receipt") {
-        ctx.fillStyle = "#1c1917";
+        ctx.fillStyle = textColor || "#1c1917";
         ctx.font = "14px monospace";
         ctx.textAlign = "left";
 
@@ -985,7 +1144,7 @@ export const drawPhotoStrip = (
         ctx.fillText("Rp 0", rightX, curY);
 
         curY += 30;
-        ctx.strokeStyle = "#1c1917";
+        ctx.strokeStyle = textColor || "#1c1917";
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
         ctx.beginPath();
@@ -1001,14 +1160,14 @@ export const drawPhotoStrip = (
         ctx.textAlign = "right";
         ctx.fillText("PAID WITH LOVE ♡", rightX, curY);
       } else if (preset === "concert_ticket") {
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = textColor || "#ffffff";
         ctx.font = `bold 24px ${fontCss}`;
         ctx.textAlign = "center";
         ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 85);
         ctx.font = `500 16px ${fontCss}`;
         ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 45);
       } else {
-        ctx.fillStyle = preset === "coquette" || preset === "polkadot" ? "#db2777" : textColor || "#000000";
+        ctx.fillStyle = textColor || "#000000";
 
         ctx.font = `800 32px ${fontCss}`;
         ctx.textAlign = "center";

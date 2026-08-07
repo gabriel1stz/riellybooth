@@ -70,6 +70,7 @@ export default function ReviewStep({
                   loop
                   muted
                   playsInline
+                  preload="metadata"
                   className="w-full h-full object-cover"
                 />
               ) : (

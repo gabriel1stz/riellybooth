@@ -142,14 +142,6 @@ export default function CaptureStep({
         <div className="fixed inset-0 bg-white z-[100] animate-out fade-out duration-300 pointer-events-none" />
       )}
 
-      {/* Loading Transition Screen Overlay when completing 4 shots */}
-      {shotsCount === 4 && (
-        <div className="fixed inset-0 bg-rose-50/95 backdrop-blur-md z-[90] flex flex-col items-center justify-center p-6 text-center space-y-4 animate-in fade-in duration-300">
-          <Sparkles className="w-12 h-12 text-pink-500 animate-spin" />
-          <h3 className="text-2xl font-black text-slate-800">Memuat Review Foto... ✨</h3>
-          <p className="text-xs text-slate-600 font-medium">Menyusun 4 pose foto terbaikmu ke Studio Review!</p>
-        </div>
-      )}
 
       {/* Top Header Status Badge with Shot Counter Badge */}
       <div className="w-full flex flex-wrap justify-between items-center gap-3 bg-white border-2 border-pink-200 p-3 sm:p-4 rounded-2xl shadow-sm">

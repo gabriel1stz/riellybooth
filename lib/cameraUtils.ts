@@ -45,6 +45,17 @@ export const stopCameraStream = (stream: MediaStream | null): void => {
 };
 
 /**
+ * Revoke object URL to free up browser video decoder memory (especially on iOS Safari).
+ */
+export const revokeBlobUrl = (url?: string): void => {
+  if (url && url.startsWith("blob:")) {
+    try {
+      URL.revokeObjectURL(url);
+    } catch (e) {}
+  }
+};
+
+/**
  * Capture high-resolution un-mirrored snapshot from active WebRTC video element.
  * Text on clothing and faces read correctly non-flipped.
  */
