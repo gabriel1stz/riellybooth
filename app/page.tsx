@@ -320,14 +320,15 @@ export default function RielllyBooth() {
           videoBlobUrl: undefined,
         };
 
-        const updatedShots = [...shots, newShot];
-        setShots(updatedShots);
-
-        if (updatedShots.length < 4) {
-          setCurrentShotIndex(updatedShots.length + 1);
-        } else {
-          setStep("review");
-        }
+        setShots((prevShots) => {
+          const updatedShots = [...prevShots, newShot];
+          if (updatedShots.length < 4) {
+            setCurrentShotIndex(updatedShots.length + 1);
+          } else {
+            setStep("review");
+          }
+          return updatedShots;
+        });
 
         // Non-blocking background video snippet compilation
         if (streamToRecord && isLivePhotoOn) {

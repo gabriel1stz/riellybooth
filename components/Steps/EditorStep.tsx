@@ -492,7 +492,7 @@ export default function EditorStep({
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700">Pilih Layout Potongan Foto (9 Options):</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="max-h-44 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
                   {[
                     { id: "newspaper_grid", label: "Newspaper Grid 📰" },
                     { id: "strip_1x4", label: "Strip 1x4 🎞️" },
@@ -557,7 +557,7 @@ export default function EditorStep({
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z Indonesia:</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="max-h-48 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
                   {[
                     { id: "toy_story", label: "🤠 Toy Story" },
                     { id: "spongebob", label: "🧽 SpongeBob" },

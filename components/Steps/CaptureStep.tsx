@@ -269,20 +269,20 @@ export default function CaptureStep({
           <Sparkles className="w-3.5 h-3.5 text-pink-500" /> Filter Wajah AR:
         </span>
         {[
-          { id: "none", label: "Off 🚫" },
-          { id: "puppy", label: "Puppy 🐶" },
-          { id: "cat_whiskers", label: "Cat 🐱" },
-          { id: "coquette_blush", label: "Coquette 🎀" },
-          { id: "sunglasses", label: "Glasses 😎" },
+          { id: "none", label: "📷 Normal" },
+          { id: "puppy", label: "🐶 Puppy" },
+          { id: "cat_whiskers", label: "🐱 Cat" },
+          { id: "coquette_blush", label: "🎀 Blush" },
+          { id: "sunglasses", label: "🕶️ Glasses" },
         ].map((f) => (
           <button
             key={f.id}
             type="button"
             onClick={() => setArFilterPreset(f.id as ARFaceFilterPreset)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap border ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all whitespace-nowrap border-2 active:scale-95 ${
               arFilterPreset === f.id
-                ? "bg-pink-500 text-white border-pink-600 shadow-xs scale-105"
-                : "bg-white text-slate-700 border-pink-200 hover:bg-rose-100"
+                ? "bg-pink-500 text-white border-pink-600 shadow-md scale-105"
+                : "bg-white text-slate-700 border-slate-200 hover:bg-rose-50"
             }`}
           >
             {f.label}
