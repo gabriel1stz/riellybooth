@@ -1,65 +1,64 @@
 /**
  * Real-time MediaPipe 3D Face Mesh AR Filter Engine for rielllybooth ♡
- * Tracks 468 facial landmarks and renders AR Face Filters:
- * 1. pixel_glasses (Pixel Glasses 🕶️)
- * 2. cat (Cat Whiskers 🐱)
- * 3. dog_classic (Classic Snapchat Dog 🐶)
- * 4. chef_hat (Chef Hat 👨‍🍳)
- * 5. diving_mask (Snorkeling Mask 🤿)
- * 6. santa (Santa Beard & Glasses 🎅)
- * 7. dog_coquette (Coquette Dog & Kiss Stamp 🎀💋)
- * 8. strawberry (Strawberry Bonnet 🍓)
+ * Strictly renders 8 transparent PNG filter images from /public/filters/ using HTMLImageElement & ctx.drawImage()
+ * anchored to MediaPipe Face Mesh 3D facial landmarks.
  */
 
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 
 export type ARFaceFilterPreset =
   | "none"
-  | "dog_classic"
-  | "dog_coquette"
-  | "cat"
   | "pixel_glasses"
+  | "cat_whiskers"
+  | "dog_classic"
   | "chef_hat"
   | "diving_mask"
-  | "santa"
-  | "strawberry"
-  // Legacy backward-compatible aliases
+  | "santa_beard"
+  | "dog_coquette"
+  | "strawberry_hat"
+  // Legacy aliases
   | "puppy"
-  | "cat_whiskers"
+  | "cat"
+  | "sunglasses"
   | "coquette_blush"
-  | "sunglasses";
+  | "santa"
+  | "strawberry";
 
 let faceLandmarkerInstance: FaceLandmarker | null = null;
 let isInitializingFace = false;
 
-// Preloaded PNG Filter Image Cache
+// Preloaded HTMLImageElement Cache
 const filterImagesCache: Map<string, HTMLImageElement> = new Map();
 
 const filterAssetMap: Record<string, string> = {
   pixel_glasses: "/filters/pixel-glasses.png",
   sunglasses: "/filters/pixel-glasses.png",
-  cat: "/filters/cat-whiskers.png",
   cat_whiskers: "/filters/cat-whiskers.png",
+  cat: "/filters/cat-whiskers.png",
   dog_classic: "/filters/dog-classic.png",
   puppy: "/filters/dog-classic.png",
   chef_hat: "/filters/chef-hat.png",
   diving_mask: "/filters/diving-mask.png",
+  santa_beard: "/filters/santa-beard.png",
   santa: "/filters/santa-beard.png",
   dog_coquette: "/filters/dog-coquette.png",
   coquette_blush: "/filters/dog-coquette.png",
+  strawberry_hat: "/filters/strawberry-hat.png",
   strawberry: "/filters/strawberry-hat.png",
 };
 
-// Preload filter assets in browser environment
+// Preload all 8 PNG filter image assets
 if (typeof window !== "undefined") {
-  Object.entries(filterAssetMap).forEach(([preset, src]) => {
-    if (!filterImagesCache.has(src)) {
+  Object.entries(filterAssetMap).forEach(([presetKey, srcPath]) => {
+    if (!filterImagesCache.has(srcPath)) {
       const img = new Image();
       img.crossOrigin = "anonymous";
-      img.src = src;
+      img.src = srcPath;
       img.onload = () => {
-        filterImagesCache.set(src, img);
+        filterImagesCache.set(srcPath, img);
       };
+      // Store under key as well
+      filterImagesCache.set(presetKey, img);
     }
   });
 }
@@ -92,7 +91,7 @@ export const getFaceLandmarker = async (): Promise<FaceLandmarker | null> => {
 };
 
 /**
- * Draws AR Face Filter Overlay vectors & PNG assets onto 2D canvas using 468 MediaPipe Face Mesh landmarks.
+ * Draws preloaded PNG filter images onto 2D canvas using ctx.drawImage() anchored to MediaPipe facial landmarks.
  */
 export const drawARFaceFilter = (
   ctx: CanvasRenderingContext2D,
@@ -105,273 +104,128 @@ export const drawARFaceFilter = (
   if (!landmarks || landmarks.length < 468 || preset === "none") return;
 
   const getPt = (idx: number) => {
-    const pt = landmarks[idx];
+    const pt = landmarks[idx] || landmarks[0];
     const x = isFlipped ? (1 - pt.x) * width : pt.x * width;
     const y = pt.y * height;
     return { x, y };
   };
 
-  const nose = getPt(1);
-  const forehead = getPt(10);
-  const leftCheek = getPt(117);
-  const rightCheek = getPt(346);
-  const leftEye = getPt(33);
-  const rightEye = getPt(263);
-  const chin = getPt(152);
+  // Landmark Anchors
+  const nose = getPt(1);             // Landmark #1 (Nose tip)
+  const forehead = getPt(10);         // Landmark #10 (Top Forehead)
+  const noseBridge = getPt(168);      // Landmark #168 (Nose Bridge)
+  const leftCheek = getPt(117);       // Landmark #117 (Left Cheek)
+  const rightCheek = getPt(346);      // Landmark #346 (Right Cheek)
+  const leftEye = getPt(33);          // Landmark #33 (Left Eye outer)
+  const rightEye = getPt(263);        // Landmark #263 (Right Eye outer)
+  const chin = getPt(152);            // Landmark #152 (Chin)
+  const leftTemple = getPt(234);      // Landmark #234 (Left Temple)
+  const rightTemple = getPt(454);     // Landmark #454 (Right Temple)
 
+  // Face Geometry Calculations
   const eyeDx = rightEye.x - leftEye.x;
   const eyeDy = rightEye.y - leftEye.y;
   const faceWidth = Math.hypot(eyeDx, eyeDy);
   const faceAngle = Math.atan2(eyeDy, eyeDx);
+  const templeDist = Math.hypot(rightTemple.x - leftTemple.x, rightTemple.y - leftTemple.y);
 
-  ctx.save();
-
-  // Normalize filter preset key
+  // Normalize Preset Key
   const normPreset =
     preset === "puppy"
       ? "dog_classic"
-      : preset === "cat_whiskers"
-      ? "cat"
-      : preset === "coquette_blush"
-      ? "dog_coquette"
+      : preset === "cat"
+      ? "cat_whiskers"
       : preset === "sunglasses"
       ? "pixel_glasses"
+      : preset === "coquette_blush"
+      ? "dog_coquette"
+      : preset === "santa"
+      ? "santa_beard"
+      : preset === "strawberry"
+      ? "strawberry_hat"
       : preset;
 
-  // Try PNG image asset overlay first if loaded
   const assetSrc = filterAssetMap[normPreset];
-  const cachedImg = assetSrc ? filterImagesCache.get(assetSrc) : null;
+  let img = assetSrc ? filterImagesCache.get(assetSrc) : null;
 
-  if (cachedImg && cachedImg.complete && cachedImg.naturalWidth > 0) {
-    ctx.save();
-    if (normPreset === "pixel_glasses") {
-      const eyeCenter = { x: (leftEye.x + rightEye.x) / 2, y: (leftEye.y + rightEye.y) / 2 };
-      ctx.translate(eyeCenter.x, eyeCenter.y);
-      ctx.rotate(faceAngle);
-      const w = faceWidth * 1.4;
-      const h = (w * cachedImg.naturalHeight) / cachedImg.naturalWidth;
-      ctx.drawImage(cachedImg, -w / 2, -h / 2, w, h);
-    } else if (normPreset === "chef_hat" || normPreset === "strawberry") {
-      ctx.translate(forehead.x, forehead.y - faceWidth * 0.4);
-      ctx.rotate(faceAngle);
-      const w = faceWidth * 1.5;
-      const h = (w * cachedImg.naturalHeight) / cachedImg.naturalWidth;
-      ctx.drawImage(cachedImg, -w / 2, -h / 2, w, h);
-    } else if (normPreset === "santa") {
-      ctx.translate(forehead.x, forehead.y + faceWidth * 0.3);
-      ctx.rotate(faceAngle);
-      const w = faceWidth * 1.8;
-      const h = (w * cachedImg.naturalHeight) / cachedImg.naturalWidth;
-      ctx.drawImage(cachedImg, -w / 2, -h / 2, w, h);
-    } else {
-      ctx.translate(nose.x, nose.y - faceWidth * 0.2);
-      ctx.rotate(faceAngle);
-      const w = faceWidth * 1.6;
-      const h = (w * cachedImg.naturalHeight) / cachedImg.naturalWidth;
-      ctx.drawImage(cachedImg, -w / 2, -h / 2, w, h);
-    }
-    ctx.restore();
+  // Fallback to load on-the-fly if not yet cached
+  if (!img && assetSrc && typeof window !== "undefined") {
+    img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = assetSrc;
+    filterImagesCache.set(assetSrc, img);
   }
 
-  // High quality vector fallback drawing logic
-  if (normPreset === "dog_classic") {
-    // 1. Puppy Nose Tip
-    ctx.fillStyle = "#27272a";
-    ctx.beginPath();
-    ctx.ellipse(nose.x, nose.y + 4, faceWidth * 0.14, faceWidth * 0.1, 0, 0, Math.PI * 2);
-    ctx.fill();
+  if (!img || !img.src) return;
 
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.ellipse(nose.x - faceWidth * 0.04, nose.y + 2, faceWidth * 0.04, faceWidth * 0.03, 0, 0, Math.PI * 2);
-    ctx.fill();
+  ctx.save();
 
-    // 2. Floppy Puppy Ears on Head
-    const earScale = faceWidth * 0.7;
-    ctx.save();
-    ctx.translate(forehead.x - faceWidth * 0.6, forehead.y - faceWidth * 0.2);
-    ctx.rotate(faceAngle - 0.2);
-    ctx.fillStyle = "#78350f";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, earScale * 0.4, earScale * 0.8, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fbcfe8";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, earScale * 0.25, earScale * 0.6, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.save();
-    ctx.translate(forehead.x + faceWidth * 0.6, forehead.y - faceWidth * 0.2);
-    ctx.rotate(faceAngle + 0.2);
-    ctx.fillStyle = "#78350f";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, earScale * 0.4, earScale * 0.8, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fbcfe8";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, earScale * 0.25, earScale * 0.6, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  } else if (normPreset === "dog_coquette") {
-    // Floppy ears with pink ribbon bow + lipstick kiss stamp on cheek
-    const earScale = faceWidth * 0.7;
-    ctx.save();
-    ctx.translate(forehead.x - faceWidth * 0.6, forehead.y - faceWidth * 0.2);
-    ctx.rotate(faceAngle - 0.2);
-    ctx.fillStyle = "#ff75c3";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, earScale * 0.4, earScale * 0.8, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.save();
-    ctx.translate(forehead.x + faceWidth * 0.6, forehead.y - faceWidth * 0.2);
-    ctx.rotate(faceAngle + 0.2);
-    ctx.fillStyle = "#ff75c3";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, earScale * 0.4, earScale * 0.8, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Lipstick Kiss Mark on Cheek
-    ctx.save();
-    ctx.translate(rightCheek.x + 10, rightCheek.y + 10);
-    ctx.rotate(0.2);
-    ctx.fillStyle = "#ff007f";
-    ctx.beginPath();
-    ctx.ellipse(-8, 0, 10, 6, -0.3, 0, Math.PI * 2);
-    ctx.ellipse(8, 0, 10, 6, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  } else if (normPreset === "cat") {
-    ctx.fillStyle = "#f472b6";
-    ctx.beginPath();
-    ctx.ellipse(nose.x, nose.y + 2, faceWidth * 0.08, faceWidth * 0.06, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = "#18181b";
-    ctx.lineWidth = 3;
-    ctx.lineCap = "round";
-
-    for (let i = -1; i <= 1; i++) {
-      ctx.beginPath();
-      ctx.moveTo(leftCheek.x, leftCheek.y + i * 8);
-      ctx.lineTo(leftCheek.x - faceWidth * 0.5, leftCheek.y + i * 16);
-      ctx.stroke();
-    }
-    for (let i = -1; i <= 1; i++) {
-      ctx.beginPath();
-      ctx.moveTo(rightCheek.x, rightCheek.y + i * 8);
-      ctx.lineTo(rightCheek.x + faceWidth * 0.5, rightCheek.y + i * 16);
-      ctx.stroke();
-    }
-
-    const earW = faceWidth * 0.45;
-    const earH = faceWidth * 0.6;
-
-    ctx.save();
-    ctx.translate(forehead.x - faceWidth * 0.45, forehead.y - faceWidth * 0.1);
-    ctx.rotate(faceAngle - 0.2);
-    ctx.fillStyle = "#18181b";
-    ctx.beginPath();
-    ctx.moveTo(-earW / 2, 0);
-    ctx.lineTo(0, -earH);
-    ctx.lineTo(earW / 2, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    ctx.save();
-    ctx.translate(forehead.x + faceWidth * 0.45, forehead.y - faceWidth * 0.1);
-    ctx.rotate(faceAngle + 0.2);
-    ctx.fillStyle = "#18181b";
-    ctx.beginPath();
-    ctx.moveTo(-earW / 2, 0);
-    ctx.lineTo(0, -earH);
-    ctx.lineTo(earW / 2, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  } else if (normPreset === "pixel_glasses") {
-    ctx.save();
+  if (normPreset === "pixel_glasses") {
+    // 1. Pixel Glasses (#33, #263)
     const eyeCenter = { x: (leftEye.x + rightEye.x) / 2, y: (leftEye.y + rightEye.y) / 2 };
     ctx.translate(eyeCenter.x, eyeCenter.y);
     ctx.rotate(faceAngle);
-
-    const glassW = faceWidth * 0.7;
-    const glassH = faceWidth * 0.38;
-
-    ctx.fillStyle = "#09090b";
-    ctx.strokeStyle = "#ec4899";
-    ctx.lineWidth = 4;
-
-    ctx.beginPath();
-    ctx.roundRect(-glassW - 6, -glassH / 2, glassW, glassH, 12);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.roundRect(6, -glassH / 2, glassW, glassH, 12);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.restore();
+    const targetW = faceWidth * 1.35;
+    const aspect = (img.naturalHeight || 120) / (img.naturalWidth || 300);
+    const targetH = targetW * aspect;
+    ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
+  } else if (normPreset === "cat_whiskers") {
+    // 2. Cat Whiskers (#1, #117)
+    ctx.translate(nose.x, nose.y);
+    ctx.rotate(faceAngle);
+    const targetW = faceWidth * 1.5;
+    const aspect = (img.naturalHeight || 200) / (img.naturalWidth || 300);
+    const targetH = targetW * aspect;
+    ctx.drawImage(img, -targetW / 2, -targetH * 0.45, targetW, targetH);
+  } else if (normPreset === "dog_classic") {
+    // 3. Classic Dog (Centered between #10 Forehead & #1 Nose)
+    const centerPoint = { x: (forehead.x + nose.x) / 2, y: (forehead.y + nose.y) / 2 };
+    ctx.translate(centerPoint.x, centerPoint.y);
+    ctx.rotate(faceAngle);
+    const targetW = faceWidth * 1.6;
+    const aspect = (img.naturalHeight || 250) / (img.naturalWidth || 300);
+    const targetH = targetW * aspect;
+    ctx.drawImage(img, -targetW / 2, -targetH * 0.4, targetW, targetH);
   } else if (normPreset === "chef_hat") {
-    ctx.save();
-    ctx.translate(forehead.x, forehead.y - faceWidth * 0.4);
+    // 4. Chef Hat (Above Forehead #10)
+    ctx.translate(forehead.x, forehead.y - faceWidth * 0.35);
     ctx.rotate(faceAngle);
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.ellipse(0, -faceWidth * 0.2, faceWidth * 0.5, faceWidth * 0.4, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillRect(-faceWidth * 0.35, -faceWidth * 0.1, faceWidth * 0.7, faceWidth * 0.35);
-    ctx.restore();
+    const targetW = faceWidth * 1.4;
+    const aspect = (img.naturalHeight || 250) / (img.naturalWidth || 300);
+    const targetH = targetW * aspect;
+    ctx.drawImage(img, -targetW / 2, -targetH * 0.7, targetW, targetH);
   } else if (normPreset === "diving_mask") {
-    ctx.save();
-    const eyeCenter = { x: (leftEye.x + rightEye.x) / 2, y: (leftEye.y + rightEye.y) / 2 };
-    ctx.translate(eyeCenter.x, eyeCenter.y);
+    // 5. Diving Mask (Over Nose Bridge #168)
+    ctx.translate(noseBridge.x, noseBridge.y);
     ctx.rotate(faceAngle);
-    ctx.fillStyle = "#f59e0b";
-    ctx.beginPath();
-    ctx.roundRect(-faceWidth * 0.75, -faceWidth * 0.25, faceWidth * 1.5, faceWidth * 0.5, 20);
-    ctx.fill();
-    ctx.fillStyle = "rgba(56, 189, 248, 0.7)";
-    ctx.beginPath();
-    ctx.ellipse(-faceWidth * 0.35, 0, faceWidth * 0.28, faceWidth * 0.18, 0, 0, Math.PI * 2);
-    ctx.ellipse(faceWidth * 0.35, 0, faceWidth * 0.28, faceWidth * 0.18, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  } else if (normPreset === "santa") {
-    ctx.save();
-    ctx.translate(forehead.x, forehead.y - faceWidth * 0.3);
+    const targetW = faceWidth * 1.5;
+    const aspect = (img.naturalHeight || 200) / (img.naturalWidth || 300);
+    const targetH = targetW * aspect;
+    ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
+  } else if (normPreset === "santa_beard") {
+    // 6. Santa Beard (Over Chin #152)
+    ctx.translate(chin.x, chin.y + faceWidth * 0.1);
     ctx.rotate(faceAngle);
-    ctx.fillStyle = "#ef4444";
-    ctx.beginPath();
-    ctx.moveTo(-faceWidth * 0.6, 0);
-    ctx.lineTo(0, -faceWidth * 0.8);
-    ctx.lineTo(faceWidth * 0.6, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(-faceWidth * 0.65, -10, faceWidth * 1.3, 20);
-    ctx.restore();
-  } else if (normPreset === "strawberry") {
-    ctx.save();
-    ctx.translate(forehead.x, forehead.y - faceWidth * 0.3);
+    const targetW = faceWidth * 1.7;
+    const aspect = (img.naturalHeight || 300) / (img.naturalWidth || 300);
+    const targetH = targetW * aspect;
+    ctx.drawImage(img, -targetW / 2, -targetH * 0.65, targetW, targetH);
+  } else if (normPreset === "dog_coquette") {
+    // 7. Dog Coquette (Over Forehead #10 & Cheeks)
+    ctx.translate(forehead.x, forehead.y + faceWidth * 0.1);
     ctx.rotate(faceAngle);
-    ctx.fillStyle = "#ef4444";
-    ctx.beginPath();
-    ctx.arc(0, 0, faceWidth * 0.55, Math.PI, 0);
-    ctx.fill();
-    ctx.fillStyle = "#22c55e";
-    ctx.beginPath();
-    ctx.ellipse(0, -faceWidth * 0.5, faceWidth * 0.2, faceWidth * 0.1, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    const targetW = faceWidth * 1.6;
+    const aspect = (img.naturalHeight || 250) / (img.naturalWidth || 300);
+    const targetH = targetW * aspect;
+    ctx.drawImage(img, -targetW / 2, -targetH * 0.35, targetW, targetH);
+  } else if (normPreset === "strawberry_hat") {
+    // 8. Strawberry Hat (Over Forehead #10 scaled to face width #234, #454)
+    ctx.translate(forehead.x, forehead.y - faceWidth * 0.25);
+    ctx.rotate(faceAngle);
+    const targetW = templeDist * 1.6;
+    const aspect = (img.naturalHeight || 220) / (img.naturalWidth || 300);
+    const targetH = targetW * aspect;
+    ctx.drawImage(img, -targetW / 2, -targetH * 0.6, targetW, targetH);
   }
 
   ctx.restore();
