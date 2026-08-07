@@ -513,6 +513,31 @@ function drawCassetteSpool(ctx: CanvasRenderingContext2D, cx: number, cy: number
   ctx.restore();
 }
 
+function drawWrappedCanvasText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number
+) {
+  const words = text.split(" ");
+  let line = "";
+  let currentY = y;
+
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + " ";
+    if (ctx.measureText(testLine).width > maxWidth && n > 0) {
+      ctx.fillText(line.trim(), x, currentY);
+      line = words[n] + " ";
+      currentY += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line.trim(), x, currentY);
+}
+
 /**
  * Load all photo images asynchronously using Promise.all to guarantee 100% complete loading
  */
@@ -1331,12 +1356,16 @@ export const drawPhotoStrip = (
     drawRibbonBow(ctx, padding + 20, 40, 0.9, "#18181b", "#000000", "#3f3f46");
     drawRibbonBow(ctx, canvas.width - padding - 20, 40, 0.9, "#18181b", "#000000", "#3f3f46");
     drawRibbonBow(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 10, 1.1, "#18181b", "#000000", "#3f3f46");
-  } else if (preset === "galau_club") {
+  } else if (preset === "galau_club" || preset === "galau_quote") {
     ctx.save();
     ctx.fillStyle = textColor || "#1c1917";
     ctx.font = "italic bold 18px 'Georgia', serif";
     ctx.textAlign = "center";
-    ctx.fillText('"Rencana Tuhan pasti baik, tapi rencana hari ini capek banget ✨"', canvas.width / 2, canvas.height - bottomFooterHeight + 25);
+    const quoteText =
+      customText && customText !== "rielllybooth ♡"
+        ? `"${customText}"`
+        : '"Karna yang benar benar menginginkan mu, akan mencari beribu cara agar kamu tidak pergi dalam hidupnya"';
+    drawWrappedCanvasText(ctx, quoteText, canvas.width / 2, canvas.height - bottomFooterHeight + 25, canvas.width - padding * 2, 24);
     ctx.restore();
   } else if (preset === "pestapora_pass") {
     drawY2kStar(ctx, padding + 15, 45, 14, "#ffffff");
