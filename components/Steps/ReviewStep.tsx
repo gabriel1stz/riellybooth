@@ -22,7 +22,7 @@ export default function ReviewStep({
   onRetakeAll,
   onNextToEditor,
 }: ReviewStepProps) {
-  const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
+  const [isLivePhotoOn, setIsLivePhotoOn] = useState(false);
 
   return (
     <div className="w-full max-w-4xl space-y-6 sm:space-y-8 px-3 sm:px-4 py-3 sm:py-4">
@@ -96,22 +96,11 @@ export default function ReviewStep({
               <button
                 type="button"
                 onClick={() => onRetakeSingle(idx)}
-                disabled={retakeIndex !== null}
-                className="w-full py-2 px-2.5 bg-rose-50 hover:bg-rose-100 disabled:opacity-50 text-[11px] sm:text-xs font-bold text-rose-700 rounded-xl border border-pink-200 transition-all duration-300 ease-in-out flex items-center justify-center gap-1.5"
+                className="w-full py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-[11px] sm:text-xs font-bold text-rose-700 rounded-xl border border-pink-200 transition-all duration-300 ease-in-out flex items-center justify-center gap-1.5"
               >
                 <Repeat className="w-3.5 h-3.5 text-pink-500" /> Ulangi Foto Ini
               </button>
             </div>
-
-            {/* Individual Countdown Overlay */}
-            {retakeIndex === idx && (
-              <div className="absolute inset-0 bg-white/90 backdrop-blur-xs z-20 flex flex-col items-center justify-center gap-2">
-                <span className="text-5xl font-black text-pink-500 animate-ping">
-                  {countdown}
-                </span>
-                <span className="text-xs font-bold text-slate-700">Ulang Foto #{idx + 1}...</span>
-              </div>
-            )}
           </div>
         ))}
       </div>

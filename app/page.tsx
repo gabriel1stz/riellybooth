@@ -283,14 +283,11 @@ export default function RielllyBooth() {
 
     await runCountdown(3);
 
-    let videoBlobUrl = "";
-    if (mediaStreamRef.current) {
-      videoBlobUrl = await recordLiveVideoSnippet(mediaStreamRef.current, 1500);
-    }
-
     if (videoRef.current) {
       triggerSnapshotFx();
       const dataUrl = captureCanvasSnapshot(videoRef.current, false);
+      const shotId = Date.now() + Math.random();
+      const streamToRecord = mediaStreamRef.current;
 
       // Preload captured snapshot into image map cache
       const img = new Image();
@@ -301,19 +298,31 @@ export default function RielllyBooth() {
       };
 
       if (retakeIndex !== null) {
+        const targetIdx = retakeIndex;
         const updated = [...shots];
-        if (updated[retakeIndex]?.videoBlobUrl) {
-          revokeBlobUrl(updated[retakeIndex].videoBlobUrl);
+        if (updated[targetIdx]?.videoBlobUrl) {
+          revokeBlobUrl(updated[targetIdx].videoBlobUrl);
         }
-        updated[retakeIndex] = { id: Date.now(), dataUrl, videoBlobUrl };
+        updated[targetIdx] = { id: shotId, dataUrl, videoBlobUrl: undefined };
         setShots(updated);
         setRetakeIndex(null);
         setStep("review");
+
+        // Non-blocking background video snippet compilation
+        if (streamToRecord && isLivePhotoOn) {
+          recordLiveVideoSnippet(streamToRecord, 1500).then((blobUrl) => {
+            if (blobUrl) {
+              setShots((prev) =>
+                prev.map((s, i) => (i === targetIdx ? { ...s, videoBlobUrl: blobUrl } : s))
+              );
+            }
+          });
+        }
       } else {
         const newShot: Shot = {
-          id: Date.now() + shots.length,
+          id: shotId,
           dataUrl,
-          videoBlobUrl,
+          videoBlobUrl: undefined,
         };
 
         const updatedShots = [...shots, newShot];
@@ -323,6 +332,17 @@ export default function RielllyBooth() {
           setCurrentShotIndex(updatedShots.length + 1);
         } else {
           setStep("review");
+        }
+
+        // Non-blocking background video snippet compilation
+        if (streamToRecord && isLivePhotoOn) {
+          recordLiveVideoSnippet(streamToRecord, 1500).then((blobUrl) => {
+            if (blobUrl) {
+              setShots((prev) =>
+                prev.map((s) => (s.id === shotId ? { ...s, videoBlobUrl: blobUrl } : s))
+              );
+            }
+          });
         }
       }
     }
