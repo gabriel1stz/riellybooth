@@ -270,10 +270,14 @@ export default function CaptureStep({
         </span>
         {[
           { id: "none", label: "📷 Normal" },
-          { id: "puppy", label: "🐶 Puppy" },
-          { id: "cat_whiskers", label: "🐱 Cat" },
-          { id: "coquette_blush", label: "🎀 Blush" },
-          { id: "sunglasses", label: "🕶️ Glasses" },
+          { id: "dog_classic", label: "🐶 Dog" },
+          { id: "dog_coquette", label: "🎀 Coquette" },
+          { id: "cat", label: "🐱 Cat" },
+          { id: "pixel_glasses", label: "🕶️ Pixel" },
+          { id: "chef_hat", label: "👨‍🍳 Chef" },
+          { id: "diving_mask", label: "🤿 Diving" },
+          { id: "santa", label: "🎅 Santa" },
+          { id: "strawberry", label: "🍓 Strawberry" },
         ].map((f) => (
           <button
             key={f.id}
