@@ -635,6 +635,85 @@ function drawBirthdayCake(ctx: CanvasRenderingContext2D, cx: number, cy: number,
   ctx.restore();
 }
 
+function drawSheriffBadge(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 24) {
+  ctx.save();
+  ctx.fillStyle = "#f59e0b";
+  ctx.strokeStyle = "#b45309";
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const outerA = (i * Math.PI) / 3 - Math.PI / 2;
+    const innerA = outerA + Math.PI / 6;
+    const ox = cx + Math.cos(outerA) * radius;
+    const oy = cy + Math.sin(outerA) * radius;
+    const ix = cx + Math.cos(innerA) * (radius * 0.5);
+    const iy = cy + Math.sin(innerA) * (radius * 0.5);
+
+    if (i === 0) ctx.moveTo(ox, oy);
+    else ctx.lineTo(ox, oy);
+    ctx.lineTo(ix, iy);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  for (let i = 0; i < 6; i++) {
+    const outerA = (i * Math.PI) / 3 - Math.PI / 2;
+    const ox = cx + Math.cos(outerA) * radius;
+    const oy = cy + Math.sin(outerA) * radius;
+    ctx.beginPath();
+    ctx.arc(ox, oy, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#fef3c7";
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * 0.42, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#b45309";
+  ctx.font = "bold 8px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("SHERIFF", cx, cy);
+
+  ctx.restore();
+}
+
+function drawSpongeBobClothingFooter(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  ctx.save();
+  const shirtY = height - 160;
+  const pantsY = height - 105;
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, shirtY, width, 55);
+
+  ctx.fillStyle = "#ef4444";
+  ctx.beginPath();
+  ctx.moveTo(width / 2 - 12, shirtY);
+  ctx.lineTo(width / 2 + 12, shirtY);
+  ctx.lineTo(width / 2 + 16, shirtY + 25);
+  ctx.lineTo(width / 2, shirtY + 48);
+  ctx.lineTo(width / 2 - 16, shirtY + 25);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(0, pantsY, width, 105);
+
+  ctx.fillStyle = "#18181b";
+  const beltW = 40;
+  const beltH = 14;
+  for (let bx = 30; bx < width - 30; bx += (width - 60) / 4) {
+    ctx.fillRect(bx, pantsY + 10, beltW, beltH);
+  }
+
+  ctx.restore();
+}
+
 /**
  * Load all photo images asynchronously using Promise.all to guarantee 100% complete loading
  */
@@ -1037,16 +1116,55 @@ export const drawPhotoStrip = (
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   } else if (preset === "toy_story") {
-    ctx.fillStyle = "#38bdf8";
+    // Andy's Room Blue Cloud Wallpaper
+    ctx.fillStyle = "#3b82f6";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // Clouds scattered across wallpaper background
     drawCloudShape(ctx, 40, 50, 0.9);
     drawCloudShape(ctx, canvas.width - 120, 90, 0.8);
     drawCloudShape(ctx, 60, canvas.height - 140, 1.0);
     drawCloudShape(ctx, canvas.width - 140, canvas.height - 70, 0.9);
+
+    // Top Header Banner Box
+    ctx.fillStyle = "#2563eb";
+    ctx.fillRect(0, 0, canvas.width, 170);
+
+    // Gold Sheriff Badge Vector in Top Header
+    drawSheriffBadge(ctx, 65, 85, 26);
+    drawSheriffBadge(ctx, canvas.width - 65, 85, 26);
+
+    // Header Text
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 24px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("🤠 YOU'VE GOT A FRIEND IN ME", canvas.width / 2, 70);
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillStyle = "#fde047";
+    ctx.fillText("TOY STORY EDITION • RIELLLYBOOTH", canvas.width / 2, 105);
   } else if (preset === "spongebob") {
-    ctx.fillStyle = frameColor || "#facc15";
+    // Iconic SpongeBob Yellow Background
+    ctx.fillStyle = frameColor || "#fee12b";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Top Bikini Bottom Ocean Header Banner
+    ctx.fillStyle = "#0284c7";
+    ctx.fillRect(0, 0, canvas.width, 170);
+
+    // Bikini Bottom Flower Clouds around header
+    drawBikiniBottomFlower(ctx, 55, 85, 16, "#ff007f");
+    drawBikiniBottomFlower(ctx, canvas.width - 55, 85, 16, "#9d4edd");
+
+    // Header Text
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 26px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("🧽 BIKINI BOTTOM • BEST DAY EVER 🍍", canvas.width / 2, 85);
+
+    // Signature SpongeBob Clothing Pattern Footer
+    drawSpongeBobClothingFooter(ctx, canvas.width, canvas.height);
   } else if (preset === "among_us") {
     ctx.fillStyle = "#0f172a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1340,7 +1458,7 @@ export const drawPhotoStrip = (
       applyCuteFilterOverlay(ctx, sx, sy, sideW, sideH, cuteFilter, filter.beautyGlow, 12, filterIntensity);
     }
   } else if (layout.startsWith("strip") || layout === "y2k_checker") {
-    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" || preset === "retro_cassette" ? 200 : padding;
+    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" || preset === "retro_cassette" || preset === "toy_story" || preset === "spongebob" ? 220 : padding;
     const photoW = canvas.width - padding * 2;
     const availableH = canvas.height - topMargin - bottomFooterHeight - padding * photoCount;
     const photoH = availableH / photoCount;
@@ -1384,7 +1502,7 @@ export const drawPhotoStrip = (
     }
   } else {
     // grid_2x2, purikura_4cut, scrapbook
-    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" || preset === "retro_cassette" ? 200 : padding;
+    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" || preset === "retro_cassette" || preset === "toy_story" || preset === "spongebob" ? 220 : padding;
     const photoW = (canvas.width - padding * 3) / 2;
     const availableH = canvas.height - topMargin - bottomFooterHeight - padding * 2;
     const photoH = availableH / 2;

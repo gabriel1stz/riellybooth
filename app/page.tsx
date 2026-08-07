@@ -288,12 +288,17 @@ export default function RielllyBooth() {
 
       if (retakeIndex !== null) {
         const targetIdx = retakeIndex;
-        const updated = [...shots];
-        if (updated[targetIdx]?.videoBlobUrl) {
-          revokeBlobUrl(updated[targetIdx].videoBlobUrl);
-        }
-        updated[targetIdx] = { id: shotId, dataUrl, videoBlobUrl: undefined };
-        setShots(updated);
+        const newShot: Shot = { id: shotId, dataUrl, videoBlobUrl: undefined };
+
+        setShots((prevShots) => {
+          const nextShots = [...prevShots];
+          if (nextShots[targetIdx]?.videoBlobUrl) {
+            revokeBlobUrl(nextShots[targetIdx].videoBlobUrl);
+          }
+          nextShots[targetIdx] = newShot; // Replace ONLY the targeted index
+          return nextShots;
+        });
+
         setRetakeIndex(null);
         setStep("review");
 
