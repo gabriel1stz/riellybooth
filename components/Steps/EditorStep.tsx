@@ -526,23 +526,27 @@ export default function EditorStep({
                   <RefreshCw className="w-3.5 h-3.5 text-pink-500" /> Tukar Urutan Foto (Klik 2 Foto):
                 </span>
                 <div className="grid grid-cols-4 gap-2">
-                  {shots.slice(0, 4).map((shot, idx) => (
-                    <button
-                      key={shot.id || idx}
-                      type="button"
-                      onClick={() => onSwapPhotos(idx)}
-                      className={`relative aspect-square rounded-xl overflow-hidden border-2 transition ${
-                        selectedForSwap === idx
-                          ? "border-pink-500 ring-4 ring-pink-300 scale-105"
-                          : "border-pink-200 hover:border-pink-400"
-                      }`}
-                    >
-                      <img src={shot.dataUrl} alt={`Pos #${idx + 1}`} className="w-full h-full object-cover" />
-                      <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
-                        #{idx + 1}
-                      </span>
-                    </button>
-                  ))}
+                  {[0, 1, 2, 3].map((idx) => {
+                    const shot = shots[idx];
+                    if (!shot) return null;
+                    return (
+                      <button
+                        key={shot.id || idx}
+                        type="button"
+                        onClick={() => onSwapPhotos(idx)}
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition ${
+                          selectedForSwap === idx
+                            ? "border-pink-500 ring-4 ring-pink-300 scale-105"
+                            : "border-pink-200 hover:border-pink-400"
+                        }`}
+                      >
+                        <img src={shot.dataUrl} alt={`Pos #${idx + 1}`} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
+                          #{idx + 1}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>

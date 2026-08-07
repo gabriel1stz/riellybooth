@@ -426,22 +426,22 @@ export default function RielllyBooth() {
       // Static Synchronous Image Render
       const targetCount = layout === "strip_2" ? 2 : layout === "strip_3" ? 3 : 4;
       const targetShots = shots.slice(0, targetCount);
-      const loadedImages: HTMLImageElement[] = [];
+      const loadedImages: HTMLImageElement[] = new Array(targetCount);
 
       for (let i = 0; i < targetShots.length; i++) {
+        if (!targetShots[i] || !targetShots[i].dataUrl) continue;
         const cached = loadedImgMapRef.current.get(targetShots[i].dataUrl);
         if (cached) {
           loadedImages[i] = cached;
         } else {
-          // If any image is still loading into cache, instantiate on the fly
           const img = new Image();
           img.crossOrigin = "anonymous";
           img.src = targetShots[i].dataUrl;
+          loadedImages[i] = img;
+          loadedImgMapRef.current.set(targetShots[i].dataUrl, img);
           img.onload = () => {
-            loadedImgMapRef.current.set(targetShots[i].dataUrl, img);
             renderCanvas();
           };
-          return;
         }
       }
 

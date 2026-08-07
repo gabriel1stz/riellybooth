@@ -952,7 +952,9 @@ export const drawPhotoStrip = (
 
     const botPositions = [70, 435, 800];
 
-    images.slice(1, 4).forEach((img, i) => {
+    for (let i = 0; i < 3; i++) {
+      const img = images[i + 1];
+      if (!img) continue;
       const bx = botPositions[i];
 
       ctx.save();
@@ -966,7 +968,7 @@ export const drawPhotoStrip = (
       ctx.strokeRect(bx, botY, botW, botH);
 
       applyCuteFilterOverlay(ctx, bx, botY, botW, botH, cuteFilter, filter.beautyGlow, 0, filterIntensity);
-    });
+    }
 
     // 4. BOTTOM ARTICLE CAPTIONS & PARAGRAPHS (STRICT SPACING AT Y = 1280px)
     const columnTitles = [
@@ -975,8 +977,8 @@ export const drawPhotoStrip = (
       "AWAS GAGAL MOVE ON"
     ];
     const columnTexts = [
-      "Berhenti jadi pelangi untuk orang yang buta warna ya blay.",
-      "Beda temen beda aksi, Salah temen bocor informasi.",
+      "Tak perlu alasan khusus untuk merayakan hari ini. Setiap senyuman manis dan tawa yang terekam adalah cerita abadi.",
+      "Di antara riuhnya kota Jakarta dan Surabaya, ada momen kecil yang layak disimpan selamanya di lembaran nostalgia.",
       "Warga diimbau tidak menatap photo strip ini terlalu lama apabila belum sepenuhnya move on."
     ];
 
@@ -1059,7 +1061,9 @@ export const drawPhotoStrip = (
       applyCuteFilterOverlay(ctx, padding, padding, topW, topH, cuteFilter, filter.beautyGlow, 16, filterIntensity);
     }
 
-    images.slice(1, 4).forEach((img, i) => {
+    for (let i = 0; i < 3; i++) {
+      const img = images[i + 1];
+      if (!img) continue;
       const bx = padding + i * (botW + padding);
       const by = padding * 2 + topH;
       ctx.save();
@@ -1067,7 +1071,7 @@ export const drawPhotoStrip = (
       drawImageCover(ctx, img, bx, by, botW, botH, 12, isFlipped);
       ctx.restore();
       applyCuteFilterOverlay(ctx, bx, by, botW, botH, cuteFilter, filter.beautyGlow, 12, filterIntensity);
-    });
+    }
   } else if (layout === "editorial_vogue") {
     // Vogue Magazine Grid: 1 Hero Photo + 3 Side/Bottom Magazine Grid
     const heroW = (canvas.width - padding * 3) * 0.6;
@@ -1083,7 +1087,9 @@ export const drawPhotoStrip = (
       applyCuteFilterOverlay(ctx, padding, padding, heroW, heroH, cuteFilter, filter.beautyGlow, 16, filterIntensity);
     }
 
-    images.slice(1, 4).forEach((img, i) => {
+    for (let i = 0; i < 3; i++) {
+      const img = images[i + 1];
+      if (!img) continue;
       const sx = padding * 2 + heroW;
       const sy = padding + i * (sideH + padding);
       ctx.save();
@@ -1091,14 +1097,16 @@ export const drawPhotoStrip = (
       drawImageCover(ctx, img, sx, sy, sideW, sideH, 12, isFlipped);
       ctx.restore();
       applyCuteFilterOverlay(ctx, sx, sy, sideW, sideH, cuteFilter, filter.beautyGlow, 12, filterIntensity);
-    });
+    }
   } else if (layout.startsWith("strip") || layout === "y2k_checker") {
     const topMargin = preset === "concert_ticket" ? 100 : padding;
     const photoW = canvas.width - padding * 2;
     const availableH = canvas.height - topMargin - bottomFooterHeight - padding * photoCount;
     const photoH = availableH / photoCount;
 
-    images.slice(0, photoCount).forEach((img, i) => {
+    for (let i = 0; i < photoCount; i++) {
+      const img = images[i];
+      if (!img) continue;
       const y = topMargin + i * (photoH + padding);
       const borderRadius =
         preset === "film"
@@ -1132,7 +1140,7 @@ export const drawPhotoStrip = (
         ctx.fillText(`KODAK 400`, canvas.width - 52, y + photoH / 2);
         ctx.restore();
       }
-    });
+    }
   } else {
     // grid_2x2, purikura_4cut, scrapbook
     const topMargin = preset === "concert_ticket" ? 100 : padding;
@@ -1147,7 +1155,9 @@ export const drawPhotoStrip = (
       { x: padding * 2 + photoW, y: topMargin + photoH + padding },
     ];
 
-    images.slice(0, 4).forEach((img, i) => {
+    for (let i = 0; i < 4; i++) {
+      const img = images[i];
+      if (!img) continue;
       const borderRadius =
         layout === "purikura_4cut"
           ? 32
@@ -1173,7 +1183,7 @@ export const drawPhotoStrip = (
       }
 
       applyCuteFilterOverlay(ctx, positions[i].x, positions[i].y, photoW, photoH, cuteFilter, filter.beautyGlow, borderRadius, filterIntensity);
-    });
+    }
   }
 
   // STEP 3: PRESET DECORATIVE VECTORS
