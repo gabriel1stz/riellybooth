@@ -10,7 +10,7 @@ import CaptureStep from "@/components/Steps/CaptureStep";
 import ReviewStep from "@/components/Steps/ReviewStep";
 import EditorStep from "@/components/Steps/EditorStep";
 import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet, revokeBlobUrl } from "@/lib/cameraUtils";
-import { drawPhotoStrip, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
+import { drawPhotoStrip, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
 import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
 
 type Step = "landing" | "capture" | "review" | "editor";
@@ -423,44 +423,29 @@ export default function RielllyBooth() {
         return;
       }
 
-      // Static Synchronous Image Render
+      // Async Promise.all Image Render (Guarantees 100% photo loading including retakes)
       const targetCount = layout === "strip_2" ? 2 : layout === "strip_3" ? 3 : 4;
       const targetShots = shots.slice(0, targetCount);
-      const loadedImages: HTMLImageElement[] = new Array(targetCount);
 
-      for (let i = 0; i < targetShots.length; i++) {
-        if (!targetShots[i] || !targetShots[i].dataUrl) continue;
-        const cached = loadedImgMapRef.current.get(targetShots[i].dataUrl);
-        if (cached) {
-          loadedImages[i] = cached;
-        } else {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.src = targetShots[i].dataUrl;
-          loadedImages[i] = img;
-          loadedImgMapRef.current.set(targetShots[i].dataUrl, img);
-          img.onload = () => {
-            renderCanvas();
-          };
-        }
-      }
-
-      drawPhotoStrip(
-        canvasRef.current,
-        loadedImages,
-        layout,
-        frameColor,
-        textColor,
-        filter,
-        preset,
-        cuteFilter,
-        customText,
-        fontFamily,
-        subtitleText,
-        placedStickers,
-        isFlipped,
-        customLogoImg
-      );
+      loadCanvasImages(targetShots).then((loadedImages) => {
+        if (!canvasRef.current) return;
+        drawPhotoStrip(
+          canvasRef.current,
+          loadedImages,
+          layout,
+          frameColor,
+          textColor,
+          filter,
+          preset,
+          cuteFilter,
+          customText,
+          fontFamily,
+          subtitleText,
+          placedStickers,
+          isFlipped,
+          customLogoImg
+        );
+      });
     },
     [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped, customLogoImg]
   );

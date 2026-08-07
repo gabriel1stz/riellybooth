@@ -514,6 +514,28 @@ function drawCassetteSpool(ctx: CanvasRenderingContext2D, cx: number, cy: number
 }
 
 /**
+ * Load all photo images asynchronously using Promise.all to guarantee 100% complete loading
+ */
+export const loadCanvasImages = (shots: { dataUrl: string }[]): Promise<HTMLImageElement[]> => {
+  return Promise.all(
+    shots.slice(0, 4).map((shot) => {
+      return new Promise<HTMLImageElement>((resolve) => {
+        if (!shot || !shot.dataUrl) {
+          const empty = new Image();
+          resolve(empty);
+          return;
+        }
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(img);
+        img.src = shot.dataUrl;
+      });
+    })
+  );
+};
+
+/**
  * Main High-Resolution Photo Strip Render Engine (Supports 9 Layout Modes & Gen Z Frames)
  */
 export const drawPhotoStrip = (
@@ -732,11 +754,16 @@ export const drawPhotoStrip = (
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = "#ea580c";
-    ctx.fillRect(0, 0, canvas.width, 70);
+    ctx.fillRect(0, 0, canvas.width, 160);
+
+    drawCassetteSpool(ctx, 80, 80, 24);
+    drawCassetteSpool(ctx, canvas.width - 80, 80, 24);
+
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 26px sans-serif";
+    ctx.font = "900 24px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("📼 STEREO CASSETTE • HIGH BIAS 90", canvas.width / 2, 45);
+    ctx.textBaseline = "middle";
+    ctx.fillText("📼 STEREO CASSETTE • HIGH BIAS 90", canvas.width / 2, 80);
   } else if (preset === "kawaii_boba") {
     ctx.fillStyle = frameColor || "#fef3c7";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1153,7 +1180,7 @@ export const drawPhotoStrip = (
       applyCuteFilterOverlay(ctx, sx, sy, sideW, sideH, cuteFilter, filter.beautyGlow, 12, filterIntensity);
     }
   } else if (layout.startsWith("strip") || layout === "y2k_checker") {
-    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" ? 200 : padding;
+    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" || preset === "retro_cassette" ? 200 : padding;
     const photoW = canvas.width - padding * 2;
     const availableH = canvas.height - topMargin - bottomFooterHeight - padding * photoCount;
     const photoH = availableH / photoCount;
@@ -1197,7 +1224,7 @@ export const drawPhotoStrip = (
     }
   } else {
     // grid_2x2, purikura_4cut, scrapbook
-    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" ? 200 : padding;
+    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" || preset === "retro_cassette" ? 200 : padding;
     const photoW = (canvas.width - padding * 3) / 2;
     const availableH = canvas.height - topMargin - bottomFooterHeight - padding * 2;
     const photoH = availableH / 2;
