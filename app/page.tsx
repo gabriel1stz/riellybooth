@@ -266,7 +266,34 @@ export default function RielllyBooth() {
     setTimeout(() => setFlashFx(false), 250);
   };
 
-  // Per-Shot Individual Trigger (1 Peace Gesture ✌️ = 1 Photo)
+  const shotsRef = useRef<Shot[]>([]);
+
+  // Synchronize shots to ref and sessionStorage for RAM pressure fail-safe recovery
+  const syncShots = useCallback((newShots: Shot[]) => {
+    shotsRef.current = newShots;
+    try {
+      sessionStorage.setItem(
+        "riellybooth_shots_backup",
+        JSON.stringify(newShots.map((s) => ({ id: s.id, dataUrl: s.dataUrl })))
+      );
+    } catch (e) {}
+  }, []);
+
+  // Restore shots from sessionStorage backup on component mount if React state dropped
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("riellybooth_shots_backup");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && shots.length === 0) {
+          setShots(parsed);
+          shotsRef.current = parsed;
+        }
+      }
+    } catch (e) {}
+  }, []);
+
+  // Single Shot Capture Trigger
   const handleTakeSingleShot = async () => {
     if (isCapturing) return;
     setIsCapturing(true);
@@ -278,6 +305,29 @@ export default function RielllyBooth() {
       const dataUrl = captureCanvasSnapshot(videoRef.current, false, arCanvasRef.current);
       const shotId = Date.now() + Math.random();
       const streamToRecord = mediaStreamRef.current;
+
+      // Composite canvas stream source for recording Live Photos with AR Face Filters
+      let livePhotoSource: MediaStream | HTMLCanvasElement = streamToRecord!;
+      if (videoRef.current && arCanvasRef.current) {
+        const compCanvas = document.createElement("canvas");
+        compCanvas.width = videoRef.current.videoWidth || 1280;
+        compCanvas.height = videoRef.current.videoHeight || 720;
+        const compCtx = compCanvas.getContext("2d");
+        if (compCtx) {
+          let recActive = true;
+          const drawFrame = () => {
+            if (!recActive || !videoRef.current) return;
+            compCtx.drawImage(videoRef.current, 0, 0, compCanvas.width, compCanvas.height);
+            if (arCanvasRef.current) {
+              compCtx.drawImage(arCanvasRef.current, 0, 0, compCanvas.width, compCanvas.height);
+            }
+            requestAnimationFrame(drawFrame);
+          };
+          drawFrame();
+          setTimeout(() => { recActive = false; }, 2000);
+          livePhotoSource = compCanvas;
+        }
+      }
 
       // Preload captured snapshot into image map cache
       const img = new Image();
@@ -292,11 +342,12 @@ export default function RielllyBooth() {
         const newShot: Shot = { id: shotId, dataUrl, videoBlobUrl: undefined };
 
         setShots((prevShots) => {
-          const nextShots = [...prevShots];
+          const nextShots = Array.from(prevShots);
           if (nextShots[targetIdx]?.videoBlobUrl) {
             revokeBlobUrl(nextShots[targetIdx].videoBlobUrl);
           }
           nextShots[targetIdx] = newShot; // Replace ONLY the targeted index
+          syncShots(nextShots);
           return nextShots;
         });
 
@@ -304,12 +355,14 @@ export default function RielllyBooth() {
         setStep("review");
 
         // Non-blocking background video snippet compilation
-        if (streamToRecord && isLivePhotoOn) {
-          recordLiveVideoSnippet(streamToRecord, 1500).then((blobUrl) => {
+        if (livePhotoSource && isLivePhotoOn) {
+          recordLiveVideoSnippet(livePhotoSource, 1500).then((blobUrl) => {
             if (blobUrl) {
-              setShots((prev) =>
-                prev.map((s, i) => (i === targetIdx ? { ...s, videoBlobUrl: blobUrl } : s))
-              );
+              setShots((prev) => {
+                const updated = prev.map((s, i) => (i === targetIdx ? { ...s, videoBlobUrl: blobUrl } : s));
+                syncShots(updated);
+                return updated;
+              });
             }
           });
         }
@@ -322,6 +375,7 @@ export default function RielllyBooth() {
 
         setShots((prevShots) => {
           const updatedShots = [...prevShots, newShot];
+          syncShots(updatedShots);
           if (updatedShots.length < 4) {
             setCurrentShotIndex(updatedShots.length + 1);
           } else {
@@ -331,12 +385,14 @@ export default function RielllyBooth() {
         });
 
         // Non-blocking background video snippet compilation
-        if (streamToRecord && isLivePhotoOn) {
-          recordLiveVideoSnippet(streamToRecord, 1500).then((blobUrl) => {
+        if (livePhotoSource && isLivePhotoOn) {
+          recordLiveVideoSnippet(livePhotoSource, 1500).then((blobUrl) => {
             if (blobUrl) {
-              setShots((prev) =>
-                prev.map((s) => (s.id === shotId ? { ...s, videoBlobUrl: blobUrl } : s))
-              );
+              setShots((prev) => {
+                const updated = prev.map((s) => (s.id === shotId ? { ...s, videoBlobUrl: blobUrl } : s));
+                syncShots(updated);
+                return updated;
+              });
             }
           });
         }

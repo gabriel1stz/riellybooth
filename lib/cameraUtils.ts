@@ -94,18 +94,25 @@ export const captureCanvasSnapshot = (
 
   ctx.restore();
 
-  return canvas.toDataURL("image/png");
+  // Compress snapshot as JPEG 85% to reduce RAM usage on mobile devices
+  return canvas.toDataURL("image/jpeg", 0.85);
 };
 
 /**
  * Record 1.5-second short live video snippet (MP4 preferred, WebM fallback).
+ * Supports MediaStream or composite HTMLCanvasElement stream.
  */
 export const recordLiveVideoSnippet = (
-  stream: MediaStream,
+  stream: MediaStream | HTMLCanvasElement,
   durationMs: number = 1500
 ): Promise<string> => {
   return new Promise((resolve) => {
     try {
+      const mediaStream =
+        stream instanceof HTMLCanvasElement
+          ? stream.captureStream(30)
+          : stream;
+
       let mimeType = "video/mp4;codecs=avc1";
       if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = "video/mp4";
@@ -117,7 +124,7 @@ export const recordLiveVideoSnippet = (
         mimeType = "video/webm";
       }
 
-      const recorder = new MediaRecorder(stream, { mimeType });
+      const recorder = new MediaRecorder(mediaStream, { mimeType });
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
