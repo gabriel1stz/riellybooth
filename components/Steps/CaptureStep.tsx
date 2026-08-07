@@ -132,7 +132,7 @@ export default function CaptureStep({
     };
   }, [gestureEnabled, isCapturing, countdown, cameraError, onTakeSingleShot, videoRef]);
 
-  // Real-time MediaPipe 3D Face Mesh AR Filter Detection Loop
+  // Real-time MediaPipe 3D Face Mesh AR Filter Detection Loop (with Hybrid Fallback)
   useEffect(() => {
     let animFrameId: number;
     let active = true;
@@ -145,39 +145,42 @@ export default function CaptureStep({
       return;
     }
 
-    const runFaceMesh = async () => {
-      const landmarker = await getFaceLandmarker();
-      if (!landmarker || !videoRef.current || !active) return;
-
+    const runFaceMeshLoop = async () => {
       const video = videoRef.current;
       const canvas = activeArCanvasRef.current;
 
-      if (video.readyState >= 2 && canvas) {
+      if (video && video.readyState >= 2 && canvas) {
         if (canvas.width !== (video.videoWidth || 1280)) canvas.width = video.videoWidth || 1280;
         if (canvas.height !== (video.videoHeight || 720)) canvas.height = video.videoHeight || 720;
 
         const ctx = canvas.getContext("2d");
         if (ctx) {
-          try {
-            const results = landmarker.detectForVideo(video, performance.now());
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          let landmarks: Array<{ x: number; y: number; z: number }> | null = null;
 
-            if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-              const faceLandmarks = results.faceLandmarks[0];
-              drawARFaceFilter(ctx, faceLandmarks, arFilterPreset, canvas.width, canvas.height, false);
+          try {
+            const landmarker = await getFaceLandmarker();
+            if (landmarker && active) {
+              const results = landmarker.detectForVideo(video, performance.now());
+              if (results && results.faceLandmarks && results.faceLandmarks.length > 0) {
+                landmarks = results.faceLandmarks[0];
+              }
             }
           } catch (err) {
-            console.warn("FaceLandmarker detection loop error:", err);
+            console.warn("FaceLandmarker detection loop warning:", err);
           }
+
+          // Always draw filter (using 3D landmarks or hybrid fallback if initializing)
+          drawARFaceFilter(ctx, landmarks, arFilterPreset, canvas.width, canvas.height, false);
         }
       }
 
       if (active) {
-        animFrameId = requestAnimationFrame(runFaceMesh);
+        animFrameId = requestAnimationFrame(runFaceMeshLoop);
       }
     };
 
-    runFaceMesh();
+    runFaceMeshLoop();
 
     return () => {
       active = false;
