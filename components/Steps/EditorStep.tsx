@@ -559,6 +559,10 @@ export default function EditorStep({
                 <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z Indonesia:</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
+                    { id: "toy_story", label: "🤠 Toy Story" },
+                    { id: "spongebob", label: "🧽 SpongeBob" },
+                    { id: "among_us", label: "📮 Among Us" },
+                    { id: "happy_birthday", label: "🎂 Happy Birthday" },
                     { id: "skena_coquette", label: "🎀 Skena Coquette" },
                     { id: "galau_club", label: "💅 Gen Z Galau Club" },
                     { id: "pestapora_pass", label: "🎫 Pestapora Pass" },

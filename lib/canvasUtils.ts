@@ -49,7 +49,11 @@ export type FramePreset =
   | "galau_club"
   | "pestapora_pass"
   | "struk_jaksel"
-  | "photocard_bias";
+  | "photocard_bias"
+  | "toy_story"
+  | "spongebob"
+  | "among_us"
+  | "happy_birthday";
 
 export type CuteFilter =
   | "none"
@@ -538,6 +542,99 @@ function drawWrappedCanvasText(
   ctx.fillText(line.trim(), x, currentY);
 }
 
+function drawCloudShape(ctx: CanvasRenderingContext2D, cx: number, cy: number, scale: number = 1) {
+  ctx.save();
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(cx, cy, 18 * scale, Math.PI * 0.5, Math.PI * 1.5);
+  ctx.arc(cx + 20 * scale, cy - 12 * scale, 20 * scale, Math.PI * 1.0, Math.PI * 1.85);
+  ctx.arc(cx + 45 * scale, cy - 10 * scale, 16 * scale, Math.PI * 1.35, Math.PI * 0.15);
+  ctx.arc(cx + 60 * scale, cy, 18 * scale, Math.PI * 1.5, Math.PI * 0.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawBikiniBottomFlower(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 16, color: string = "#ec4899") {
+  ctx.save();
+  ctx.fillStyle = color;
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * Math.PI * 2) / 5;
+    const px = cx + Math.cos(angle) * (radius * 1.2);
+    const py = cy + Math.sin(angle) * (radius * 1.2);
+    ctx.beginPath();
+    ctx.arc(px, py, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = "#facc15";
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * 0.7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawCrewmate(ctx: CanvasRenderingContext2D, cx: number, cy: number, scale: number = 1, color: string = "#ef4444") {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = color;
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(-15, -25, 30, 45, 15);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.roundRect(-22, -15, 10, 25, 5);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#38bdf8";
+  ctx.beginPath();
+  ctx.ellipse(3, -10, 10, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.ellipse(5, -12, 4, 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawBirthdayCake(ctx: CanvasRenderingContext2D, cx: number, cy: number, scale: number = 1) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = "#f472b6";
+  ctx.strokeStyle = "#db2777";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(-25, 0, 50, 25, 6);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#fbcfe8";
+  ctx.beginPath();
+  ctx.roundRect(-18, -20, 36, 20, 5);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#38bdf8";
+  ctx.fillRect(-3, -32, 6, 12);
+
+  ctx.fillStyle = "#f59e0b";
+  ctx.beginPath();
+  ctx.ellipse(0, -36, 4, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
 /**
  * Load all photo images asynchronously using Promise.all to guarantee 100% complete loading
  */
@@ -939,6 +1036,44 @@ export const drawPhotoStrip = (
     grad.addColorStop(1, "#c084fc");
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (preset === "toy_story") {
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    drawCloudShape(ctx, 40, 50, 0.9);
+    drawCloudShape(ctx, canvas.width - 120, 90, 0.8);
+    drawCloudShape(ctx, 60, canvas.height - 140, 1.0);
+    drawCloudShape(ctx, canvas.width - 140, canvas.height - 70, 0.9);
+  } else if (preset === "spongebob") {
+    ctx.fillStyle = frameColor || "#facc15";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (preset === "among_us") {
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#ffffff";
+    for (let sx = 20; sx < canvas.width; sx += 45) {
+      for (let sy = 20; sy < canvas.height; sy += 45) {
+        if ((sx + sy) % 3 === 0) {
+          ctx.beginPath();
+          ctx.arc(sx, sy, Math.random() > 0.5 ? 2 : 1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  } else if (preset === "happy_birthday") {
+    ctx.fillStyle = frameColor || "#fff1f2";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const confettiColors = ["#f472b6", "#fbbf24", "#38bdf8", "#c084fc", "#4ade80"];
+    for (let i = 0; i < 40; i++) {
+      const cx = (i * 37) % canvas.width;
+      const cy = (i * 53) % canvas.height;
+      ctx.fillStyle = confettiColors[i % confettiColors.length];
+      ctx.beginPath();
+      ctx.arc(cx, cy, i % 2 === 0 ? 5 : 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
   } else if (preset === "y2k" || layout === "y2k_checker") {
     ctx.fillStyle = "#1e293b";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1377,6 +1512,27 @@ export const drawPhotoStrip = (
     drawY2kStar(ctx, canvas.width - padding - 20, 40, 18, "#ffffff");
     drawY2kStar(ctx, padding + 25, canvas.height - bottomFooterHeight + 20, 20, "#38bdf8");
     drawY2kStar(ctx, canvas.width - 25, canvas.height - bottomFooterHeight + 20, 20, "#ec4899");
+  } else if (preset === "toy_story") {
+    ctx.save();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 18px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🤠 YOU'VE GOT A FRIEND IN ME • TOY STORY", canvas.width / 2, canvas.height - bottomFooterHeight + 25);
+    ctx.restore();
+  } else if (preset === "spongebob") {
+    drawBikiniBottomFlower(ctx, 45, 45, 14, "#ec4899");
+    drawBikiniBottomFlower(ctx, canvas.width - 45, 45, 14, "#a855f7");
+    drawBikiniBottomFlower(ctx, 50, canvas.height - bottomFooterHeight + 25, 16, "#ec4899");
+    drawBikiniBottomFlower(ctx, canvas.width - 50, canvas.height - bottomFooterHeight + 25, 16, "#a855f7");
+  } else if (preset === "among_us") {
+    drawCrewmate(ctx, padding + 25, 45, 0.8, "#ef4444");
+    drawCrewmate(ctx, canvas.width - padding - 25, 45, 0.8, "#06b6d4");
+    drawCrewmate(ctx, padding + 30, canvas.height - bottomFooterHeight + 25, 0.9, "#eab308");
+    drawCrewmate(ctx, canvas.width - padding - 30, canvas.height - bottomFooterHeight + 25, 0.9, "#22c55e");
+  } else if (preset === "happy_birthday") {
+    drawBirthdayCake(ctx, padding + 30, 45, 0.85);
+    drawBirthdayCake(ctx, canvas.width - padding - 30, 45, 0.85);
+    drawBirthdayCake(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 20, 1.0);
   } else if (preset === "y2k") {
     drawY2kStar(ctx, padding + 15, 30, 14, "#ec4899");
     drawY2kStar(ctx, canvas.width - padding - 15, 30, 14, "#38bdf8");
