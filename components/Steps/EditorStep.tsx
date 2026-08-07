@@ -557,8 +557,13 @@ export default function EditorStep({
                   {[
                     { id: "coquette", label: "Coquette Ribbon 🎀" },
                     { id: "coquette_black", label: "Coquette Black 🖤" },
+                    { id: "cyber_y2k_pink", label: "Cyber Pink Y2K 💖" },
                     { id: "y2k", label: "Y2K Cyber ✨" },
                     { id: "y2k_bubbles", label: "Y2K Bubbles 🫧" },
+                    { id: "vintage_newspaper_dark", label: "Dark Newspaper 🗞️" },
+                    { id: "retro_cassette", label: "Retro Cassette 📼" },
+                    { id: "kawaii_boba", label: "Kawaii Boba 🧋" },
+                    { id: "heart_washi_tape", label: "Heart Washi Tape 💌" },
                     { id: "cute_cat_paw", label: "Cute Cat Paw 🐾" },
                     { id: "pastel_floral", label: "Pastel Floral 🌸" },
                     { id: "goth_grunge", label: "Goth Grunge 🖤" },

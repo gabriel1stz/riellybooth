@@ -159,21 +159,8 @@ export default function RielllyBooth() {
   useEffect(() => {
     let isActive = true;
 
-    if (step === "capture" || step === "review") {
+    if (step === "capture") {
       setCameraError(null);
-
-      const existingStream = mediaStreamRef.current;
-      const isStreamAlive =
-        existingStream &&
-        existingStream.active &&
-        existingStream.getVideoTracks().some((t) => t.readyState === "live");
-
-      if (isStreamAlive) {
-        if (videoRef.current && videoRef.current.srcObject !== existingStream) {
-          videoRef.current.srcObject = existingStream;
-        }
-        return;
-      }
 
       startCameraStream(facingMode)
         .then((stream) => {
@@ -193,8 +180,10 @@ export default function RielllyBooth() {
           }
         });
     } else {
-      stopCameraStream(mediaStreamRef.current);
-      mediaStreamRef.current = null;
+      if (mediaStreamRef.current) {
+        stopCameraStream(mediaStreamRef.current);
+        mediaStreamRef.current = null;
+      }
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }

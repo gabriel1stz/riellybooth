@@ -39,7 +39,12 @@ export type FramePreset =
   | "cute_cat_paw"
   | "pastel_floral"
   | "goth_grunge"
-  | "polaroid_vintage";
+  | "polaroid_vintage"
+  | "cyber_y2k_pink"
+  | "vintage_newspaper_dark"
+  | "retro_cassette"
+  | "kawaii_boba"
+  | "heart_washi_tape";
 
 export type CuteFilter =
   | "none"
@@ -434,6 +439,75 @@ function drawCherryBlossom(ctx: CanvasRenderingContext2D, cx: number, cy: number
   ctx.restore();
 }
 
+function drawBobaPearl(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 12) {
+  ctx.save();
+  const grad = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.1, cx, cy, radius);
+  grad.addColorStop(0, "#78350f");
+  grad.addColorStop(0.7, "#451a03");
+  grad.addColorStop(1, "#1c1917");
+
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+  ctx.beginPath();
+  ctx.arc(cx - radius * 0.35, cy - radius * 0.35, radius * 0.25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawWashiTape(ctx: CanvasRenderingContext2D, x: number, y: number, width: number = 70, height: number = 20, angle: number = 0) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate((angle * Math.PI) / 180);
+
+  ctx.fillStyle = "rgba(244, 114, 182, 0.65)";
+  ctx.strokeStyle = "rgba(219, 39, 119, 0.4)";
+  ctx.lineWidth = 1;
+
+  ctx.fillRect(-width / 2, -height / 2, width, height);
+  ctx.strokeRect(-width / 2, -height / 2, width, height);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "10px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("♥ ♥ ♥", 0, 0);
+
+  ctx.restore();
+}
+
+function drawCassetteSpool(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 22) {
+  ctx.save();
+  ctx.fillStyle = "#18181b";
+  ctx.strokeStyle = "#ea580c";
+  ctx.lineWidth = 3;
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#ea580c";
+  for (let i = 0; i < 3; i++) {
+    const a = (i * Math.PI * 2) / 3;
+    const tx = cx + Math.cos(a) * (radius * 0.65);
+    const ty = cy + Math.sin(a) * (radius * 0.65);
+    ctx.beginPath();
+    ctx.arc(tx, ty, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 /**
  * Main High-Resolution Photo Strip Render Engine (Supports 9 Layout Modes & Gen Z Frames)
  */
@@ -613,6 +687,56 @@ export const drawPhotoStrip = (
     ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
   } else if (preset === "polaroid_vintage") {
     ctx.fillStyle = frameColor || "#fafaf9";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (preset === "cyber_y2k_pink") {
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    grad.addColorStop(0, "#fce7f3");
+    grad.addColorStop(0.5, "#f472b6");
+    grad.addColorStop(1, "#ec4899");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 36) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+  } else if (preset === "vintage_newspaper_dark") {
+    ctx.fillStyle = "#18181b";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#e4e4e7";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(36, 36, canvas.width - 72, canvas.height - 72);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 16px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.fillText("★ RIELLLYBOOTH DARK EDITION ★   •   VOL. IV NO. 104", canvas.width / 2, 60);
+  } else if (preset === "retro_cassette") {
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, "#fff7ed");
+    grad.addColorStop(0.5, "#ffedd5");
+    grad.addColorStop(1, "#fed7aa");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#ea580c";
+    ctx.fillRect(0, 0, canvas.width, 70);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 26px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("📼 STEREO CASSETTE • HIGH BIAS 90", canvas.width / 2, 45);
+  } else if (preset === "kawaii_boba") {
+    ctx.fillStyle = frameColor || "#fef3c7";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (preset === "heart_washi_tape") {
+    ctx.fillStyle = frameColor || "#fff1f2";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   } else if (preset === "y2k" || layout === "y2k_checker") {
     ctx.fillStyle = "#1e293b";
@@ -1029,6 +1153,26 @@ export const drawPhotoStrip = (
     const dateStamp = `'${todayStr.getFullYear().toString().substring(2)} ${String(todayStr.getMonth() + 1).padStart(2, "0")} ${String(todayStr.getDate()).padStart(2, "0")}`;
     ctx.fillText(dateStamp, canvas.width - 30, canvas.height - 30);
     ctx.restore();
+  } else if (preset === "cyber_y2k_pink") {
+    drawY2kStar(ctx, padding + 20, 40, 18, "#ffffff");
+    drawY2kStar(ctx, canvas.width - padding - 20, 40, 18, "#38bdf8");
+    drawY2kStar(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 20, 22, "#ffffff");
+  } else if (preset === "vintage_newspaper_dark") {
+    drawY2kStar(ctx, padding + 20, 40, 12, "#e4e4e7");
+    drawY2kStar(ctx, canvas.width - padding - 20, 40, 12, "#e4e4e7");
+  } else if (preset === "retro_cassette") {
+    drawCassetteSpool(ctx, 80, canvas.height - bottomFooterHeight + 40, 22);
+    drawCassetteSpool(ctx, canvas.width - 80, canvas.height - bottomFooterHeight + 40, 22);
+  } else if (preset === "kawaii_boba") {
+    drawBobaPearl(ctx, 60, canvas.height - bottomFooterHeight + 20, 14);
+    drawBobaPearl(ctx, 110, canvas.height - bottomFooterHeight + 35, 16);
+    drawBobaPearl(ctx, canvas.width - 60, canvas.height - bottomFooterHeight + 20, 14);
+    drawBobaPearl(ctx, canvas.width - 110, canvas.height - bottomFooterHeight + 35, 16);
+    drawBobaPearl(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 40, 18);
+  } else if (preset === "heart_washi_tape") {
+    drawWashiTape(ctx, padding + 30, 35, 75, 22, -12);
+    drawWashiTape(ctx, canvas.width - padding - 30, 35, 75, 22, 12);
+    drawWashiTape(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 25, 85, 24, 3);
   } else if (preset === "y2k") {
     drawY2kStar(ctx, padding + 15, 30, 14, "#ec4899");
     drawY2kStar(ctx, canvas.width - padding - 15, 30, 14, "#38bdf8");

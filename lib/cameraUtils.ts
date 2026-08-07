@@ -40,8 +40,14 @@ export const startCameraStream = async (facingMode: "user" | "environment" = "us
 };
 
 export const stopCameraStream = (stream: MediaStream | null): void => {
-  if (!stream) return;
-  stream.getTracks().forEach((track) => track.stop());
+  if (stream) {
+    stream.getTracks().forEach((track) => {
+      track.stop();
+      try {
+        stream.removeTrack(track);
+      } catch (e) {}
+    });
+  }
 };
 
 /**
