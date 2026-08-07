@@ -149,28 +149,31 @@ export default function CaptureStep({
       const video = videoRef.current;
       const canvas = activeArCanvasRef.current;
 
-      if (video && video.readyState >= 2 && canvas) {
-        if (canvas.width !== (video.videoWidth || 1280)) canvas.width = video.videoWidth || 1280;
-        if (canvas.height !== (video.videoHeight || 720)) canvas.height = video.videoHeight || 720;
+      if (video && canvas) {
+        // Continuously sync canvas dimensions to match video stream dimensions (fallback 640x480)
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
 
         const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           let landmarks: Array<{ x: number; y: number; z: number }> | null = null;
 
-          try {
-            const landmarker = await getFaceLandmarker();
-            if (landmarker && active) {
-              const results = landmarker.detectForVideo(video, performance.now());
-              if (results && results.faceLandmarks && results.faceLandmarks.length > 0) {
-                landmarks = results.faceLandmarks[0];
+          if (video.readyState >= 2) {
+            try {
+              const landmarker = await getFaceLandmarker();
+              if (landmarker && active) {
+                const results = landmarker.detectForVideo(video, performance.now());
+                if (results && results.faceLandmarks && results.faceLandmarks.length > 0) {
+                  landmarks = results.faceLandmarks[0];
+                }
               }
+            } catch (err) {
+              console.warn("FaceLandmarker detection loop warning:", err);
             }
-          } catch (err) {
-            console.warn("FaceLandmarker detection loop warning:", err);
           }
 
-          // Always draw filter (using 3D landmarks or hybrid fallback if initializing)
+          // Always draw filter (using 3D landmarks or immediate drawing fallback at X=width/2, Y=height*0.35)
           drawARFaceFilter(ctx, landmarks, arFilterPreset, canvas.width, canvas.height, false);
         }
       }
@@ -324,7 +327,7 @@ export default function CaptureStep({
             {/* Real-time AR Face Filter Overlay Canvas */}
             <canvas
               ref={activeArCanvasRef}
-              className={`absolute inset-0 w-full h-full object-cover pointer-events-none ${
+              className={`absolute inset-0 w-full h-full object-cover pointer-events-none z-20 ${
                 facingMode === "user" ? "-scale-x-100" : ""
               }`}
             />

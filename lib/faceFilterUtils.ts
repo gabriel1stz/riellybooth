@@ -1,7 +1,6 @@
 /**
  * Real-time MediaPipe 3D Face Mesh AR Filter Engine for rielllybooth ♡
- * Preloads all 8 transparent PNG filter images from /public/filters/ and uses hybrid fallback
- * rendering so AR face filters 100% ALWAYS appear on screen when tapped!
+ * Preloads all 8 transparent PNG filter images from /public/filters/ with error logging and immediate fallback drawing.
  */
 
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
@@ -35,38 +34,43 @@ let isInitializingFace = false;
 // Preloaded HTMLImageElement ImageCache
 const ImageCache: Map<string, HTMLImageElement> = new Map();
 
+// Exact filter paths matching /public/filters/
 const filterAssetMap: Record<string, string> = {
-  dog: "/filters/dog-classic.png",
-  dog_classic: "/filters/dog-classic.png",
-  puppy: "/filters/dog-classic.png",
-  coquette: "/filters/dog-coquette.png",
-  dog_coquette: "/filters/dog-coquette.png",
-  coquette_blush: "/filters/dog-coquette.png",
-  cat: "/filters/cat-whiskers.png",
-  cat_whiskers: "/filters/cat-whiskers.png",
   pixel: "/filters/pixel-glasses.png",
   pixel_glasses: "/filters/pixel-glasses.png",
   sunglasses: "/filters/pixel-glasses.png",
+  cat: "/filters/cat-whiskers.png",
+  cat_whiskers: "/filters/cat-whiskers.png",
+  dog: "/filters/dog-classic.png",
+  dog_classic: "/filters/dog-classic.png",
+  puppy: "/filters/dog-classic.png",
   chef: "/filters/chef-hat.png",
   chef_hat: "/filters/chef-hat.png",
   diving: "/filters/diving-mask.png",
   diving_mask: "/filters/diving-mask.png",
   santa: "/filters/santa-beard.png",
   santa_beard: "/filters/santa-beard.png",
+  santa_beard_glasses: "/filters/santa-beard.png",
+  coquette: "/filters/dog-coquette.png",
+  dog_coquette: "/filters/dog-coquette.png",
+  coquette_blush: "/filters/dog-coquette.png",
   strawberry: "/filters/strawberry-hat.png",
   strawberry_hat: "/filters/strawberry-hat.png",
 };
 
-// Preload all 8 PNG filter image assets into ImageCache immediately on mount
+// Robust Preloading with Error Logging
 if (typeof window !== "undefined") {
   Object.entries(filterAssetMap).forEach(([presetKey, srcPath]) => {
     if (!ImageCache.has(srcPath)) {
       const img = new Image();
       img.crossOrigin = "anonymous";
-      img.src = srcPath;
       img.onload = () => {
         ImageCache.set(srcPath, img);
       };
+      img.onerror = () => {
+        console.error("Failed to load filter image:", srcPath);
+      };
+      img.src = srcPath;
       ImageCache.set(presetKey, img);
     }
   });
@@ -78,6 +82,7 @@ const getImageFromCache = (preset: string): HTMLImageElement | null => {
   if (!cached && typeof window !== "undefined" && src) {
     cached = new Image();
     cached.crossOrigin = "anonymous";
+    cached.onerror = () => console.error("Failed to load filter image:", src);
     cached.src = src;
     ImageCache.set(src, cached);
   }
@@ -91,7 +96,7 @@ const normalizePresetKey = (preset: string): string => {
   if (preset === "coquette_blush" || preset === "dog_coquette") return "coquette";
   if (preset === "chef_hat") return "chef";
   if (preset === "diving_mask") return "diving";
-  if (preset === "santa_beard") return "santa";
+  if (preset === "santa_beard" || preset === "santa") return "santa";
   if (preset === "strawberry_hat") return "strawberry";
   return preset;
 };
@@ -125,7 +130,8 @@ export const getFaceLandmarker = async (): Promise<FaceLandmarker | null> => {
 
 /**
  * Draws preloaded PNG filter images onto 2D canvas using ctx.drawImage().
- * Uses 3D facial landmarks if detected, or HYBRID FALLBACK if model loading/low-light so filters NEVER stay blank!
+ * Uses 3D facial landmarks if detected, or IMMEDIATE DRAWING FALLBACK (X = width/2, Y = height*0.35)
+ * so filters NEVER stay blank or invisible!
  */
 export const drawARFaceFilter = (
   ctx: CanvasRenderingContext2D,
@@ -169,6 +175,7 @@ export const drawARFaceFilter = (
     const templeDist = Math.hypot(rightTemple.x - leftTemple.x, rightTemple.y - leftTemple.y);
 
     if (normKey === "pixel") {
+      // Landmark #33, #263
       const eyeCenter = { x: (leftEye.x + rightEye.x) / 2, y: (leftEye.y + rightEye.y) / 2 };
       ctx.translate(eyeCenter.x, eyeCenter.y);
       ctx.rotate(faceAngle);
@@ -177,6 +184,7 @@ export const drawARFaceFilter = (
       const targetH = targetW * aspect;
       ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
     } else if (normKey === "cat") {
+      // Landmark #1, #117
       ctx.translate(nose.x, nose.y);
       ctx.rotate(faceAngle);
       const targetW = faceWidth * 1.5;
@@ -184,6 +192,7 @@ export const drawARFaceFilter = (
       const targetH = targetW * aspect;
       ctx.drawImage(img, -targetW / 2, -targetH * 0.45, targetW, targetH);
     } else if (normKey === "dog") {
+      // Landmark #10 forehead & #1 nose
       const centerPoint = { x: (forehead.x + nose.x) / 2, y: (forehead.y + nose.y) / 2 };
       ctx.translate(centerPoint.x, centerPoint.y);
       ctx.rotate(faceAngle);
@@ -192,6 +201,7 @@ export const drawARFaceFilter = (
       const targetH = targetW * aspect;
       ctx.drawImage(img, -targetW / 2, -targetH * 0.4, targetW, targetH);
     } else if (normKey === "coquette") {
+      // Landmark #10 forehead & cheeks
       ctx.translate(forehead.x, forehead.y + faceWidth * 0.1);
       ctx.rotate(faceAngle);
       const targetW = faceWidth * 1.6;
@@ -199,6 +209,7 @@ export const drawARFaceFilter = (
       const targetH = targetW * aspect;
       ctx.drawImage(img, -targetW / 2, -targetH * 0.35, targetW, targetH);
     } else if (normKey === "chef") {
+      // Landmark #10 forehead
       ctx.translate(forehead.x, forehead.y - faceWidth * 0.35);
       ctx.rotate(faceAngle);
       const targetW = faceWidth * 1.4;
@@ -206,6 +217,7 @@ export const drawARFaceFilter = (
       const targetH = targetW * aspect;
       ctx.drawImage(img, -targetW / 2, -targetH * 0.7, targetW, targetH);
     } else if (normKey === "diving") {
+      // Landmark #168 nose bridge
       ctx.translate(noseBridge.x, noseBridge.y);
       ctx.rotate(faceAngle);
       const targetW = faceWidth * 1.5;
@@ -213,6 +225,7 @@ export const drawARFaceFilter = (
       const targetH = targetW * aspect;
       ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
     } else if (normKey === "santa") {
+      // Landmark #152 chin
       ctx.translate(chin.x, chin.y + faceWidth * 0.1);
       ctx.rotate(faceAngle);
       const targetW = faceWidth * 1.7;
@@ -220,6 +233,7 @@ export const drawARFaceFilter = (
       const targetH = targetW * aspect;
       ctx.drawImage(img, -targetW / 2, -targetH * 0.65, targetW, targetH);
     } else if (normKey === "strawberry") {
+      // Landmark #10 forehead & #234, #454 temples
       ctx.translate(forehead.x, forehead.y - faceWidth * 0.25);
       ctx.rotate(faceAngle);
       const targetW = templeDist * 1.6;
@@ -234,10 +248,10 @@ export const drawARFaceFilter = (
       ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
     }
   } else {
-    // 2. Hybrid Fallback Mode (Landmarks not yet detected / model initializing)
-    // Draw centered in upper-middle viewport so tapping filter IMMEDIATELY renders on screen!
+    // 2. IMMEDIATE DRAWING FALLBACK (X = width / 2, Y = height * 0.35)
+    // DO NOT SKIP DRAWING! Draw immediately at default head position
     const centerX = width / 2;
-    const centerY = height * 0.38;
+    const centerY = height * 0.35;
     const targetW = width * 0.55;
     const aspect = (img.naturalHeight || 200) / (img.naturalWidth || 300);
     const targetH = targetW * aspect;
