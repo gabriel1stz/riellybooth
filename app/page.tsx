@@ -712,6 +712,7 @@ export default function RielllyBooth() {
             onToggleAudio={() => setIsAudioOn((v) => !v)}
             facingMode={facingMode}
             onToggleFacingMode={handleToggleFacingMode}
+            retakeIndex={retakeIndex}
           />
         )}
 

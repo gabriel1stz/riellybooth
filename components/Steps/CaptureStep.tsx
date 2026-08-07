@@ -21,6 +21,7 @@ type CaptureStepProps = {
   onToggleAudio: () => void;
   facingMode?: "user" | "environment";
   onToggleFacingMode?: () => void;
+  retakeIndex?: number | null;
 };
 
 export default function CaptureStep({
@@ -38,6 +39,7 @@ export default function CaptureStep({
   onToggleAudio,
   facingMode = "user",
   onToggleFacingMode,
+  retakeIndex = null,
 }: CaptureStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -146,11 +148,21 @@ export default function CaptureStep({
       {/* Top Header Status Badge with Shot Counter Badge */}
       <div className="w-full flex flex-wrap justify-between items-center gap-3 bg-white border-2 border-pink-200 p-3 sm:p-4 rounded-2xl shadow-sm">
         <div className="flex items-center gap-3">
-          <span className="px-3.5 py-1.5 bg-pink-500 text-white font-extrabold text-xs sm:text-sm rounded-full shadow-xs tracking-wider">
-            SHOT {Math.min(currentShotIndex, 4)} / 4
+          <span className={`px-3.5 py-1.5 font-extrabold text-xs sm:text-sm rounded-full shadow-xs tracking-wider ${
+            retakeIndex !== null && retakeIndex !== undefined
+              ? "bg-amber-500 text-white animate-pulse"
+              : "bg-pink-500 text-white"
+          }`}>
+            {retakeIndex !== null && retakeIndex !== undefined
+              ? `RETAKE FOTO #${retakeIndex + 1}`
+              : `SHOT ${Math.min(currentShotIndex, 4)} / 4`}
           </span>
           <h3 className="text-base sm:text-lg font-black text-slate-800">
-            {shotsCount < 4 ? `Jepret Foto #${currentShotIndex}` : "Selesai 4 Pose! ✨"}
+            {retakeIndex !== null && retakeIndex !== undefined
+              ? `Mengulang Pose #${retakeIndex + 1} ✨`
+              : shotsCount < 4
+              ? `Jepret Foto #${currentShotIndex}`
+              : "Selesai 4 Pose! ✨"}
           </h3>
         </div>
 
@@ -248,12 +260,15 @@ export default function CaptureStep({
       <div className="flex items-center justify-center gap-3 py-1">
         {[0, 1, 2, 3].map((idx) => {
           const shot = shots[idx];
-          const isActive = idx === shotsCount;
+          const isRetakeTarget = retakeIndex === idx;
+          const isActive = retakeIndex !== null ? isRetakeTarget : idx === shotsCount;
           return (
             <div key={idx} className="flex flex-col items-center gap-1">
               <div
                 className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 flex items-center justify-center overflow-hidden transition-all duration-300 shadow-md ${
-                  shot
+                  isRetakeTarget
+                    ? "border-amber-500 bg-amber-100 ring-4 ring-amber-300 animate-pulse scale-110"
+                    : shot
                     ? "border-pink-500 bg-white scale-105"
                     : isActive
                     ? "border-pink-400 bg-pink-100 ring-4 ring-pink-200 animate-pulse"
@@ -266,8 +281,8 @@ export default function CaptureStep({
                   <span className="text-xs font-black">0{idx + 1}</span>
                 )}
               </div>
-              <span className={`text-[10px] font-bold ${shot ? "text-pink-600" : "text-slate-400"}`}>
-                #{idx + 1}
+              <span className={`text-[10px] font-bold ${isRetakeTarget ? "text-amber-600 font-extrabold" : shot ? "text-pink-600" : "text-slate-400"}`}>
+                #{idx + 1} {isRetakeTarget ? "(Ulang)" : ""}
               </span>
             </div>
           );

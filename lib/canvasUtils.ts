@@ -44,7 +44,12 @@ export type FramePreset =
   | "vintage_newspaper_dark"
   | "retro_cassette"
   | "kawaii_boba"
-  | "heart_washi_tape";
+  | "heart_washi_tape"
+  | "skena_coquette"
+  | "galau_club"
+  | "pestapora_pass"
+  | "struk_jaksel"
+  | "photocard_bias";
 
 export type CuteFilter =
   | "none"
@@ -573,8 +578,8 @@ export const drawPhotoStrip = (
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const filterString = `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) grayscale(${filter.grayscale}%)`;
-  const padding = preset === "film" || preset === "receipt" || preset === "polaroid_vintage" ? 60 : 36;
-  const bottomFooterHeight = isNewspaper ? 0 : preset === "concert_ticket" ? 240 : 220;
+  const padding = preset === "film" || preset === "receipt" || preset === "struk_jaksel" || preset === "polaroid_vintage" ? 60 : 36;
+  const bottomFooterHeight = isNewspaper ? 0 : preset === "concert_ticket" || preset === "pestapora_pass" ? 240 : 220;
   const filterIntensity = filter.filterIntensity ?? 100;
 
   // STEP 1: BACKGROUND & FRAME PRESETS
@@ -642,11 +647,11 @@ export const drawPhotoStrip = (
       }
     }
     ctx.globalAlpha = 1.0;
-  } else if (preset === "coquette") {
-    ctx.fillStyle = "#fff1f2";
+  } else if (preset === "coquette" || preset === "skena_coquette") {
+    ctx.fillStyle = frameColor || "#fce7f3";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = "#f472b6";
+    ctx.strokeStyle = preset === "skena_coquette" ? "#18181b" : "#f472b6";
     ctx.lineWidth = 4;
     ctx.setLineDash([8, 8]);
     ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
@@ -737,6 +742,64 @@ export const drawPhotoStrip = (
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   } else if (preset === "heart_washi_tape") {
     ctx.fillStyle = frameColor || "#fff1f2";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (preset === "galau_club") {
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, "#cbd5e1");
+    grad.addColorStop(0.5, "#f472b6");
+    grad.addColorStop(1, "#fda4af");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (preset === "pestapora_pass") {
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#ec4899";
+    ctx.fillRect(0, 0, canvas.width, 90);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 32px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("🎟️ VIP ACCESS • PESTAPORA", canvas.width / 2, 45);
+
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([12, 10]);
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height - 180);
+    ctx.lineTo(canvas.width, canvas.height - 180);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(40, canvas.height - 160, canvas.width - 80, 60);
+
+    ctx.fillStyle = "#0f172a";
+    for (let bx = 60; bx < canvas.width - 60; bx += Math.floor(Math.random() * 10 + 6)) {
+      ctx.fillRect(bx, canvas.height - 150, Math.random() > 0.5 ? 4 : 2, 40);
+    }
+  } else if (preset === "struk_jaksel") {
+    ctx.fillStyle = "#fafaf9";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#e7e5e4";
+    drawSerratedZigzag(ctx, canvas.width, 0, 16, 28);
+    ctx.fill();
+    drawSerratedZigzag(ctx, canvas.width, canvas.height - 16, 16, 28);
+    ctx.fill();
+
+    ctx.fillStyle = "#1c1917";
+    ctx.font = "900 28px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("CAFE JAKSEL #9901 • RIELLLYBOOTH", canvas.width / 2, 50);
+  } else if (preset === "photocard_bias") {
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    grad.addColorStop(0, "#fce7f3");
+    grad.addColorStop(0.33, "#e0e7ff");
+    grad.addColorStop(0.66, "#fbcfe8");
+    grad.addColorStop(1, "#c084fc");
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   } else if (preset === "y2k" || layout === "y2k_checker") {
     ctx.fillStyle = "#1e293b";
@@ -1173,6 +1236,27 @@ export const drawPhotoStrip = (
     drawWashiTape(ctx, padding + 30, 35, 75, 22, -12);
     drawWashiTape(ctx, canvas.width - padding - 30, 35, 75, 22, 12);
     drawWashiTape(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 25, 85, 24, 3);
+  } else if (preset === "skena_coquette") {
+    drawRibbonBow(ctx, padding + 20, 40, 0.9, "#18181b", "#000000", "#3f3f46");
+    drawRibbonBow(ctx, canvas.width - padding - 20, 40, 0.9, "#18181b", "#000000", "#3f3f46");
+    drawRibbonBow(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 10, 1.1, "#18181b", "#000000", "#3f3f46");
+  } else if (preset === "galau_club") {
+    ctx.save();
+    ctx.fillStyle = textColor || "#1c1917";
+    ctx.font = "italic bold 18px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.fillText('"Rencana Tuhan pasti baik, tapi rencana hari ini capek banget ✨"', canvas.width / 2, canvas.height - bottomFooterHeight + 25);
+    ctx.restore();
+  } else if (preset === "pestapora_pass") {
+    drawY2kStar(ctx, padding + 15, 45, 14, "#ffffff");
+    drawY2kStar(ctx, canvas.width - padding - 15, 45, 14, "#ffffff");
+  } else if (preset === "struk_jaksel") {
+    // Handled in STEP 6
+  } else if (preset === "photocard_bias") {
+    drawRibbonBow(ctx, padding + 20, 40, 0.8, "#ffffff", "#c084fc", "#e0e7ff");
+    drawY2kStar(ctx, canvas.width - padding - 20, 40, 18, "#ffffff");
+    drawY2kStar(ctx, padding + 25, canvas.height - bottomFooterHeight + 20, 20, "#38bdf8");
+    drawY2kStar(ctx, canvas.width - 25, canvas.height - bottomFooterHeight + 20, 20, "#ec4899");
   } else if (preset === "y2k") {
     drawY2kStar(ctx, padding + 15, 30, 14, "#ec4899");
     drawY2kStar(ctx, canvas.width - padding - 15, 30, 14, "#38bdf8");
@@ -1268,7 +1352,7 @@ export const drawPhotoStrip = (
       ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 60);
     } else {
       // REGULAR TYPOGRAPHY & GEN Z FOOTERS
-      if (preset === "receipt") {
+      if (preset === "receipt" || preset === "struk_jaksel") {
         ctx.fillStyle = textColor || "#1c1917";
         ctx.font = "14px monospace";
         ctx.textAlign = "left";
@@ -1277,15 +1361,20 @@ export const drawPhotoStrip = (
         const rightX = canvas.width - padding - 10;
         let curY = canvas.height - 175;
 
-        ctx.fillText("1x Cute Pose Snapshot", leftX, curY);
+        const line1Text = preset === "struk_jaksel" ? "1x Iced Oat Milk Latte" : "1x Cute Pose Snapshot";
+        const line1Price = preset === "struk_jaksel" ? "Rp 55.000" : "Rp 0";
+        const line2Text = preset === "struk_jaksel" ? "1x Matcha Espresso" : "1x Good Vibes Only";
+        const line2Price = preset === "struk_jaksel" ? "Rp 52.000" : "Rp 0";
+
+        ctx.fillText(line1Text, leftX, curY);
         ctx.textAlign = "right";
-        ctx.fillText("Rp 0", rightX, curY);
+        ctx.fillText(line1Price, rightX, curY);
 
         curY += 24;
         ctx.textAlign = "left";
-        ctx.fillText("1x Good Vibes Only", leftX, curY);
+        ctx.fillText(line2Text, leftX, curY);
         ctx.textAlign = "right";
-        ctx.fillText("Rp 0", rightX, curY);
+        ctx.fillText(line2Price, rightX, curY);
 
         curY += 30;
         ctx.strokeStyle = textColor || "#1c1917";
@@ -1303,7 +1392,7 @@ export const drawPhotoStrip = (
         ctx.fillText("TOTAL", leftX, curY);
         ctx.textAlign = "right";
         ctx.fillText("PAID WITH LOVE ♡", rightX, curY);
-      } else if (preset === "concert_ticket") {
+      } else if (preset === "concert_ticket" || preset === "pestapora_pass") {
         ctx.fillStyle = textColor || "#ffffff";
         ctx.font = `bold 24px ${fontCss}`;
         ctx.textAlign = "center";
