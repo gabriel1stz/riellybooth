@@ -67,7 +67,8 @@ export const revokeBlobUrl = (url?: string): void => {
  */
 export const captureCanvasSnapshot = (
   videoEl: HTMLVideoElement,
-  mirror: boolean = false
+  mirror: boolean = false,
+  arCanvasEl?: HTMLCanvasElement | null
 ): string => {
   const canvas = document.createElement("canvas");
   const width = videoEl.videoWidth || 1280;
@@ -86,6 +87,11 @@ export const captureCanvasSnapshot = (
   }
 
   ctx.drawImage(videoEl, 0, 0, width, height);
+
+  if (arCanvasEl) {
+    ctx.drawImage(arCanvasEl, 0, 0, width, height);
+  }
+
   ctx.restore();
 
   return canvas.toDataURL("image/png");

@@ -3,11 +3,13 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Camera, Upload, AlertCircle, RefreshCw, Hand, Sparkles, Image as ImageIcon, SwitchCamera } from "lucide-react";
 import { getHandLandmarker, isPeaceSignGesture } from "@/lib/gestureUtils";
+import { getFaceLandmarker, drawARFaceFilter, ARFaceFilterPreset } from "@/lib/faceFilterUtils";
 
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
 type CaptureStepProps = {
   videoRef: React.RefObject<HTMLVideoElement | null>;
+  arCanvasRef?: React.RefObject<HTMLCanvasElement | null>;
   isCapturing: boolean;
   countdown: number | null;
   currentShotIndex: number;
@@ -26,6 +28,7 @@ type CaptureStepProps = {
 
 export default function CaptureStep({
   videoRef,
+  arCanvasRef,
   isCapturing,
   countdown,
   currentShotIndex,
@@ -42,6 +45,11 @@ export default function CaptureStep({
   retakeIndex = null,
 }: CaptureStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const localArCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const activeArCanvasRef = arCanvasRef || localArCanvasRef;
+
+  // AR Face Filter State
+  const [arFilterPreset, setArFilterPreset] = useState<ARFaceFilterPreset>("none");
 
   // Gesture Detection State
   const [gestureEnabled, setGestureEnabled] = useState(true);
@@ -124,6 +132,59 @@ export default function CaptureStep({
     };
   }, [gestureEnabled, isCapturing, countdown, cameraError, onTakeSingleShot, videoRef]);
 
+  // Real-time MediaPipe 3D Face Mesh AR Filter Detection Loop
+  useEffect(() => {
+    let animFrameId: number;
+    let active = true;
+
+    if (arFilterPreset === "none" || !videoRef.current || cameraError) {
+      if (activeArCanvasRef.current) {
+        const ctx = activeArCanvasRef.current.getContext("2d");
+        if (ctx) ctx.clearRect(0, 0, activeArCanvasRef.current.width, activeArCanvasRef.current.height);
+      }
+      return;
+    }
+
+    const runFaceMesh = async () => {
+      const landmarker = await getFaceLandmarker();
+      if (!landmarker || !videoRef.current || !active) return;
+
+      const video = videoRef.current;
+      const canvas = activeArCanvasRef.current;
+
+      if (video.readyState >= 2 && canvas) {
+        if (canvas.width !== (video.videoWidth || 1280)) canvas.width = video.videoWidth || 1280;
+        if (canvas.height !== (video.videoHeight || 720)) canvas.height = video.videoHeight || 720;
+
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          try {
+            const results = landmarker.detectForVideo(video, performance.now());
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+              const faceLandmarks = results.faceLandmarks[0];
+              drawARFaceFilter(ctx, faceLandmarks, arFilterPreset, canvas.width, canvas.height, false);
+            }
+          } catch (err) {
+            console.warn("FaceLandmarker detection loop error:", err);
+          }
+        }
+      }
+
+      if (active) {
+        animFrameId = requestAnimationFrame(runFaceMesh);
+      }
+    };
+
+    runFaceMesh();
+
+    return () => {
+      active = false;
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+    };
+  }, [arFilterPreset, cameraError, videoRef, activeArCanvasRef]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       onUploadPhotos(e.target.files);
@@ -202,6 +263,33 @@ export default function CaptureStep({
         </div>
       </div>
 
+      {/* AR Face Filter Selection Toggle Bar */}
+      <div className="w-full flex items-center justify-center gap-1.5 sm:gap-2 bg-rose-50/90 border border-pink-200 p-2 rounded-2xl overflow-x-auto shadow-xs">
+        <span className="text-xs font-bold text-slate-700 flex items-center gap-1 shrink-0 px-1">
+          <Sparkles className="w-3.5 h-3.5 text-pink-500" /> Filter Wajah AR:
+        </span>
+        {[
+          { id: "none", label: "Off 🚫" },
+          { id: "puppy", label: "Puppy 🐶" },
+          { id: "cat_whiskers", label: "Cat 🐱" },
+          { id: "coquette_blush", label: "Coquette 🎀" },
+          { id: "sunglasses", label: "Glasses 😎" },
+        ].map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => setArFilterPreset(f.id as ARFaceFilterPreset)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap border ${
+              arFilterPreset === f.id
+                ? "bg-pink-500 text-white border-pink-600 shadow-xs scale-105"
+                : "bg-white text-slate-700 border-pink-200 hover:bg-rose-100"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {/* Main WebRTC Camera Viewport Container (EXTRA LARGE MOBILE VIEWPORT) */}
       <div className="relative w-full max-w-3xl aspect-[3/4] sm:aspect-[4/3] bg-slate-900 border-2 sm:border-4 border-pink-300 rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl flex items-center justify-center">
         {cameraError ? (
@@ -224,6 +312,14 @@ export default function CaptureStep({
               playsInline
               muted
               className={`w-full h-full object-cover ${facingMode === "user" ? "-scale-x-100" : ""}`}
+            />
+
+            {/* Real-time AR Face Filter Overlay Canvas */}
+            <canvas
+              ref={activeArCanvasRef}
+              className={`absolute inset-0 w-full h-full object-cover pointer-events-none ${
+                facingMode === "user" ? "-scale-x-100" : ""
+              }`}
             />
 
             {/* Gesture Progress Overlay */}

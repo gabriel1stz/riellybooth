@@ -71,6 +71,7 @@ export default function RielllyBooth() {
   const [isExportingVideo, setIsExportingVideo] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const arCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Image cache map for instant flicker-free canvas redraws
   const loadedImgMapRef = useRef<Map<string, HTMLImageElement>>(new Map());
@@ -274,7 +275,7 @@ export default function RielllyBooth() {
 
     if (videoRef.current) {
       triggerSnapshotFx();
-      const dataUrl = captureCanvasSnapshot(videoRef.current, false);
+      const dataUrl = captureCanvasSnapshot(videoRef.current, false, arCanvasRef.current);
       const shotId = Date.now() + Math.random();
       const streamToRecord = mediaStreamRef.current;
 
@@ -689,6 +690,7 @@ export default function RielllyBooth() {
         {step === "capture" && (
           <CaptureStep
             videoRef={videoRef}
+            arCanvasRef={arCanvasRef}
             isCapturing={isCapturing}
             countdown={countdown}
             currentShotIndex={currentShotIndex}
