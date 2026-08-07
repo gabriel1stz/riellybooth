@@ -750,20 +750,32 @@ export const drawPhotoStrip = (
     grad.addColorStop(1, "#fda4af");
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-  } else if (preset === "pestapora_pass") {
+  } else if (preset === "concert_ticket") {
     ctx.fillStyle = "#0f172a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "#ec4899";
-    ctx.fillRect(0, 0, canvas.width, 90);
+    // Top Header Banner
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(0, 0, canvas.width, 160);
 
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "900 32px sans-serif";
+    // Gold Accent Outer Border
+    ctx.strokeStyle = "#f59e0b";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+
+    // Header Text (Y = 95px)
+    ctx.fillStyle = "#f59e0b";
+    ctx.font = "bold 26px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("🎟️ VIP ACCESS • PESTAPORA", canvas.width / 2, 45);
+    ctx.fillText("🎟️ CONCERT TICKET • VIP ADMIT ONE", canvas.width / 2, 95);
 
-    ctx.strokeStyle = "#475569";
+    // Gold Star Accents
+    drawY2kStar(ctx, 50, 95, 14, "#fbbf24");
+    drawY2kStar(ctx, canvas.width - 50, 95, 14, "#fbbf24");
+
+    // Perforated Stub Line at Bottom
+    ctx.strokeStyle = "#f59e0b";
     ctx.lineWidth = 3;
     ctx.setLineDash([12, 10]);
     ctx.beginPath();
@@ -772,12 +784,86 @@ export const drawPhotoStrip = (
     ctx.stroke();
     ctx.setLineDash([]);
 
+    // Barcode Container & Barcode Lines at Bottom
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(40, canvas.height - 160, canvas.width - 80, 60);
+    ctx.fillRect(40, canvas.height - 160, canvas.width - 80, 55);
 
     ctx.fillStyle = "#0f172a";
     for (let bx = 60; bx < canvas.width - 60; bx += Math.floor(Math.random() * 10 + 6)) {
-      ctx.fillRect(bx, canvas.height - 150, Math.random() > 0.5 ? 4 : 2, 40);
+      ctx.fillRect(bx, canvas.height - 150, Math.random() > 0.5 ? 4 : 2, 36);
+    }
+  } else if (preset === "pestapora_pass") {
+    // Vibrant Indie Festival Lanyard Pass (Neon Yellow / Magenta Theme)
+    const passBg = frameColor || "#fff000";
+    ctx.fillStyle = passBg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Top Lanyard Hole Punch Vector (Slot at top center)
+    ctx.save();
+    ctx.fillStyle = "#18181b";
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.ellipse(canvas.width / 2, 32, 36, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // Top Header Banner
+    ctx.fillStyle = "#ff5588";
+    ctx.fillRect(0, 60, canvas.width, 105);
+
+    // Header Text (Y = 110px)
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 28px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("⚡ PESTAPORA 2026 • ALL ACCESS ⚡", canvas.width / 2, 112);
+
+    // Side Ticket Notches (Perforated Semicircle Cutouts on Left & Right)
+    ctx.fillStyle = "#09090b";
+    ctx.beginPath();
+    ctx.arc(0, canvas.height - 180, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(canvas.width, canvas.height - 180, 20, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Stage Stamps & Badges (Main Stage / VIP / Stage 01)
+    ctx.save();
+    // Left Holographic Stage Stamp
+    ctx.fillStyle = "#18181b";
+    ctx.fillRect(20, 168, 140, 22);
+    ctx.fillStyle = "#fff000";
+    ctx.font = "900 11px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("MAIN STAGE 01", 90, 183);
+
+    // Right VIP Holographic Badge
+    ctx.fillStyle = "#ff5588";
+    ctx.fillRect(canvas.width - 100, 168, 80, 22);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 12px sans-serif";
+    ctx.fillText("★ VIP PASS", canvas.width - 60, 183);
+    ctx.restore();
+
+    // Bottom Perforated Line
+    ctx.strokeStyle = "#18181b";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([10, 8]);
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height - 180);
+    ctx.lineTo(canvas.width, canvas.height - 180);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Bottom Festival Barcode Stub
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(40, canvas.height - 160, canvas.width - 80, 55);
+
+    ctx.fillStyle = "#18181b";
+    for (let bx = 60; bx < canvas.width - 60; bx += Math.floor(Math.random() * 10 + 6)) {
+      ctx.fillRect(bx, canvas.height - 150, Math.random() > 0.5 ? 4 : 2, 36);
     }
   } else if (preset === "struk_jaksel") {
     ctx.fillStyle = "#fafaf9";
@@ -846,38 +932,6 @@ export const drawPhotoStrip = (
     ctx.font = "900 30px monospace";
     ctx.textAlign = "center";
     ctx.fillText("RECEIPT #88219 • RIELLLYBOOTH", canvas.width / 2, 50);
-  } else if (preset === "concert_ticket") {
-    // 🎟️ MUSIC FESTIVAL CONCERT TICKET STUB WITH BARCODE & PERFORATED BOUNDS
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "#ec4899";
-    ctx.fillRect(0, 0, canvas.width, 90);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "900 34px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("🎟️ RIELLLYBOOTH FESTIVAL VIP", canvas.width / 2, 45);
-
-    // Perforated Dashed Rule Line
-    ctx.strokeStyle = "#475569";
-    ctx.lineWidth = 3;
-    ctx.setLineDash([12, 10]);
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height - 180);
-    ctx.lineTo(canvas.width, canvas.height - 180);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Ticket Stub Barcode Lines at Bottom
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(40, canvas.height - 160, canvas.width - 80, 60);
-
-    ctx.fillStyle = "#0f172a";
-    for (let bx = 60; bx < canvas.width - 60; bx += Math.floor(Math.random() * 10 + 6)) {
-      ctx.fillRect(bx, canvas.height - 150, Math.random() > 0.5 ? 4 : 2, 40);
-    }
   } else if (preset === "photocard") {
     // 💖 K-POP PHOTOCARD BINDER SLEEVE
     const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -1099,7 +1153,7 @@ export const drawPhotoStrip = (
       applyCuteFilterOverlay(ctx, sx, sy, sideW, sideH, cuteFilter, filter.beautyGlow, 12, filterIntensity);
     }
   } else if (layout.startsWith("strip") || layout === "y2k_checker") {
-    const topMargin = preset === "concert_ticket" ? 100 : padding;
+    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" ? 200 : padding;
     const photoW = canvas.width - padding * 2;
     const availableH = canvas.height - topMargin - bottomFooterHeight - padding * photoCount;
     const photoH = availableH / photoCount;
@@ -1143,7 +1197,7 @@ export const drawPhotoStrip = (
     }
   } else {
     // grid_2x2, purikura_4cut, scrapbook
-    const topMargin = preset === "concert_ticket" ? 100 : padding;
+    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" ? 200 : padding;
     const photoW = (canvas.width - padding * 3) / 2;
     const availableH = canvas.height - topMargin - bottomFooterHeight - padding * 2;
     const photoH = availableH / 2;
