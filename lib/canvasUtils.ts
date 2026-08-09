@@ -1437,7 +1437,7 @@ export const drawPhotoStrip = (
     ctx.fillRect(0, 0, canvas.width, 880);
 
     // Header — Y = 70
-    ctx.fillStyle = PASSPORT_RED;
+    ctx.fillStyle = "#8B1E1E";
     ctx.font = "bold 44px serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -1464,7 +1464,7 @@ export const drawPhotoStrip = (
     const fieldX = 490;
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = PASSPORT_RED;
+    ctx.fillStyle = "#8B1E1E";
     ctx.font = "bold 20px monospace";
     ctx.fillText("LAST NAME    :  THE FAVORITE", fieldX, 200);
     ctx.fillText("FIRST NAME   :  XO XO XO", fieldX, 245);
@@ -1476,7 +1476,7 @@ export const drawPhotoStrip = (
       ctx.strokeRect(fieldX + c * 42, 279, 22, 22);
     }
 
-    ctx.fillStyle = PASSPORT_RED;
+    ctx.fillStyle = "#8B1E1E";
     ctx.fillText("NATIONALITY  :  INDONESIAN", fieldX, 335);
     ctx.fillText("BIRTHDAY     :  12.12.2000", fieldX, 380);
     ctx.fillText("PLACE OF BIRTH: YOGYAKARTA", fieldX, 425);
@@ -1497,7 +1497,7 @@ export const drawPhotoStrip = (
     ctx.restore();
 
     // Description — Y = 530, 14px monospace, max width 620
-    ctx.fillStyle = PASSPORT_RED;
+    ctx.fillStyle = "#8B1E1E";
     ctx.font = "14px monospace";
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
@@ -1521,7 +1521,7 @@ export const drawPhotoStrip = (
     ctx.moveTo(680, 820);
     ctx.lineTo(1140, 820);
     ctx.stroke();
-    ctx.fillStyle = PASSPORT_RED;
+    ctx.fillStyle = "#8B1E1E";
     ctx.font = "bold 18px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -1531,8 +1531,51 @@ export const drawPhotoStrip = (
     ctx.fillStyle = PASSPORT_KHAKI;
     ctx.fillRect(0, 880, 1200, 920);
 
+    // Cute scrapbook grid — subtle graph-paper lines behind every photo.
+    // Kept intentionally low-contrast so the photos remain the visual focus.
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 950, 1200, 850);
+    ctx.clip();
+    ctx.strokeStyle = "rgba(139, 30, 30, 0.16)";
+    ctx.lineWidth = 1.5;
+    const grid = 85;
+    for (let gx = 30; gx <= 1170; gx += grid) {
+      ctx.beginPath();
+      ctx.moveTo(gx, 950);
+      ctx.lineTo(gx, 1800);
+      ctx.stroke();
+    }
+    for (let gy = 950; gy <= 1800; gy += grid) {
+      ctx.beginPath();
+      ctx.moveTo(0, gy);
+      ctx.lineTo(1200, gy);
+      ctx.stroke();
+    }
+
+    // Tiny scrapbook doodles for the playful Gen-Z look.
+    ctx.fillStyle = "rgba(139, 30, 30, 0.42)";
+    const dots = [
+      [52, 1000], [1150, 1015], [55, 1325], [1140, 1340],
+      [390, 1510], [820, 1080], [1090, 1660], [300, 1730]
+    ];
+    for (const [dx, dy] of dots) {
+      ctx.beginPath();
+      ctx.arc(dx, dy, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.font = "24px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("♡", 45, 1180);
+    ctx.fillText("✦", 1145, 1250);
+    ctx.fillText("♡", 805, 1730);
+    ctx.fillText("✦", 375, 1100);
+    ctx.restore();
+
     // Full-width dark-red banner — Y = 900
-    ctx.fillStyle = PASSPORT_RED;
+    ctx.fillStyle = "#8B1E1E";
     ctx.fillRect(0, 900, 1200, 50);
     ctx.fillStyle = "#FFFFFF";
     ctx.font = "bold 26px serif";
@@ -1678,56 +1721,77 @@ export const drawPhotoStrip = (
     // Layer 2 — Photo #4 bottom-center, -2°
     if (images[3]) drawPassportPolaroid(images[3], 430, 1280, 320, 360, -2);
 
-    // Layer 3 — Bottom-left blue postage stamp + signature
+    // Layer 3 — blue postage stamp intentionally overlapping Photo #2.
+    // This creates the clipped/stacked scrapbook feel from the reference.
     ctx.save();
-    ctx.translate(60, 1380);
-    ctx.fillStyle = "#2563EB";
-    ctx.fillRect(0, 0, 150, 105);
+    ctx.translate(250, 1215);
+    ctx.rotate((-7 * Math.PI) / 180);
+    ctx.fillStyle = "rgba(37, 99, 235, 0.90)";
+    ctx.fillRect(0, 0, 165, 112);
     ctx.strokeStyle = "#FFFFFF";
     ctx.lineWidth = 3;
-    ctx.strokeRect(8, 8, 134, 89);
+    ctx.setLineDash([7, 5]);
+    ctx.strokeRect(8, 8, 149, 96);
+    ctx.setLineDash([]);
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 14px sans-serif";
+    ctx.font = "bold 13px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
-    ctx.fillText("AIR MAIL", 75, 42);
+    ctx.fillText("AIR MAIL", 82, 36);
     ctx.font = "bold 25px serif";
-    ctx.fillText("50¢", 75, 78);
+    ctx.fillText("50¢", 82, 70);
+    ctx.font = "10px monospace";
+    ctx.fillText("MEMORIES", 82, 92);
     ctx.restore();
 
+    // Signature sits under the postage stamp like a handwritten scrapbook note.
     ctx.save();
-    ctx.translate(60, 1510);
+    ctx.translate(70, 1515);
     ctx.strokeStyle = "#2563EB";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, 30);
-    ctx.lineTo(300, 30);
+    ctx.lineTo(335, 30);
     ctx.stroke();
     ctx.fillStyle = "#2563EB";
-    ctx.font = "italic 18px serif";
+    ctx.font = "italic 20px serif";
     ctx.textAlign = "left";
-    ctx.fillText("Signature of the Folder", 25, 18);
+    ctx.fillText("Signature of the Folder", 20, 18);
     ctx.restore();
 
-    // Layer 3 — Bottom-right circular blue seal overlapping Photo #4
+    // Layer 3 — circular blue seal overlaps the lower-right edge of Photo #4.
     ctx.save();
-    ctx.translate(855, 1460);
+    ctx.translate(760, 1430);
     ctx.rotate((-10 * Math.PI) / 180);
+    ctx.globalAlpha = 0.88;
     ctx.strokeStyle = "#2563EB";
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.arc(0, 0, 78, 0, Math.PI * 2);
+    ctx.arc(0, 0, 82, 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(0, 0, 65, 0, Math.PI * 2);
+    ctx.arc(0, 0, 67, 0, Math.PI * 2);
     ctx.stroke();
     ctx.fillStyle = "#2563EB";
-    ctx.font = "bold 15px monospace";
+    ctx.font = "bold 14px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("VALID STAMP", 0, -24);
+    ctx.fillText("VALID STAMP", 0, -26);
     ctx.fillText("★ APPROVED ★", 0, 0);
-    ctx.fillText("RIELLLYBOOTH", 0, 24);
+    ctx.fillText("RIELLLYBOOTH", 0, 25);
+    ctx.restore();
+
+    // Extra tiny paper label partially tucked behind Photo #4.
+    ctx.save();
+    ctx.translate(925, 1335);
+    ctx.rotate((4 * Math.PI) / 180);
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.fillRect(0, 0, 170, 48);
+    ctx.fillStyle = "#8B1E1E";
+    ctx.font = "bold 12px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("MEMORY / 09•26", 85, 24);
     ctx.restore();
   } else if (isNewspaper) {
     // 📰 PRECISE NEWSPAPER PHOTO BOUNDS & NON-OVERLAPPING ARTICLE COLUMNS
