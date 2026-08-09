@@ -559,6 +559,7 @@ export default function EditorStep({
                 <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z Indonesia:</label>
                 <div className="max-h-48 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
                   {[
+                    { id: "cupids_letter", label: "💌 Cupid's Letter" },
                     { id: "passport", label: "✈️ Passport Memories" },
                     { id: "toy_story", label: "🤠 Toy Story" },
                     { id: "spongebob", label: "🧽 SpongeBob" },

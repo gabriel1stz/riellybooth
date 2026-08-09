@@ -45,6 +45,7 @@ export type FramePreset =
   | "retro_cassette"
   | "kawaii_boba"
   | "heart_washi_tape"
+  | "cupids_letter"
   | "passport"
   | "skena_coquette"
   | "galau_club"
@@ -715,6 +716,47 @@ function drawSpongeBobClothingFooter(ctx: CanvasRenderingContext2D, width: numbe
   ctx.restore();
 }
 
+function drawScallopedStampFrame(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  toothRadius: number = 8
+) {
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+
+  // Top edge scallops
+  const stepX = toothRadius * 2.4;
+  for (let curX = x; curX < x + w; curX += stepX) {
+    ctx.lineTo(curX, y);
+    ctx.arc(curX + toothRadius, y, toothRadius, Math.PI, 0, true);
+  }
+  ctx.lineTo(x + w, y);
+
+  // Right edge scallops
+  for (let curY = y; curY < y + h; curY += stepX) {
+    ctx.lineTo(x + w, curY);
+    ctx.arc(x + w, curY + toothRadius, toothRadius, -Math.PI / 2, Math.PI / 2, true);
+  }
+  ctx.lineTo(x + w, y + h);
+
+  // Bottom edge scallops
+  for (let curX = x + w; curX > x; curX -= stepX) {
+    ctx.lineTo(curX, y + h);
+    ctx.arc(curX - toothRadius, y + h, toothRadius, 0, Math.PI, true);
+  }
+  ctx.lineTo(x, y + h);
+
+  // Left edge scallops
+  for (let curY = y + h; curY > y; curY -= stepX) {
+    ctx.lineTo(x, curY);
+    ctx.arc(x, curY - toothRadius, toothRadius, Math.PI / 2, -Math.PI / 2, true);
+  }
+  ctx.closePath();
+}
+
 /**
  * Load all photo images asynchronously using Promise.all to guarantee 100% complete loading
  */
@@ -1259,81 +1301,231 @@ export const drawPhotoStrip = (
         ctx.fill();
       }
     }
-  } else if (preset === "passport") {
-    // ✈️ SUMMER MEMORIES PASSPORT
-    // Top Half: Cream/Beige Passport ID Page (Y = 0 .. height * 0.5)
-    ctx.fillStyle = "#fbf8f2";
-    ctx.fillRect(0, 0, canvas.width, canvas.height * 0.5);
+  } else if (preset === "cupids_letter") {
+    // 💌 CUPID'S LETTER
+    // Card Background: Clean off-white card with a bold red outer border frame (#C8102E)
+    ctx.fillStyle = "#fffdfa";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Divider Line (Gold & Dashed)
-    ctx.strokeStyle = "#d97706";
+    // Bold red outer border frame
+    ctx.strokeStyle = "#C8102E";
+    ctx.lineWidth = 24;
+    ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+    ctx.lineWidth = 4;
+    ctx.strokeRect(32, 32, canvas.width - 64, canvas.height - 64);
+
+    // Header: Cursive red script "Cupid's Letter" + Cupid angel silhouette vector 🏹
+    ctx.fillStyle = "#C8102E";
+    ctx.font = "italic bold 52px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("💌  Cupid's Letter  🏹", canvas.width / 2, 90);
+
+    ctx.font = "bold 16px monospace";
+    ctx.fillText("SPECIAL DELIVERY • OFFICIAL LOVE MAIL", canvas.width / 2, 140);
+
+    // Left Column (Fill-in Love Letter Fields)
+    const fieldX = 70;
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#C8102E";
+    ctx.font = "bold 20px 'Georgia', serif";
+
+    // Fields with dotted underline guides
+    const drawDottedLine = (x1: number, y1: number, x2: number, y2: number) => {
+      ctx.save();
+      ctx.strokeStyle = "#C8102E";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    // To:
+    ctx.fillText("To:", fieldX, 220);
+    drawDottedLine(110, 224, 560, 224);
+
+    // Name:
+    ctx.fillText("Name:", fieldX, 280);
+    drawDottedLine(145, 284, 560, 284);
+
+    // Zodiac:
+    ctx.fillText("Zodiac:", fieldX, 340);
+    drawDottedLine(155, 344, 560, 344);
+
+    // Love Language:
+    ctx.fillText("Love Language:", fieldX, 400);
+    drawDottedLine(230, 404, 560, 404);
+
+    // Personality Type: Introvert / Extrovert / Ambivert
+    ctx.fillText("Personality Type:", fieldX, 460);
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillText("☐ Introvert   ☐ Extrovert   ☐ Ambivert", fieldX + 10, 500);
+
+    // Say hi on my IG @ _________
+    ctx.font = "bold 20px 'Georgia', serif";
+    ctx.fillText("Say hi on my IG @", fieldX, 560);
+    drawDottedLine(260, 564, 560, 564);
+
+    // Notes: with dotted lines
+    ctx.fillText("Notes / Secret Message:", fieldX, 630);
+    drawDottedLine(fieldX, 690, 560, 690);
+    drawDottedLine(fieldX, 740, 560, 740);
+    drawDottedLine(fieldX, 790, 560, 790);
+    drawDottedLine(fieldX, 840, 560, 840);
+
+    // Additional Love Mail Decorative Badges on Left Bottom
+    ctx.save();
+    ctx.strokeStyle = "#C8102E";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(fieldX, 900, 490, 740);
+
+    ctx.fillStyle = "#C8102E";
+    ctx.font = "italic bold 22px 'Georgia', serif";
+    ctx.fillText("♡ Cupid's Official Seal of True Love ♡", fieldX + 40, 940);
+
+    ctx.font = "bold 15px monospace";
+    drawWrappedCanvasText(
+      ctx,
+      "This official letter certifies that the photos attached on the right carry 100% pure affection. Handle with tender care and deliver to your special someone.",
+      fieldX + 20,
+      980,
+      450,
+      24
+    );
+
+    // Cupid Angel Silhouette Vector
+    ctx.translate(fieldX + 245, 1260);
+    ctx.strokeStyle = "#C8102E";
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(0, canvas.height * 0.5);
-    ctx.lineTo(canvas.width, canvas.height * 0.5);
+    ctx.arc(0, -30, 20, 0, Math.PI * 2); // head
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, -10);
+    ctx.lineTo(0, 50); // body
+    ctx.lineTo(-30, 90); // left leg
+    ctx.moveTo(0, 50);
+    ctx.lineTo(30, 90); // right leg
+    ctx.moveTo(-40, 10);
+    ctx.lineTo(40, 10); // arms
     ctx.stroke();
 
-    // Top Header: "SUMMER MEMORIES PASSPORT" with 3 red star vectors ⭐
-    ctx.fillStyle = "#b91c1c";
-    ctx.font = "900 36px 'Georgia', serif";
+    // Wings
+    ctx.beginPath();
+    ctx.ellipse(-30, 0, 35, 15, -Math.PI / 4, 0, Math.PI * 2);
+    ctx.ellipse(30, 0, 35, 15, Math.PI / 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  } else if (preset === "passport") {
+    // ✈️ SUMMER MEMORIES PASSPORT
+    // TOP PASSPORT PAGE (Y = 0 to 900px, Off-White Background #F6F3EB)
+    ctx.fillStyle = "#F6F3EB";
+    ctx.fillRect(0, 0, canvas.width, 900);
+
+    // Y = 80px: Render header "SUMMER MEMORIES PASSPORT" in dark red (#8B1E1E, font bold 48px serif) centered
+    ctx.fillStyle = "#8B1E1E";
+    ctx.font = "bold 48px 'Georgia', serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("⭐  SUMMER MEMORIES PASSPORT  ⭐", canvas.width / 2, 70);
+    ctx.fillText("SUMMER MEMORIES PASSPORT", canvas.width / 2, 80);
 
-    ctx.fillStyle = "#78350f";
-    ctx.font = "bold 18px sans-serif";
-    ctx.fillText("PASSEPORT • REPUBLIK RIELLLYBOOTH • OFFICIAL ID", canvas.width / 2, 115);
+    // Y = 130px: Draw 3 red star vectors ⭐⭐⭐ centered. Draw double rule lines below at Y = 160px
+    ctx.fillStyle = "#8B1E1E";
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText("★   ★   ★", canvas.width / 2, 130);
 
-    // Right Side Passport Data Fields (X = 520px)
-    const fieldX = 520;
-    let fieldY = 220;
-    const lineHeight = 75;
+    ctx.strokeStyle = "#8B1E1E";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(60, 156);
+    ctx.lineTo(canvas.width - 60, 156);
+    ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(60, 162);
+    ctx.lineTo(canvas.width - 60, 162);
+    ctx.stroke();
 
-    const fields = [
-      { label: "LAST NAME / NAMA BELAKANG", val: "THE FAVORITE" },
-      { label: "FIRST NAME / NAMA DEPAN", val: "XO XO XO" },
-      { label: "NATIONALITY / KEWAGANEGARAAN", val: "INDONESIAN 🇮🇩" },
-      { label: "DATE OF BIRTH / TANGGAL LAHIR", val: "12.12.2000" },
-      { label: "PASSPORT NO / NO PASPOR", val: "RP-2026-HAPPY" },
-    ];
-
+    // Right Passport Data Fields (X = 540px, dark red #8B1E1E font bold 22px monospace)
+    const fieldX = 540;
     ctx.textAlign = "left";
-    fields.forEach((f) => {
-      ctx.fillStyle = "#92400e";
-      ctx.font = "bold 13px sans-serif";
-      ctx.fillText(f.label, fieldX, fieldY);
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "#8B1E1E";
+    ctx.font = "bold 22px monospace";
 
-      ctx.fillStyle = "#1c1917";
-      ctx.font = "900 22px monospace";
-      ctx.fillText(f.val, fieldX, fieldY + 28);
+    ctx.fillText("LAST NAME    :  THE FAVORITE", fieldX, 220);
+    ctx.fillText("FIRST NAME   :  XO XO XO", fieldX, 270);
 
-      fieldY += lineHeight;
-    });
+    // Y = 320px: Draw 5 checkbox squares ☐  ☐  ☐  ☐  ☐
+    for (let c = 0; c < 5; c++) {
+      ctx.strokeRect(fieldX + c * 40, 304, 22, 22);
+    }
 
-    // "VALID UNTIL : 12.08.26" Blue Stamp Box
+    ctx.fillText("NATIONALITY  :  INDONESIAN", fieldX, 370);
+    ctx.fillText("BIRTHDAY     :  12.12.2000", fieldX, 420);
+    ctx.fillText("PLACE OF BIRTH: YOGYAKARTA", fieldX, 470);
+    ctx.fillText("VALID UNTIL  :  12.09.26", fieldX, 520);
+
+    // Y = 510px: Draw a blue ink stamp rotated -12deg at X = 720px with text "12.09.26"
     ctx.save();
-    ctx.translate(fieldX + 240, 680);
-    ctx.rotate(-0.15);
+    ctx.translate(760, 500);
+    ctx.rotate(-0.21);
     ctx.strokeStyle = "#1d4ed8";
     ctx.lineWidth = 4;
-    ctx.strokeRect(-120, -35, 240, 70);
+    ctx.strokeRect(-75, -24, 150, 48);
     ctx.fillStyle = "#1d4ed8";
-    ctx.font = "900 18px monospace";
+    ctx.font = "900 22px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("VALID UNTIL", 0, -10);
-    ctx.fillText("12.08.26 ★ APPROVED", 0, 16);
+    ctx.fillText("12.09.26", 0, 0);
     ctx.restore();
 
-    // Bottom Half: Identifications As Of Late / Scrapbook Page (Y = height * 0.5 .. height)
-    ctx.fillStyle = "#f5efe6";
-    ctx.fillRect(0, canvas.height * 0.5, canvas.width, canvas.height * 0.5);
+    // Y = 580px: Draw wrapped passport description paragraph (15px monospace, max-width 580px)
+    ctx.fillStyle = "#8B1E1E";
+    ctx.font = "bold 15px monospace";
+    drawWrappedCanvasText(
+      ctx,
+      "Like flipping through an old passport, each photo captures who you were in that moment. Freeze today's chapter and add it to the memoir you'll look back on tomorrow.",
+      fieldX,
+      580,
+      580,
+      24
+    );
 
-    ctx.fillStyle = "#78350f";
-    ctx.font = "900 32px 'Georgia', serif";
+    // Y = 840px: Draw divider line with centered text "VICTION"
+    ctx.strokeStyle = "#8B1E1E";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(60, 840);
+    ctx.lineTo(520, 840);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(680, 840);
+    ctx.lineTo(canvas.width - 60, 840);
+    ctx.stroke();
+
+    ctx.fillStyle = "#8B1E1E";
+    ctx.font = "bold 18px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("✈️ IDENTIFICATIONS AS OF LATE ✈️", canvas.width / 2, canvas.height * 0.5 + 60);
+    ctx.fillText("VICTION", canvas.width / 2, 840);
+
+    // BOTTOM SCRAPBOOK PAGE (Y = 900 to 1800px, Tan Background #EBDCB9)
+    ctx.fillStyle = "#EBDCB9";
+    ctx.fillRect(0, 900, canvas.width, 900);
+
+    // Y = 930px: Draw dark red header banner (#8B1E1E) with white text "IDENTIFICATIONS AS OF LATE" centered
+    ctx.fillStyle = "#8B1E1E";
+    ctx.fillRect(200, 905, 800, 50);
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 26px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("IDENTIFICATIONS AS OF LATE", canvas.width / 2, 930);
   } else if (preset === "galau_quote") {
     // ☕ GALAU QUOTE AESTHETIC GEN Z
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -1349,107 +1541,202 @@ export const drawPhotoStrip = (
   ctx.restore();
 
   // STEP 2: DRAW PHOTOS ACCORDING TO THE LAYOUT MODES WITH STRICT CLIPPING
-  if (preset === "passport") {
-    // ✈️ SUMMER MEMORIES PASSPORT
-    // 1. Top Main Passport Photo #1 (X = 60px, Y = 240px, W = 420px, H = 560px)
-    if (images[0]) {
-      ctx.save();
-      ctx.filter = filterString;
-      drawImageCover(ctx, images[0], 60, 240, 420, 560, 16, isFlipped);
-      ctx.restore();
-
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 10;
-      ctx.strokeRect(60, 240, 420, 560);
-      ctx.strokeStyle = "#78350f";
-      ctx.lineWidth = 3;
-      ctx.strokeRect(55, 235, 430, 570);
-
-      applyCuteFilterOverlay(ctx, 60, 240, 420, 560, cuteFilter, filter.beautyGlow, 16, filterIntensity);
-    }
-
-    // 2. Bottom 3 Scattered Photos (#2, #3, #4) in Scrapbook Section
-    const botSlots = [
-      { x: 70, y: 1040, w: 320, h: 420, rot: -0.06 },
-      { x: 440, y: 1020, w: 320, h: 420, rot: 0.05 },
-      { x: 810, y: 1040, w: 320, h: 420, rot: -0.04 },
+  if (preset === "cupids_letter") {
+    // 💌 CUPID'S LETTER STAMP PHOTO SLOTS
+    // 4 Scalloped Postage Stamp Photo Slots in Right Column
+    const stampSlots = [
+      { x: 630, y: 200, w: 480, h: 340 },
+      { x: 630, y: 570, w: 480, h: 340 },
+      { x: 630, y: 940, w: 480, h: 340 },
+      { x: 630, y: 1310, w: 480, h: 340 },
     ];
 
-    for (let i = 0; i < 3; i++) {
-      const img = images[i + 1];
-      if (!img) continue;
-      const slot = botSlots[i];
+    for (let i = 0; i < 4; i++) {
+      const slot = stampSlots[i];
+      const img = images[i];
 
+      // Draw scalloped stamp white background
       ctx.save();
-      ctx.translate(slot.x + slot.w / 2, slot.y + slot.h / 2);
-      ctx.rotate(slot.rot);
+      ctx.fillStyle = "#FFFFFF";
+      drawScallopedStampFrame(ctx, slot.x - 12, slot.y - 12, slot.w + 24, slot.h + 24, 7);
+      ctx.fill();
+      ctx.restore();
+
+      // Scalloped red outline
+      ctx.save();
+      ctx.strokeStyle = "#C8102E";
+      ctx.lineWidth = 2;
+      drawScallopedStampFrame(ctx, slot.x - 12, slot.y - 12, slot.w + 24, slot.h + 24, 7);
+      ctx.stroke();
+      ctx.restore();
+
+      if (img) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(slot.x, slot.y, slot.w, slot.h);
+        ctx.clip();
+        ctx.filter = filterString;
+        drawImageCover(ctx, img, slot.x, slot.y, slot.w, slot.h, 0, isFlipped);
+        applyCuteFilterOverlay(ctx, slot.x, slot.y, slot.w, slot.h, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+        ctx.restore();
+
+        ctx.strokeStyle = "#C8102E";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(slot.x, slot.y, slot.w, slot.h);
+      }
+    }
+
+    // Footer: From: red text at bottom right & Left Column signature
+    ctx.save();
+    ctx.fillStyle = "#C8102E";
+    ctx.font = "bold 22px 'Georgia', serif";
+    ctx.textAlign = "left";
+    ctx.fillText("From: ______________________", 70, 1720);
+
+    ctx.font = "bold 16px monospace";
+    ctx.textAlign = "right";
+    ctx.fillText("CUPID'S SECRET MAIL SERVICE ♡", canvas.width - 70, 1720);
+    ctx.restore();
+  } else if (preset === "passport") {
+    // ✈️ SUMMER MEMORIES PASSPORT PHOTO SLOTS & VECTORS
+    // Photo #1 (Left ID Photo Slot): X = 80px, Y = 200px, W = 420px, H = 560px with a thick white border (#FFFFFF, 12px) wrapped in ctx.clip()
+    if (images[0]) {
+      ctx.save();
+      // Outer white border frame
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(68, 188, 444, 584);
+
+      ctx.beginPath();
+      ctx.rect(80, 200, 420, 560);
+      ctx.clip();
       ctx.filter = filterString;
+      drawImageCover(ctx, images[0], 80, 200, 420, 560, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, 80, 200, 420, 560, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      ctx.restore();
 
-      drawImageCover(ctx, img, -slot.w / 2, -slot.h / 2, slot.w, slot.h, 12, isFlipped);
+      ctx.strokeStyle = "#8B1E1E";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(80, 200, 420, 560);
+    }
 
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 8;
-      ctx.strokeRect(-slot.w / 2, -slot.h / 2, slot.w, slot.h);
+    // Photo #2 Slot (Top Left): X = 90px, Y = 1000px, W = 320px, H = 340px, rotated -5deg with white border wrapped in ctx.clip()
+    if (images[1]) {
+      ctx.save();
+      ctx.translate(90 + 160, 1000 + 170);
+      ctx.rotate(-0.087);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(-172, -182, 344, 364);
 
-      applyCuteFilterOverlay(ctx, -slot.w / 2, -slot.h / 2, slot.w, slot.h, cuteFilter, filter.beautyGlow, 12, filterIntensity);
-
+      ctx.beginPath();
+      ctx.rect(-160, -170, 320, 340);
+      ctx.clip();
+      ctx.filter = filterString;
+      drawImageCover(ctx, images[1], -160, -170, 320, 340, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, -160, -170, 320, 340, cuteFilter, filter.beautyGlow, 0, filterIntensity);
       ctx.restore();
     }
 
-    // STEP 3: Vintage Postage Stamps, Signature Vector, and Circular "VALID STAMP" Seal Vectors
-    // Vintage Postage Stamp at Top Right of Scrapbook Section (X = 960px, Y = 940px)
+    // Center Vintage Banknote Vector: X = 450px, Y = 1040px, W = 300px, H = 200px (Vintage $5 banknote vector outline)
     ctx.save();
-    ctx.translate(980, 960);
-    ctx.rotate(0.12);
-    ctx.fillStyle = "#ef4444";
-    ctx.fillRect(-60, -45, 120, 90);
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 4;
-    ctx.strokeRect(-52, -37, 104, 74);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "900 14px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("AIR MAIL", 0, -10);
-    ctx.font = "bold 20px serif";
-    ctx.fillText("50¢", 0, 18);
-    ctx.restore();
-
-    // Circular "VALID STAMP" Seal Vector
-    ctx.save();
-    ctx.translate(380, 720);
-    ctx.rotate(-0.25);
-    ctx.strokeStyle = "rgba(185, 28, 28, 0.75)";
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.arc(0, 0, 65, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(0, 0, 55, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.fillStyle = "rgba(185, 28, 28, 0.75)";
-    ctx.font = "900 13px sans-serif";
+    ctx.translate(450, 1040);
+    ctx.fillStyle = "#F4EBD9";
+    ctx.fillRect(0, 0, 300, 200);
+    ctx.strokeStyle = "#8B1E1E";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(6, 6, 288, 188);
+    ctx.strokeRect(12, 12, 276, 176);
+    ctx.fillStyle = "#8B1E1E";
+    ctx.font = "bold 36px serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("RIELLLYBOOTH", 0, -22);
-    ctx.fillText("★ PASSPORT ★", 0, 0);
-    ctx.fillText("APPROVED 2026", 0, 22);
+    ctx.fillText("$5", 150, 90);
+    ctx.font = "bold 13px monospace";
+    ctx.fillText("FIVE DOLLARS • VINTAGE NOTE", 150, 140);
     ctx.restore();
 
-    // Signature Vector at Bottom Right
+    // Photo #3 Slot (Top Right): X = 790px, Y = 1000px, W = 320px, H = 340px, rotated 4deg with white border wrapped in ctx.clip()
+    if (images[2]) {
+      ctx.save();
+      ctx.translate(790 + 160, 1000 + 170);
+      ctx.rotate(0.07);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(-172, -182, 344, 364);
+
+      ctx.beginPath();
+      ctx.rect(-160, -170, 320, 340);
+      ctx.clip();
+      ctx.filter = filterString;
+      drawImageCover(ctx, images[2], -160, -170, 320, 340, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, -160, -170, 320, 340, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      ctx.restore();
+    }
+
+    // Photo #4 Slot (Bottom Center): X = 440px, Y = 1320px, W = 320px, H = 360px, rotated -2deg with white border wrapped in ctx.clip()
+    if (images[3]) {
+      ctx.save();
+      ctx.translate(440 + 160, 1320 + 180);
+      ctx.rotate(-0.035);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(-172, -192, 344, 384);
+
+      ctx.beginPath();
+      ctx.rect(-160, -180, 320, 360);
+      ctx.clip();
+      ctx.filter = filterString;
+      drawImageCover(ctx, images[3], -160, -180, 320, 360, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, -160, -180, 320, 360, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      ctx.restore();
+    }
+
+    // Bottom Left (X = 80px, Y = 1420px): Draw blue postage stamp vector & signature line "Signature of the Folder"
     ctx.save();
-    ctx.strokeStyle = "#1e3a8a";
+    ctx.translate(90, 1420);
+    ctx.fillStyle = "#1d4ed8";
+    ctx.fillRect(0, 0, 140, 100);
+    ctx.strokeStyle = "#FFFFFF";
     ctx.lineWidth = 3;
-    ctx.lineCap = "round";
+    ctx.strokeRect(8, 8, 124, 84);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("AIR MAIL", 70, 40);
+    ctx.font = "bold 24px serif";
+    ctx.fillText("50¢", 70, 75);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(80, 1620);
+    ctx.strokeStyle = "#1d4ed8";
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(760, 1600);
-    ctx.bezierCurveTo(800, 1570, 860, 1630, 920, 1580);
-    ctx.bezierCurveTo(960, 1550, 1000, 1620, 1060, 1590);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(280, 0);
+    ctx.stroke();
+    ctx.fillStyle = "#1d4ed8";
+    ctx.font = "italic 16px 'Georgia', serif";
+    ctx.fillText("Signature of the Folder", 40, -10);
+    ctx.restore();
+
+    // Bottom Right (X = 800px, Y = 1420px): Draw circular blue stamp seal "VALID STAMP"
+    ctx.save();
+    ctx.translate(940, 1540);
+    ctx.rotate(-0.18);
+    ctx.strokeStyle = "#1d4ed8";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, 75, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, 64, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = "#1e3a8a";
-    ctx.font = "italic 16px 'Georgia', serif";
-    ctx.fillText("Authorized Signature ♡", 820, 1625);
+    ctx.fillStyle = "#1d4ed8";
+    ctx.font = "bold 15px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("VALID STAMP", 0, -22);
+    ctx.fillText("★ APPROVED ★", 0, 0);
+    ctx.fillText("RIELLLYBOOTH", 0, 22);
     ctx.restore();
   } else if (isNewspaper) {
     // 📰 PRECISE NEWSPAPER PHOTO BOUNDS & NON-OVERLAPPING ARTICLE COLUMNS
