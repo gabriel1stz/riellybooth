@@ -1595,86 +1595,87 @@ export const drawPhotoStrip = (
     ctx.fillText("CUPID'S SECRET MAIL SERVICE ♡", canvas.width - 70, 1720);
     ctx.restore();
   } else if (preset === "passport") {
-    // ✈️ SUMMER MEMORIES PASSPORT PHOTO SLOTS & VECTORS
-    // Photo #1 (Left ID Photo Slot): X = 80px, Y = 200px, W = 420px, H = 560px with a thick white border (#FFFFFF, 12px) wrapped in ctx.clip()
+    // ✈️ SUMMER MEMORIES PASSPORT PHOTO SLOTS & MULTI-LAYER SCRAPBOOK
+    // Main ID Photo Slot (Photo #1, Left): X = 70px, Y = 180px, W = 380px, H = 520px with a thick 12px white border (#FFFFFF) wrapped in ctx.clip()
     if (images[0]) {
       ctx.save();
-      // Outer white border frame
+      // Outer 12px white border frame
       ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(68, 188, 444, 584);
+      ctx.fillRect(58, 168, 404, 544);
 
       ctx.beginPath();
-      ctx.rect(80, 200, 420, 560);
+      ctx.rect(70, 180, 380, 520);
       ctx.clip();
       ctx.filter = filterString;
-      drawImageCover(ctx, images[0], 80, 200, 420, 560, 0, isFlipped);
-      applyCuteFilterOverlay(ctx, 80, 200, 420, 560, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      drawImageCover(ctx, images[0], 70, 180, 380, 520, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, 70, 180, 380, 520, cuteFilter, filter.beautyGlow, 0, filterIntensity);
       ctx.restore();
 
       ctx.strokeStyle = "#8B1E1E";
       ctx.lineWidth = 3;
-      ctx.strokeRect(80, 200, 420, 560);
+      ctx.strokeRect(70, 180, 380, 520);
     }
 
-    // Photo #2 Slot (Top Left): X = 90px, Y = 1000px, W = 320px, H = 340px, rotated -5deg with white border wrapped in ctx.clip()
-    if (images[1]) {
-      ctx.save();
-      ctx.translate(90 + 160, 1000 + 170);
-      ctx.rotate(-0.087);
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(-172, -182, 344, 364);
-
-      ctx.beginPath();
-      ctx.rect(-160, -170, 320, 340);
-      ctx.clip();
-      ctx.filter = filterString;
-      drawImageCover(ctx, images[1], -160, -170, 320, 340, 0, isFlipped);
-      applyCuteFilterOverlay(ctx, -160, -170, 320, 340, cuteFilter, filter.beautyGlow, 0, filterIntensity);
-      ctx.restore();
-    }
-
-    // Center Vintage Banknote Vector: X = 450px, Y = 1040px, W = 300px, H = 200px (Vintage $5 banknote vector outline)
+    // Layer 1 (Background Art): Center Vintage $5 Banknote Vector: X = 450px, Y = 990px, W = 300px, H = 190px
     ctx.save();
-    ctx.translate(450, 1040);
+    ctx.translate(450, 990);
     ctx.fillStyle = "#F4EBD9";
-    ctx.fillRect(0, 0, 300, 200);
+    ctx.fillRect(0, 0, 300, 190);
     ctx.strokeStyle = "#8B1E1E";
     ctx.lineWidth = 3;
-    ctx.strokeRect(6, 6, 288, 188);
-    ctx.strokeRect(12, 12, 276, 176);
+    ctx.strokeRect(6, 6, 288, 178);
+    ctx.strokeRect(12, 12, 276, 166);
     ctx.fillStyle = "#8B1E1E";
     ctx.font = "bold 36px serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("$5", 150, 90);
+    ctx.fillText("$5", 150, 85);
     ctx.font = "bold 13px monospace";
-    ctx.fillText("FIVE DOLLARS • VINTAGE NOTE", 150, 140);
+    ctx.fillText("FIVE DOLLARS • VINTAGE NOTE", 150, 135);
     ctx.restore();
 
-    // Photo #3 Slot (Top Right): X = 790px, Y = 1000px, W = 320px, H = 340px, rotated 4deg with white border wrapped in ctx.clip()
-    if (images[2]) {
+    // Layer 2 (3 Tilted Photos)
+    // Photo #2 Slot (Top-Left): X = 80px, Y = 960px, W = 310px, H = 340px, rotated -6deg with 10px white polaroid border wrapped in ctx.clip()
+    if (images[1]) {
       ctx.save();
-      ctx.translate(790 + 160, 1000 + 170);
-      ctx.rotate(0.07);
+      ctx.translate(80 + 155, 960 + 170);
+      ctx.rotate(-0.105);
       ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(-172, -182, 344, 364);
+      ctx.fillRect(-165, -180, 330, 360);
 
       ctx.beginPath();
-      ctx.rect(-160, -170, 320, 340);
+      ctx.rect(-155, -170, 310, 340);
       ctx.clip();
       ctx.filter = filterString;
-      drawImageCover(ctx, images[2], -160, -170, 320, 340, 0, isFlipped);
-      applyCuteFilterOverlay(ctx, -160, -170, 320, 340, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      drawImageCover(ctx, images[1], -155, -170, 310, 340, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, -155, -170, 310, 340, cuteFilter, filter.beautyGlow, 0, filterIntensity);
       ctx.restore();
     }
 
-    // Photo #4 Slot (Bottom Center): X = 440px, Y = 1320px, W = 320px, H = 360px, rotated -2deg with white border wrapped in ctx.clip()
+    // Photo #3 Slot (Top-Right): X = 790px, Y = 960px, W = 310px, H = 340px, rotated 5deg with 10px white polaroid border wrapped in ctx.clip()
+    if (images[2]) {
+      ctx.save();
+      ctx.translate(790 + 155, 960 + 170);
+      ctx.rotate(0.087);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(-165, -180, 330, 360);
+
+      ctx.beginPath();
+      ctx.rect(-155, -170, 310, 340);
+      ctx.clip();
+      ctx.filter = filterString;
+      drawImageCover(ctx, images[2], -155, -170, 310, 340, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, -155, -170, 310, 340, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      ctx.restore();
+    }
+
+    // Photo #4 Slot (Bottom-Center): X = 430px, Y = 1280px, W = 320px, H = 360px, rotated -2deg with 10px white polaroid border wrapped in ctx.clip()
     if (images[3]) {
       ctx.save();
-      ctx.translate(440 + 160, 1320 + 180);
+      ctx.translate(430 + 160, 1280 + 180);
       ctx.rotate(-0.035);
       ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(-172, -192, 344, 384);
+      ctx.fillRect(-170, -190, 340, 380);
 
       ctx.beginPath();
       ctx.rect(-160, -180, 320, 360);
@@ -1685,9 +1686,10 @@ export const drawPhotoStrip = (
       ctx.restore();
     }
 
-    // Bottom Left (X = 80px, Y = 1420px): Draw blue postage stamp vector & signature line "Signature of the Folder"
+    // Layer 3 (Foreground Overlapping Stamps)
+    // Bottom-Left (X = 60px, Y = 1380px): Render blue postage stamp vector & signature "Signature of the Folder"
     ctx.save();
-    ctx.translate(90, 1420);
+    ctx.translate(60, 1380);
     ctx.fillStyle = "#1d4ed8";
     ctx.fillRect(0, 0, 140, 100);
     ctx.strokeStyle = "#FFFFFF";
@@ -1702,7 +1704,7 @@ export const drawPhotoStrip = (
     ctx.restore();
 
     ctx.save();
-    ctx.translate(80, 1620);
+    ctx.translate(60, 1580);
     ctx.strokeStyle = "#1d4ed8";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -1714,9 +1716,9 @@ export const drawPhotoStrip = (
     ctx.fillText("Signature of the Folder", 40, -10);
     ctx.restore();
 
-    // Bottom Right (X = 800px, Y = 1420px): Draw circular blue stamp seal "VALID STAMP"
+    // Bottom-Right (X = 780px, Y = 1380px): Render circular blue stamp seal "VALID STAMP" overlapping Photo #4 slightly
     ctx.save();
-    ctx.translate(940, 1540);
+    ctx.translate(880, 1480);
     ctx.rotate(-0.18);
     ctx.strokeStyle = "#1d4ed8";
     ctx.lineWidth = 4;
