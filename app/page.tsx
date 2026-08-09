@@ -731,7 +731,7 @@ export default function RielllyBooth() {
   };
 
   return (
-    <main className="min-h-screen bg-rose-50/50 text-slate-800 flex flex-col justify-between font-sans selection:bg-pink-400 selection:text-white overflow-x-hidden">
+    <main className="min-h-screen bg-[#FAF7F2] text-[#3C2A2A] flex flex-col justify-between font-sans selection:bg-[#FF85A1] selection:text-white overflow-x-hidden">
       <Navbar
         isAudioOn={isAudioOn}
         onToggleAudio={() => setIsAudioOn((v) => !v)}
