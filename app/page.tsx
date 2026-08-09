@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import confetti from "canvas-confetti";
-import { Instagram, Mail, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, Share2, Download, Copy, Check, MessageCircle, Twitter } from "lucide-react";
+import { Instagram, Mail, Music, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, Share2, Download, Copy, Check, MessageCircle, Twitter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import LandingStep from "@/components/Steps/LandingStep";
 import CaptureStep from "@/components/Steps/CaptureStep";
@@ -1019,7 +1019,7 @@ export default function RielllyBooth() {
       )}
 
       {/* CLEAN FOOTER */}
-      <footer className="border-t border-pink-200 py-6 text-center text-xs text-slate-600 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center gap-2 px-4 shadow-sm">
+      <footer className="border-t border-pink-200 py-6 text-center text-xs text-slate-600 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center gap-2.5 px-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-center gap-2 font-bold text-slate-700">
           <span>&copy; 2026 rielllybooth 🎀</span>
           <span className="text-slate-400">•</span>
@@ -1028,10 +1028,11 @@ export default function RielllyBooth() {
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-bold">
           <a
             href="mailto:rielllybooth@gmail.com"
-            className="inline-flex items-center gap-1.5 font-bold text-slate-700 hover:text-pink-600 transition"
+            className="inline-flex items-center gap-1.5 text-slate-700 hover:text-pink-600 transition"
+            title="Kirim Email ke rielllybooth"
           >
             <Mail className="w-3.5 h-3.5 text-pink-500" />
             <span>rielllybooth@gmail.com</span>
@@ -1040,13 +1041,39 @@ export default function RielllyBooth() {
           <span className="text-slate-300">•</span>
 
           <a
+            href="https://instagram.com/rielllybooth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-pink-600 hover:text-pink-700 transition"
+            title="Instagram Official rielllybooth"
+          >
+            <Instagram className="w-3.5 h-3.5 text-pink-500" />
+            <span>@rielllybooth</span>
+          </a>
+
+          <span className="text-slate-300">•</span>
+
+          <a
+            href="https://tiktok.com/@riellybooth_"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-slate-800 hover:text-pink-600 transition"
+            title="TikTok Official riellybooth_"
+          >
+            <Music className="w-3.5 h-3.5 text-purple-500" />
+            <span>@riellybooth_</span>
+          </a>
+
+          <span className="text-slate-300">•</span>
+
+          <a
             href="https://instagram.com/dhikastriaaa"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-bold text-pink-600 hover:text-pink-700 transition underline"
+            className="inline-flex items-center gap-1.5 text-slate-600 hover:text-pink-600 transition underline"
+            title="Developer Instagram @dhikastriaaa"
           >
-            <Instagram className="w-3.5 h-3.5" />
-            <span>@dhikastriaaa</span>
+            <span>👨‍💻 Dev: @dhikastriaaa</span>
           </a>
         </div>
       </footer>

@@ -14,6 +14,8 @@ import {
   ChevronDown,
   ChevronUp,
   HelpCircle,
+  Mail,
+  Instagram,
 } from "lucide-react";
 
 export default function LandingStep({ onStart }: { onStart: () => void }) {
@@ -295,17 +297,68 @@ export default function LandingStep({ onStart }: { onStart: () => void }) {
         </div>
       </div>
 
-      {/* Guarantee Pills */}
-      <div className="flex flex-wrap justify-center gap-3 pt-2">
-        <span className="px-4 py-2 rounded-full bg-white border-2 border-pink-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Gratis & Tanpa Watermark
-        </span>
-        <span className="px-4 py-2 rounded-full bg-white border-2 border-pink-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs">
-          <Video className="w-4 h-4 text-sky-500" /> Support Live Photo 🎥
-        </span>
-        <span className="px-4 py-2 rounded-full bg-white border-2 border-pink-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs">
-          <Wand2 className="w-4 h-4 text-pink-500" /> Gesture Auto-Take ✌️
-        </span>
+      {/* Guarantee Pills & Social Links */}
+      <div className="flex flex-col items-center gap-3 pt-2">
+        <div className="flex flex-wrap justify-center gap-3">
+          <span className="px-4 py-2 rounded-full bg-white border-2 border-pink-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Gratis & Tanpa Watermark
+          </span>
+          <span className="px-4 py-2 rounded-full bg-white border-2 border-pink-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs">
+            <Video className="w-4 h-4 text-sky-500" /> Support Live Photo 🎥
+          </span>
+          <span className="px-4 py-2 rounded-full bg-white border-2 border-pink-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs">
+            <Wand2 className="w-4 h-4 text-pink-500" /> Gesture Auto-Take ✌️
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-bold text-slate-600 pt-2">
+          <a
+            href="mailto:rielllybooth@gmail.com"
+            className="inline-flex items-center gap-1.5 text-slate-700 hover:text-pink-600 transition"
+            title="Email Official rielllybooth"
+          >
+            <Mail className="w-3.5 h-3.5 text-pink-500" />
+            <span>rielllybooth@gmail.com</span>
+          </a>
+
+          <span className="text-slate-300">•</span>
+
+          <a
+            href="https://instagram.com/rielllybooth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-pink-600 hover:text-pink-700 transition"
+            title="Instagram Official rielllybooth"
+          >
+            <Instagram className="w-3.5 h-3.5 text-pink-500" />
+            <span>@rielllybooth</span>
+          </a>
+
+          <span className="text-slate-300">•</span>
+
+          <a
+            href="https://tiktok.com/@riellybooth_"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-slate-800 hover:text-pink-600 transition"
+            title="TikTok Official riellybooth_"
+          >
+            <Music className="w-3.5 h-3.5 text-purple-500" />
+            <span>@riellybooth_</span>
+          </a>
+
+          <span className="text-slate-300">•</span>
+
+          <a
+            href="https://instagram.com/dhikastriaaa"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-slate-600 hover:text-pink-600 transition underline"
+            title="Developer Instagram @dhikastriaaa"
+          >
+            <span>👨‍💻 Dev: @dhikastriaaa</span>
+          </a>
+        </div>
       </div>
     </div>
   );
