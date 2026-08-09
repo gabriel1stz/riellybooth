@@ -346,9 +346,10 @@ export default function RielllyBooth() {
           if (nextShots[targetIdx]?.videoBlobUrl) {
             revokeBlobUrl(nextShots[targetIdx].videoBlobUrl);
           }
-          nextShots[targetIdx] = newShot; // Replace ONLY the targeted index
-          syncShots(nextShots);
-          return nextShots;
+          nextShots[targetIdx] = newShot; // Replace ONLY the targeted index cleanly
+          const sliced = nextShots.slice(0, 4);
+          syncShots(sliced);
+          return sliced;
         });
 
         setRetakeIndex(null);

@@ -70,7 +70,8 @@ export default function ReviewStep({
                   loop
                   muted
                   playsInline
-                  preload="metadata"
+                  preload="auto"
+                  onCanPlay={(e) => e.currentTarget.play()}
                   className="w-full h-full object-cover"
                 />
               ) : (

@@ -132,64 +132,13 @@ export default function CaptureStep({
     };
   }, [gestureEnabled, isCapturing, countdown, cameraError, onTakeSingleShot, videoRef]);
 
-  // Real-time MediaPipe 3D Face Mesh AR Filter Detection Loop (with Hybrid Fallback)
+  // AR Filter loop disabled for 100% lightweight camera performance
   useEffect(() => {
-    let animFrameId: number;
-    let active = true;
-
-    if (arFilterPreset === "none" || !videoRef.current || cameraError) {
-      if (activeArCanvasRef.current) {
-        const ctx = activeArCanvasRef.current.getContext("2d");
-        if (ctx) ctx.clearRect(0, 0, activeArCanvasRef.current.width, activeArCanvasRef.current.height);
-      }
-      return;
+    if (activeArCanvasRef.current) {
+      const ctx = activeArCanvasRef.current.getContext("2d");
+      if (ctx) ctx.clearRect(0, 0, activeArCanvasRef.current.width, activeArCanvasRef.current.height);
     }
-
-    const runFaceMeshLoop = async () => {
-      const video = videoRef.current;
-      const canvas = activeArCanvasRef.current;
-
-      if (video && canvas) {
-        // Continuously sync canvas dimensions to match video stream dimensions (fallback 640x480)
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          let landmarks: Array<{ x: number; y: number; z: number }> | null = null;
-
-          if (video.readyState >= 2) {
-            try {
-              const landmarker = await getFaceLandmarker();
-              if (landmarker && active) {
-                const results = landmarker.detectForVideo(video, performance.now());
-                if (results && results.faceLandmarks && results.faceLandmarks.length > 0) {
-                  landmarks = results.faceLandmarks[0];
-                }
-              }
-            } catch (err) {
-              console.warn("FaceLandmarker detection loop warning:", err);
-            }
-          }
-
-          // Always draw filter (using 3D landmarks or immediate drawing fallback at X=width/2, Y=height*0.35)
-          drawARFaceFilter(ctx, landmarks, arFilterPreset, canvas.width, canvas.height, false);
-        }
-      }
-
-      if (active) {
-        animFrameId = requestAnimationFrame(runFaceMeshLoop);
-      }
-    };
-
-    runFaceMeshLoop();
-
-    return () => {
-      active = false;
-      if (animFrameId) cancelAnimationFrame(animFrameId);
-    };
-  }, [arFilterPreset, cameraError, videoRef, activeArCanvasRef]);
+  }, [activeArCanvasRef]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -267,37 +216,6 @@ export default function CaptureStep({
             <span>Gesture ✌️ {gestureEnabled ? "ON" : "OFF"}</span>
           </button>
         </div>
-      </div>
-
-      {/* AR Face Filter Selection Toggle Bar */}
-      <div className="w-full flex items-center justify-center gap-1.5 sm:gap-2 bg-rose-50/90 border border-pink-200 p-2 rounded-2xl overflow-x-auto shadow-xs">
-        <span className="text-xs font-bold text-slate-700 flex items-center gap-1 shrink-0 px-1">
-          <Sparkles className="w-3.5 h-3.5 text-pink-500" /> Filter Wajah AR:
-        </span>
-        {[
-          { id: "none", label: "📷 Normal" },
-          { id: "dog_classic", label: "🐶 Dog" },
-          { id: "dog_coquette", label: "🎀 Coquette" },
-          { id: "cat_whiskers", label: "🐱 Cat" },
-          { id: "pixel_glasses", label: "🕶️ Pixel" },
-          { id: "chef_hat", label: "👨‍🍳 Chef" },
-          { id: "diving_mask", label: "🤿 Diving" },
-          { id: "santa_beard", label: "🎅 Santa" },
-          { id: "strawberry_hat", label: "🍓 Strawberry" },
-        ].map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => setArFilterPreset(f.id as ARFaceFilterPreset)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all whitespace-nowrap border-2 active:scale-95 ${
-              arFilterPreset === f.id
-                ? "bg-pink-500 text-white border-pink-600 shadow-md scale-105"
-                : "bg-white text-slate-700 border-slate-200 hover:bg-rose-50"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
       </div>
 
       {/* Main WebRTC Camera Viewport Container (EXTRA LARGE MOBILE VIEWPORT) */}

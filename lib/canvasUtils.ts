@@ -45,6 +45,7 @@ export type FramePreset =
   | "retro_cassette"
   | "kawaii_boba"
   | "heart_washi_tape"
+  | "passport"
   | "skena_coquette"
   | "galau_club"
   | "pestapora_pass"
@@ -1258,6 +1259,81 @@ export const drawPhotoStrip = (
         ctx.fill();
       }
     }
+  } else if (preset === "passport") {
+    // ✈️ SUMMER MEMORIES PASSPORT
+    // Top Half: Cream/Beige Passport ID Page (Y = 0 .. height * 0.5)
+    ctx.fillStyle = "#fbf8f2";
+    ctx.fillRect(0, 0, canvas.width, canvas.height * 0.5);
+
+    // Divider Line (Gold & Dashed)
+    ctx.strokeStyle = "#d97706";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height * 0.5);
+    ctx.lineTo(canvas.width, canvas.height * 0.5);
+    ctx.stroke();
+
+    // Top Header: "SUMMER MEMORIES PASSPORT" with 3 red star vectors ⭐
+    ctx.fillStyle = "#b91c1c";
+    ctx.font = "900 36px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("⭐  SUMMER MEMORIES PASSPORT  ⭐", canvas.width / 2, 70);
+
+    ctx.fillStyle = "#78350f";
+    ctx.font = "bold 18px sans-serif";
+    ctx.fillText("PASSEPORT • REPUBLIK RIELLLYBOOTH • OFFICIAL ID", canvas.width / 2, 115);
+
+    // Right Side Passport Data Fields (X = 520px)
+    const fieldX = 520;
+    let fieldY = 220;
+    const lineHeight = 75;
+
+    const fields = [
+      { label: "LAST NAME / NAMA BELAKANG", val: "THE FAVORITE" },
+      { label: "FIRST NAME / NAMA DEPAN", val: "XO XO XO" },
+      { label: "NATIONALITY / KEWAGANEGARAAN", val: "INDONESIAN 🇮🇩" },
+      { label: "DATE OF BIRTH / TANGGAL LAHIR", val: "12.12.2000" },
+      { label: "PASSPORT NO / NO PASPOR", val: "RP-2026-HAPPY" },
+    ];
+
+    ctx.textAlign = "left";
+    fields.forEach((f) => {
+      ctx.fillStyle = "#92400e";
+      ctx.font = "bold 13px sans-serif";
+      ctx.fillText(f.label, fieldX, fieldY);
+
+      ctx.fillStyle = "#1c1917";
+      ctx.font = "900 22px monospace";
+      ctx.fillText(f.val, fieldX, fieldY + 28);
+
+      fieldY += lineHeight;
+    });
+
+    // "VALID UNTIL : 12.08.26" Blue Stamp Box
+    ctx.save();
+    ctx.translate(fieldX + 240, 680);
+    ctx.rotate(-0.15);
+    ctx.strokeStyle = "#1d4ed8";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(-120, -35, 240, 70);
+    ctx.fillStyle = "#1d4ed8";
+    ctx.font = "900 18px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("VALID UNTIL", 0, -10);
+    ctx.fillText("12.08.26 ★ APPROVED", 0, 16);
+    ctx.restore();
+
+    // Bottom Half: Identifications As Of Late / Scrapbook Page (Y = height * 0.5 .. height)
+    ctx.fillStyle = "#f5efe6";
+    ctx.fillRect(0, canvas.height * 0.5, canvas.width, canvas.height * 0.5);
+
+    ctx.fillStyle = "#78350f";
+    ctx.font = "900 32px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("✈️ IDENTIFICATIONS AS OF LATE ✈️", canvas.width / 2, canvas.height * 0.5 + 60);
   } else if (preset === "galau_quote") {
     // ☕ GALAU QUOTE AESTHETIC GEN Z
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -1273,7 +1349,109 @@ export const drawPhotoStrip = (
   ctx.restore();
 
   // STEP 2: DRAW PHOTOS ACCORDING TO THE LAYOUT MODES WITH STRICT CLIPPING
-  if (isNewspaper) {
+  if (preset === "passport") {
+    // ✈️ SUMMER MEMORIES PASSPORT
+    // 1. Top Main Passport Photo #1 (X = 60px, Y = 240px, W = 420px, H = 560px)
+    if (images[0]) {
+      ctx.save();
+      ctx.filter = filterString;
+      drawImageCover(ctx, images[0], 60, 240, 420, 560, 16, isFlipped);
+      ctx.restore();
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 10;
+      ctx.strokeRect(60, 240, 420, 560);
+      ctx.strokeStyle = "#78350f";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(55, 235, 430, 570);
+
+      applyCuteFilterOverlay(ctx, 60, 240, 420, 560, cuteFilter, filter.beautyGlow, 16, filterIntensity);
+    }
+
+    // 2. Bottom 3 Scattered Photos (#2, #3, #4) in Scrapbook Section
+    const botSlots = [
+      { x: 70, y: 1040, w: 320, h: 420, rot: -0.06 },
+      { x: 440, y: 1020, w: 320, h: 420, rot: 0.05 },
+      { x: 810, y: 1040, w: 320, h: 420, rot: -0.04 },
+    ];
+
+    for (let i = 0; i < 3; i++) {
+      const img = images[i + 1];
+      if (!img) continue;
+      const slot = botSlots[i];
+
+      ctx.save();
+      ctx.translate(slot.x + slot.w / 2, slot.y + slot.h / 2);
+      ctx.rotate(slot.rot);
+      ctx.filter = filterString;
+
+      drawImageCover(ctx, img, -slot.w / 2, -slot.h / 2, slot.w, slot.h, 12, isFlipped);
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 8;
+      ctx.strokeRect(-slot.w / 2, -slot.h / 2, slot.w, slot.h);
+
+      applyCuteFilterOverlay(ctx, -slot.w / 2, -slot.h / 2, slot.w, slot.h, cuteFilter, filter.beautyGlow, 12, filterIntensity);
+
+      ctx.restore();
+    }
+
+    // STEP 3: Vintage Postage Stamps, Signature Vector, and Circular "VALID STAMP" Seal Vectors
+    // Vintage Postage Stamp at Top Right of Scrapbook Section (X = 960px, Y = 940px)
+    ctx.save();
+    ctx.translate(980, 960);
+    ctx.rotate(0.12);
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(-60, -45, 120, 90);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(-52, -37, 104, 74);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("AIR MAIL", 0, -10);
+    ctx.font = "bold 20px serif";
+    ctx.fillText("50¢", 0, 18);
+    ctx.restore();
+
+    // Circular "VALID STAMP" Seal Vector
+    ctx.save();
+    ctx.translate(380, 720);
+    ctx.rotate(-0.25);
+    ctx.strokeStyle = "rgba(185, 28, 28, 0.75)";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(0, 0, 65, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, 55, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(185, 28, 28, 0.75)";
+    ctx.font = "900 13px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("RIELLLYBOOTH", 0, -22);
+    ctx.fillText("★ PASSPORT ★", 0, 0);
+    ctx.fillText("APPROVED 2026", 0, 22);
+    ctx.restore();
+
+    // Signature Vector at Bottom Right
+    ctx.save();
+    ctx.strokeStyle = "#1e3a8a";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(760, 1600);
+    ctx.bezierCurveTo(800, 1570, 860, 1630, 920, 1580);
+    ctx.bezierCurveTo(960, 1550, 1000, 1620, 1060, 1590);
+    ctx.stroke();
+
+    ctx.fillStyle = "#1e3a8a";
+    ctx.font = "italic 16px 'Georgia', serif";
+    ctx.fillText("Authorized Signature ♡", 820, 1625);
+    ctx.restore();
+  } else if (isNewspaper) {
     // 📰 PRECISE NEWSPAPER PHOTO BOUNDS & NON-OVERLAPPING ARTICLE COLUMNS
     // 2. Top Large Main Photo Slot: X = 70px, Y = 260px, W = 1060px, H = 600px
     const mainX = 70;
