@@ -16,6 +16,19 @@ import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
 type Step = "landing" | "capture" | "review" | "editor";
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
+function TikTokIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 1 1-5.2-1.74 2.89 2.89 0 0 1 2.31-1.39V9.08a6.34 6.34 0 0 0-5.18 6.22 6.34 6.34 0 0 0 10.86 4.43 6.3 6.3 0 0 0 1.77-4.48V8.71a8.27 8.27 0 0 0 4.66 1.43V6.69z" />
+    </svg>
+  );
+}
+
 const VIRAL_CAPTION = `Baru aja foto estetik di rielllybooth ♡ Cobain bikin photo strip & Live Photo gratis tanpa watermark di sini 👉 https://riellybooth.my.id ✨`;
 
 export default function RielllyBooth() {
@@ -1018,65 +1031,54 @@ export default function RielllyBooth() {
         </div>
       )}
 
-      {/* CLEAN FOOTER */}
-      <footer className="border-t border-pink-200 py-6 text-center text-xs text-slate-600 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center gap-2.5 px-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-center gap-2 font-bold text-slate-700">
-          <span>&copy; 2026 rielllybooth 🎀</span>
-          <span className="text-slate-400">•</span>
-          <span className="italic text-slate-600 font-medium">
-            &ldquo;happy captures ✨&rdquo;
-          </span>
-        </div>
+      {/* CONDITIONAL NON-LANDING FOOTER */}
+      {step !== "landing" && (
+        <footer className="w-full border-t border-pink-200 py-6 text-center text-xs text-slate-600 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center gap-2.5 px-4 shadow-sm">
+          <div className="font-bold text-[#3C2A2A]">
+            © 2026 rielllybooth 🎀 · &ldquo;buat momen yang pengen kamu simpan&rdquo;
+          </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-bold">
-          <a
-            href="mailto:rielllybooth@gmail.com"
-            className="inline-flex items-center gap-1.5 text-slate-700 hover:text-pink-600 transition"
-            title="Kirim Email ke rielllybooth"
-          >
-            <Mail className="w-3.5 h-3.5 text-pink-500" />
-            <span>rielllybooth@gmail.com</span>
-          </a>
-
-          <span className="text-slate-300">•</span>
-
-          <a
-            href="https://instagram.com/rielllybooth"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-pink-600 hover:text-pink-700 transition"
-            title="Instagram Official rielllybooth"
-          >
-            <Instagram className="w-3.5 h-3.5 text-pink-500" />
-            <span>@rielllybooth</span>
-          </a>
-
-          <span className="text-slate-300">•</span>
-
-          <a
-            href="https://tiktok.com/@riellybooth_"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-slate-800 hover:text-pink-600 transition"
-            title="TikTok Official riellybooth_"
-          >
-            <Music className="w-3.5 h-3.5 text-purple-500" />
-            <span>@riellybooth_</span>
-          </a>
-
-          <span className="text-slate-300">•</span>
-
-          <a
-            href="https://instagram.com/dhikastriaaa"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-slate-600 hover:text-pink-600 transition underline"
-            title="Developer Instagram @dhikastriaaa"
-          >
-            <span>👨‍💻 Dev: @dhikastriaaa</span>
-          </a>
-        </div>
-      </footer>
+          <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-bold">
+            <a
+              href="mailto:rielllybooth@gmail.com"
+              className="hover:text-pink-600 transition inline-flex items-center gap-1.5"
+            >
+              <Mail className="w-3.5 h-3.5 text-pink-500" />
+              <span>rielllybooth@gmail.com</span>
+            </a>
+            <span className="text-pink-300">·</span>
+            <a
+              href="https://instagram.com/rielllybooth"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-pink-600 hover:underline transition inline-flex items-center gap-1.5"
+            >
+              <Instagram className="w-3.5 h-3.5 text-pink-500" />
+              <span>@rielllybooth</span>
+            </a>
+            <span className="text-pink-300">·</span>
+            <a
+              href="https://tiktok.com/@riellybooth_"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-pink-600 transition inline-flex items-center gap-1.5"
+            >
+              <TikTokIcon className="w-3.5 h-3.5 text-pink-500" />
+              <span>@riellybooth_</span>
+            </a>
+            <span className="text-pink-300">·</span>
+            <a
+              href="https://instagram.com/dhikasatriaaa"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-600 hover:text-pink-600 underline transition inline-flex items-center gap-1.5"
+            >
+              <Instagram className="w-3.5 h-3.5 text-[#8B4A5A]" />
+              <span>Dev: @dhikasatriaaa</span>
+            </a>
+          </div>
+        </footer>
+      )}
     </main>
   );
 }

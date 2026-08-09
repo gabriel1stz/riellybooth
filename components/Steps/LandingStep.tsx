@@ -5,478 +5,348 @@ import {
   Camera,
   ArrowRight,
   Sparkles,
-  Video,
-  Music,
-  Wand2,
-  Download,
   Hand,
+  Video,
+  RefreshCcw,
+  Wand2,
   ChevronDown,
   ChevronUp,
   Mail,
   Instagram,
-  Play,
-  Pause,
-  RefreshCcw,
-  CheckCircle2,
 } from "lucide-react";
+
+function TikTokIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 1 1-5.2-1.74 2.89 2.89 0 0 1 2.31-1.39V9.08a6.34 6.34 0 0 0-5.18 6.22 6.34 6.34 0 0 0 10.86 4.43 6.3 6.3 0 0 0 1.77-4.48V8.71a8.27 8.27 0 0 0 4.66 1.43V6.69z" />
+    </svg>
+  );
+}
+
+const SAMPLE_POSES = [
+  {
+    local: "/samples/pose1.jpg",
+    fallback: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+    label: "pose #1",
+  },
+  {
+    local: "/samples/pose2.jpg",
+    fallback: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
+    label: "pose #2",
+  },
+  {
+    local: "/samples/pose3.jpg",
+    fallback: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80",
+    label: "pose #3",
+  },
+  {
+    local: "/samples/pose4.jpg",
+    fallback: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
+    label: "pose #4",
+  },
+];
+
+function PhotostripTrioShowcase() {
+  return (
+    <div className="relative w-full max-w-md mt-6 sm:mt-8 flex justify-center items-center py-4">
+      {/* Washi Tape Clip Vector */}
+      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-20 h-6 bg-pink-200/90 border border-pink-300 rounded-xs rotate-1 z-40 shadow-xs"></div>
+
+      {/* Floating Micro-Badges */}
+      <span className="absolute -top-3 left-1 sm:left-2 z-40 bg-white border border-pink-300 text-[#3C2A2A] text-[11px] font-black px-3 py-1 rounded-full shadow-xs -rotate-6">
+        auto jepret ✌️
+      </span>
+      <span className="absolute top-1/2 -right-3 sm:-right-6 z-40 bg-white border border-pink-300 text-[#3C2A2A] text-[11px] font-black px-3 py-1 rounded-full shadow-xs rotate-6">
+        flip foto 🪞
+      </span>
+      <span className="absolute -bottom-3 left-4 z-40 bg-pink-100 border border-pink-300 text-[#3C2A2A] text-[11px] font-black px-3 py-1 rounded-full shadow-xs -rotate-3">
+        100% gratis ✨
+      </span>
+
+      {/* Stacked Trio */}
+      <div className="relative flex justify-center items-center w-full min-h-[380px]">
+        {/* Left Strip (Back Left) - Newspaper Style */}
+        <div className="absolute -rotate-6 -translate-x-14 sm:-translate-x-20 z-10 opacity-90 scale-90 hover:rotate-0 hover:z-30 transition-all duration-300 bg-stone-100 border-2 border-stone-300 p-2.5 rounded-2xl shadow-md w-40 sm:w-48 space-y-1.5 text-center">
+          <div className="text-[9px] font-mono font-bold text-stone-700 border-b border-stone-300 pb-1">
+            THE DAILY PHOTOBOOTH
+          </div>
+          {SAMPLE_POSES.slice(0, 3).map((pose, idx) => (
+            <div key={idx} className="bg-stone-200 rounded-lg overflow-hidden aspect-[4/3]">
+              <img
+                src={pose.local}
+                alt={pose.label}
+                className="w-full h-full object-cover grayscale brightness-90"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = pose.fallback;
+                }}
+              />
+            </div>
+          ))}
+          <div className="text-[8px] font-mono text-stone-500">NEWSPAPER EDITION</div>
+        </div>
+
+        {/* Right Strip (Back Right) - Polkadot Style */}
+        <div className="absolute rotate-6 translate-x-14 sm:translate-x-20 z-10 opacity-90 scale-90 hover:rotate-0 hover:z-30 transition-all duration-300 bg-pink-50 border-2 border-pink-300 p-2.5 rounded-2xl shadow-md w-40 sm:w-48 space-y-1.5 text-center bg-pattern-polkadot">
+          {SAMPLE_POSES.slice(1, 4).map((pose, idx) => (
+            <div key={idx} className="bg-white border border-pink-200 rounded-lg overflow-hidden aspect-[4/3]">
+              <img
+                src={pose.local}
+                alt={pose.label}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = pose.fallback;
+                }}
+              />
+            </div>
+          ))}
+          <div className="text-[9px] font-black text-pink-500">POLKADOT CUTE</div>
+        </div>
+
+        {/* Center Strip (Front) - Coquette Ribbon Style */}
+        <div className="relative z-20 scale-100 bg-white border-2 border-pink-300 p-3 rounded-2xl shadow-xl w-44 sm:w-52 space-y-2 text-center transition-transform duration-300 hover:scale-105">
+          <div className="text-[10px] font-black text-pink-500 flex items-center justify-center gap-1">
+            <span>🎀 Coquette Ribbon 🎀</span>
+          </div>
+          {SAMPLE_POSES.map((pose, idx) => (
+            <div key={idx} className="bg-pink-50 border border-pink-200 rounded-xl overflow-hidden aspect-[4/3] relative group">
+              <img
+                src={pose.local}
+                alt={pose.label}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = pose.fallback;
+                }}
+              />
+              <span className="absolute bottom-1 right-1 bg-black/40 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded backdrop-blur-xs">
+                {pose.label}
+              </span>
+            </div>
+          ))}
+          <div className="pt-1.5 border-t border-pink-200 text-[10px] font-black text-[#3C2A2A] flex items-center justify-between px-1">
+            <span>rielllybooth ♡</span>
+            <span className="text-[9px] font-bold text-slate-500">2026.08.09</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function LandingStep({ onStart }: { onStart: () => void }) {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [isPlayingDemoMusic, setIsPlayingDemoMusic] = useState(false);
-  const [activeMirrorDemo, setActiveMirrorDemo] = useState<"mirror" | "normal">("mirror");
 
   const faqs = [
     {
       q: "Apakah rielllybooth 100% gratis?",
-      a: "Ya, 100% gratis tanpa biaya tersembunyi dan hasil foto tanpa watermark!",
+      a: "Ya, 100% gratis tanpa biaya tersembunyi dan hasil foto tanpa watermark.",
     },
     {
       q: "Apakah foto saya disimpan di server?",
       a: "Tidak, semua pemrosesan foto dilakukan secara lokal di browser Anda untuk menjaga privasi 100%.",
     },
     {
-      q: "Bagaimana cara menggunakan gesture peace (✌️)?",
-      a: "Cukup angkat 2 jari (V-sign) di depan kamera, sistem akan mendeteksi gesture dan memulai hitungan 3 detik otomatis.",
+      q: "Bagaimana cara kerja Peace Auto-Take (✌️)?",
+      a: "Cukup angkat 2 jari di depan kamera, sistem akan mendeteksi gesture dan memulai hitungan 1.5s otomatis tanpa pencet shutter.",
     },
     {
-      q: "Bisakah saya memilih antara foto Mirror dan Normal?",
-      a: "Bisa! Kamu bebas mengatur orientasi foto (mirror/normal) kapan saja sebelum mengunduh hasil photostrip.",
-    },
-    {
-      q: "Apakah bisa digunakan di HP/Mobile?",
-      a: "Sangat bisa! rielllybooth dirancang responsif dan lancar di iOS maupun Android.",
-    },
-    {
-      q: "Apakah ada pilihan musik saat berfoto?",
-      a: "Ada! Kamu bisa memutar lagu santai (FotoKita) untuk memberikan suasana saat berfoto.",
-    },
-    {
-      q: "Bagaimana jika kamera saya tidak terdeteksi?",
-      a: "Pastikan kamu telah mengizinkan akses kamera pada browser (permission popup) saat pertama kali membuka.",
+      q: "Apakah bisa download Live Photo video?",
+      a: "Bisa! Selain photo strip PNG HD, kamu juga bisa menyimpan klip video bergerak boomerang MP4/Reels secara langsung.",
     },
   ];
 
   return (
-    <div className="w-full max-w-5xl px-3 sm:px-6 py-6 sm:py-10 flex flex-col items-center gap-12 sm:gap-20 text-[#3C2A2A] animate-in fade-in duration-300">
-      
-      {/* 1. HERO SECTION */}
-      <section className="w-full flex flex-col items-center text-center gap-6 pt-2 sm:pt-6">
-        {/* Brand Pill */}
-        <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white border border-[#F2C6D1] text-[#3C2A2A] rounded-full text-xs font-bold shadow-xs">
+    <div className="w-full max-w-5xl px-4 sm:px-6 py-6 sm:py-8 flex flex-col items-center gap-10 sm:gap-14 text-[#3C2A2A] animate-in fade-in duration-300 relative">
+      {/* Pattern Background Overlay */}
+      <div className="absolute inset-0 bg-pattern-polkadot bg-rose-50/40 rounded-3xl -z-10 pointer-events-none"></div>
+
+      {/* 1. HERO SECTION WITH MIXED COLOR HEADLINE */}
+      <section className="w-full flex flex-col items-center text-center gap-5 pt-2">
+        {/* Brand Badge */}
+        <div className="inline-flex items-center gap-1 px-4 py-1 bg-white border border-pink-300 text-[#3C2A2A] rounded-full text-xs font-extrabold shadow-xs">
           <span>rielllybooth ♡</span>
         </div>
 
-        {/* Headline & Subheadline */}
-        <div className="space-y-4 max-w-3xl">
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-[#3C2A2A] leading-tight">
-            foto dulu, mikir belakangan.
+        {/* Mixed Color Headline */}
+        <div className="space-y-3 max-w-2xl">
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+            <span className="text-[#3C2A2A] block font-black">Bikin photo strip?</span>
+            <span className="text-[#FF5588] bg-pink-100/90 px-5 py-1.5 rounded-2xl border-2 border-pink-300 inline-block mt-2 font-black shadow-xs">
+              Tinggal pose aja ♡
+            </span>
           </h1>
-          <p className="text-sm sm:text-base text-[#6B5252] max-w-xl mx-auto font-medium leading-relaxed">
-            Photobooth virtual buat kamu yang pengen foto sendiri, bareng teman, atau cuma iseng bikin photostrip.
+          <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto font-medium leading-relaxed">
+            Ga perlu antri studio, gak perlu install aplikasi. Tinggal pose peace ✌️, kamera yang jepret, langsung jadi photostrip + live photo siap masuk IG Story & TikTok!
           </p>
         </div>
 
         {/* Primary CTA & Trust Microcopy */}
-        <div className="flex flex-col items-center gap-3 pt-2">
+        <div className="flex flex-col items-center gap-2 pt-1">
           <button
             type="button"
             onClick={onStart}
-            className="bg-[#FF85A1] hover:bg-[#F472B6] border-2 border-[#E05770] text-white rounded-full px-8 sm:px-10 py-4 text-base sm:text-lg font-extrabold shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group cursor-pointer"
+            className="bg-pink-400 hover:bg-pink-500 border-2 border-pink-500 text-white rounded-full px-8 py-3.5 text-base sm:text-lg font-extrabold shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group cursor-pointer"
           >
-            <span>Mulai Sesi Photobooth</span>
+            <span>Mulai Sesi Photobooth 📸</span>
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </button>
-          <span className="text-xs font-bold text-[#8C6B6B]">
-            Gratis · HD · Tanpa Daftar
+          <span className="text-xs font-bold text-pink-600">
+            100% Gratis · HD Quality · Live Photo · Tanpa Daftar
           </span>
         </div>
 
-        {/* Visual Showcase: Center stacked photostrip preview with subtle floating labels */}
-        <div className="relative w-full max-w-md mt-6 sm:mt-8 flex justify-center items-center">
-          {/* Subtle floating labels */}
-          <span className="absolute -top-3 left-2 sm:left-4 z-20 bg-white border border-[#F2C6D1] text-[#3C2A2A] text-[11px] font-black px-3 py-1 rounded-full shadow-xs -rotate-6">
-            auto jepret ✌️
-          </span>
-          <span className="absolute top-1/2 -right-2 sm:-right-4 z-20 bg-white border border-[#F2C6D1] text-[#3C2A2A] text-[11px] font-black px-3 py-1 rounded-full shadow-xs rotate-6">
-            flip foto 🪞
-          </span>
-          <span className="absolute -bottom-3 left-6 z-20 bg-[#FFF0F3] border border-[#F2C6D1] text-[#3C2A2A] text-[11px] font-black px-3 py-1 rounded-full shadow-xs -rotate-3">
-            100% gratis ✨
-          </span>
-
-          {/* Handcrafted Photostrip Stack Mockup */}
-          <div className="relative bg-white border-2 border-[#F2C6D1] p-3 rounded-2xl shadow-md w-48 sm:w-56 space-y-2 -rotate-1 hover:rotate-0 transition-transform duration-300">
-            <div className="bg-[#FFF9F6] border border-[#F2C6D1] rounded-xl aspect-[4/3] flex items-center justify-center p-2 text-center text-xs font-bold text-[#6B5252]">
-              <span>pose #1 ✌️</span>
-            </div>
-            <div className="bg-[#FFF9F6] border border-[#F2C6D1] rounded-xl aspect-[4/3] flex items-center justify-center p-2 text-center text-xs font-bold text-[#6B5252]">
-              <span>pose #2 ✨</span>
-            </div>
-            <div className="bg-[#FFF9F6] border border-[#F2C6D1] rounded-xl aspect-[4/3] flex items-center justify-center p-2 text-center text-xs font-bold text-[#6B5252]">
-              <span>pose #3 ♡</span>
-            </div>
-            <div className="bg-[#FFF9F6] border border-[#F2C6D1] rounded-xl aspect-[4/3] flex items-center justify-center p-2 text-center text-xs font-bold text-[#6B5252]">
-              <span>pose #4 🎀</span>
-            </div>
-            <div className="pt-1 text-center font-bold text-[10px] text-[#8C6B6B] border-t border-[#F2C6D1]">
-              rielllybooth • happy captures
-            </div>
-          </div>
-        </div>
+        {/* Visual Showcase: 3D Stacked Photostrip Trio Showcase */}
+        <PhotostripTrioShowcase />
       </section>
 
-      {/* 2. INTRO SECTION */}
-      <section className="w-full bg-white border border-[#F2C6D1] rounded-3xl p-6 sm:p-10 shadow-xs flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="space-y-4 max-w-lg text-left">
-          <h2 className="text-2xl sm:text-3xl font-black text-[#3C2A2A]">
-            nggak perlu studio buat dapetin foto bagus.
-          </h2>
-          <p className="text-sm text-[#6B5252] font-medium leading-relaxed">
-            Buka kamera, siapin pose, dan biarkan rielllybooth yang ngurus sisanya.
-          </p>
-          <button
-            type="button"
-            onClick={onStart}
-            className="inline-flex items-center gap-2 text-sm font-black text-[#FF85A1] hover:text-[#E05770] transition"
-          >
-            <span>Coba Sekarang</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Clean Photostrip Card Mockup */}
-        <div className="bg-[#FAF7F2] border border-[#F2C6D1] p-4 rounded-2xl w-44 sm:w-52 space-y-2 shadow-xs rotate-2">
-          <div className="bg-white border border-[#F2C6D1] rounded-lg aspect-[4/3] flex items-center justify-center text-xs font-bold text-[#8C6B6B]">
-            natural angle 📸
+      {/* 2. FEATURE BENTO CARDS HIGHLIGHTING ACTUAL RIELLLYBOOTH FEATURES */}
+      <section className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Card 1: Peace Auto-Take */}
+        <div className="bg-white border-2 border-pink-200 p-6 rounded-3xl shadow-sm hover:-translate-y-1 transition-transform text-left flex items-start gap-4">
+          <div className="p-3 bg-pink-50 border border-pink-200 rounded-2xl shrink-0">
+            <Hand className="w-6 h-6 text-pink-500" />
           </div>
-          <div className="bg-white border border-[#F2C6D1] rounded-lg aspect-[4/3] flex items-center justify-center text-xs font-bold text-[#8C6B6B]">
-            studio quality ✨
-          </div>
-        </div>
-      </section>
-
-      {/* 3. FEATURE 01 — AUTO JEPRET */}
-      <section className="w-full bg-[#FFF9F6] border border-[#F2C6D1] rounded-3xl p-6 sm:p-10 shadow-xs flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="space-y-4 max-w-lg text-left order-2 md:order-1">
-          <span className="px-3 py-1 bg-white border border-[#F2C6D1] text-[#3C2A2A] text-xs font-black rounded-full">
-            Feature 01 · Auto Take
-          </span>
           <div className="space-y-1">
-            <h2 className="text-2xl sm:text-3xl font-black text-[#3C2A2A]">
-              tinggal pose peace.
-            </h2>
-            <p className="text-sm font-bold text-[#FF85A1]">
-              nggak perlu pencet-pencet.
+            <h3 className="font-extrabold text-[#3C2A2A] text-sm sm:text-base flex items-center gap-1.5">
+              <span>✌️ Peace Auto-Take</span>
+            </h3>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Pose peace 1.5s, kamera jepret otomatis tanpa perlu pencet shutter.
             </p>
           </div>
-          <p className="text-sm text-[#6B5252] font-medium leading-relaxed">
-            Angkat dua jari, pose peace, dan rielllybooth bakal otomatis mengambil foto.
-          </p>
-          <p className="text-xs text-[#8C6B6B] font-semibold italic">
-            lebih natural, lebih seru, dan nggak perlu buru-buru cari tombol shutter.
-          </p>
         </div>
 
-        {/* Interactive Camera Preview Card Mockup showing ✌️ */}
-        <div className="order-1 md:order-2 bg-white border-2 border-[#F2C6D1] p-4 rounded-2xl w-60 sm:w-72 space-y-3 text-center shadow-xs">
-          <div className="bg-[#FAF7F2] border border-[#F2C6D1] rounded-xl aspect-[4/3] flex flex-col items-center justify-center gap-2 relative overflow-hidden">
-            <Hand className="w-10 h-10 text-[#FF85A1] animate-bounce" />
-            <span className="text-xs font-extrabold text-[#3C2A2A]">Peace Gesture Detected! ✌️</span>
-            <span className="absolute bottom-2 right-2 px-2 py-0.5 bg-[#FF85A1] text-white text-[10px] font-black rounded">
-              3s Countdown
-            </span>
+        {/* Card 2: Live Photo */}
+        <div className="bg-white border-2 border-pink-200 p-6 rounded-3xl shadow-sm hover:-translate-y-1 transition-transform text-left flex items-start gap-4">
+          <div className="p-3 bg-pink-50 border border-pink-200 rounded-2xl shrink-0">
+            <Video className="w-6 h-6 text-pink-500" />
           </div>
-          <div className="text-[11px] font-bold text-[#8C6B6B]">
-            Kamera otomatis menjepret saat V-sign terdeteksi
-          </div>
-        </div>
-      </section>
-
-      {/* 4. FEATURE 02 — FLIP FOTO */}
-      <section className="w-full bg-white border border-[#F2C6D1] rounded-3xl p-6 sm:p-10 shadow-xs flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="space-y-4 max-w-lg text-left">
-          <span className="px-3 py-1 bg-[#FFF9F6] border border-[#F2C6D1] text-[#3C2A2A] text-xs font-black rounded-full">
-            Feature 02 · Flip Foto
-          </span>
           <div className="space-y-1">
-            <h2 className="text-2xl sm:text-3xl font-black text-[#3C2A2A]">
-              mau mirror atau normal?
-            </h2>
-            <p className="text-sm font-bold text-[#FF85A1]">
-              bebas, pilih yang paling kamu suka.
+            <h3 className="font-extrabold text-[#3C2A2A] text-sm sm:text-base flex items-center gap-1.5">
+              <span>🎥 Live Photo (Moving Video)</span>
+            </h3>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Rekam klip video bergerak boomerang yang bisa didownload sebagai MP4/Reels.
             </p>
           </div>
-          <p className="text-sm text-[#6B5252] font-medium leading-relaxed">
-            Kadang versi mirror terasa lebih familiar. Kadang versi normal lebih natural. Tinggal pilih sebelum simpan.
-          </p>
         </div>
 
-        {/* Visual Comparison: Side-by-side solid cards (MIRROR 🪞 vs NORMAL 📸) */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setActiveMirrorDemo("mirror")}
-            className={`p-4 rounded-2xl border-2 text-center transition-all cursor-pointer ${
-              activeMirrorDemo === "mirror"
-                ? "bg-[#FFF0F3] border-[#FF85A1] shadow-xs scale-105"
-                : "bg-[#FAF7F2] border-[#F2C6D1] hover:bg-white"
-            }`}
-          >
-            <div className="w-20 h-24 bg-white border border-[#F2C6D1] rounded-xl flex flex-col items-center justify-center gap-1 mb-2">
-              <span className="text-xl -scale-x-100">🤳</span>
-              <span className="text-[10px] font-black text-[#FF85A1]">MIRROR</span>
-            </div>
-            <span className="text-xs font-bold text-[#3C2A2A]">MIRROR 🪞</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveMirrorDemo("normal")}
-            className={`p-4 rounded-2xl border-2 text-center transition-all cursor-pointer ${
-              activeMirrorDemo === "normal"
-                ? "bg-[#FFF0F3] border-[#FF85A1] shadow-xs scale-105"
-                : "bg-[#FAF7F2] border-[#F2C6D1] hover:bg-white"
-            }`}
-          >
-            <div className="w-20 h-24 bg-white border border-[#F2C6D1] rounded-xl flex flex-col items-center justify-center gap-1 mb-2">
-              <span className="text-xl">📸</span>
-              <span className="text-[10px] font-black text-[#3C2A2A]">NORMAL</span>
-            </div>
-            <span className="text-xs font-bold text-[#3C2A2A]">NORMAL 📸</span>
-          </button>
-        </div>
-      </section>
-
-      {/* 5. FEATURE 03 — MUSIK */}
-      <section className="w-full bg-[#FFF9F6] border border-[#F2C6D1] rounded-3xl p-6 sm:p-10 shadow-xs flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="space-y-4 max-w-lg text-left order-2 md:order-1">
-          <span className="px-3 py-1 bg-white border border-[#F2C6D1] text-[#3C2A2A] text-xs font-black rounded-full">
-            Feature 03 · Background Music
-          </span>
+        {/* Card 3: Flip Foto */}
+        <div className="bg-white border-2 border-pink-200 p-6 rounded-3xl shadow-sm hover:-translate-y-1 transition-transform text-left flex items-start gap-4">
+          <div className="p-3 bg-pink-50 border border-pink-200 rounded-2xl shrink-0">
+            <RefreshCcw className="w-6 h-6 text-pink-500" />
+          </div>
           <div className="space-y-1">
-            <h2 className="text-2xl sm:text-3xl font-black text-[#3C2A2A]">
-              biar fotonya punya suasana.
-            </h2>
-            <p className="text-sm font-bold text-[#FF85A1]">
-              ambil foto sambil ditemani FotoKita.
+            <h3 className="font-extrabold text-[#3C2A2A] text-sm sm:text-base flex items-center gap-1.5">
+              <span>🪞 Flip Foto (Mirror/Normal)</span>
+            </h3>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Balik foto kapan saja antara mode mirror atau normal tanpa perlu foto ulang.
             </p>
           </div>
-          <p className="text-sm text-[#6B5252] font-medium leading-relaxed">
-            Sedikit musik bikin sesi photobooth terasa lebih hidup.
-          </p>
         </div>
 
-        {/* Mini aesthetic music player card */}
-        <div className="order-1 md:order-2 bg-white border-2 border-[#F2C6D1] p-5 rounded-2xl w-64 sm:w-72 space-y-3 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#FFF0F3] border border-[#F2C6D1] rounded-xl flex items-center justify-center">
-              <Music className="w-6 h-6 text-[#FF85A1]" />
-            </div>
-            <div className="text-left space-y-0.5">
-              <h4 className="text-xs font-black text-[#3C2A2A]">FotoKita</h4>
-              <p className="text-[11px] font-semibold text-[#8C6B6B]">rielllybooth session 🎵</p>
-            </div>
+        {/* Card 4: Webcam Toy & Bingkai */}
+        <div className="bg-white border-2 border-pink-200 p-6 rounded-3xl shadow-sm hover:-translate-y-1 transition-transform text-left flex items-start gap-4">
+          <div className="p-3 bg-pink-50 border border-pink-200 rounded-2xl shrink-0">
+            <Wand2 className="w-6 h-6 text-pink-500" />
           </div>
-          <div className="flex items-center justify-between pt-2 border-t border-[#F2C6D1]">
-            <span className="text-[10px] font-bold text-[#8C6B6B]">01:24</span>
-            <button
-              type="button"
-              onClick={() => setIsPlayingDemoMusic((v) => !v)}
-              className="p-2 bg-[#FF85A1] text-white rounded-full hover:bg-[#F472B6] transition"
-            >
-              {isPlayingDemoMusic ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
-            </button>
-            <span className="text-[10px] font-bold text-[#8C6B6B]">03:15</span>
+          <div className="space-y-1">
+            <h3 className="font-extrabold text-[#3C2A2A] text-sm sm:text-base flex items-center gap-1.5">
+              <span>🎨 Webcam Toy & 16+ Bingkai</span>
+            </h3>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Filter retro Pixel Art, Thermal, VHS CRT + bingkai viral Gen Z (Newspaper, Passport, Struk, Photocard).
+            </p>
           </div>
         </div>
       </section>
 
-      {/* 6. PHOTOSTRIP SECTION */}
-      <section className="w-full bg-white border border-[#F2C6D1] rounded-3xl p-6 sm:p-10 shadow-xs flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="space-y-4 max-w-lg text-left">
-          <h2 className="text-2xl sm:text-3xl font-black text-[#3C2A2A]">
-            akhirnya jadi photostrip.
-          </h2>
-          <p className="text-sm text-[#6B5252] font-medium leading-relaxed">
-            Setelah selesai foto, pilih hasil yang paling kamu suka dan simpan langsung ke perangkat.
-          </p>
-        </div>
-
-        {/* Large photostrip mockup with solid cream/pink borders */}
-        <div className="bg-[#FAF7F2] border-2 border-[#F2C6D1] p-4 rounded-2xl w-48 sm:w-56 space-y-2.5 shadow-sm text-center">
-          <div className="bg-white border border-[#F2C6D1] rounded-xl aspect-[4/3] flex items-center justify-center text-xs font-bold text-[#3C2A2A]">
-            photo #1 ✨
-          </div>
-          <div className="bg-white border border-[#F2C6D1] rounded-xl aspect-[4/3] flex items-center justify-center text-xs font-bold text-[#3C2A2A]">
-            photo #2 ♡
-          </div>
-          <div className="bg-white border border-[#F2C6D1] rounded-xl aspect-[4/3] flex items-center justify-center text-xs font-bold text-[#3C2A2A]">
-            photo #3 ✌️
-          </div>
-          <div className="pt-2 border-t border-[#F2C6D1] text-[10px] font-black text-[#8C6B6B] flex items-center justify-center gap-1">
-            <span>siap masuk kamera roll 🎀</span>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. CARA PAKAINYA (HOW IT WORKS) */}
-      <section className="w-full bg-white border border-[#F2C6D1] rounded-3xl p-6 sm:p-10 shadow-xs space-y-8">
+      {/* 3. SIMPLE 3-STEP "HOW IT WORKS" */}
+      <section className="w-full bg-white border border-pink-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
         <div className="text-center">
-          <h2 className="text-2xl sm:text-3xl font-black text-[#3C2A2A]">
-            cara pakainya
+          <h2 className="text-xl sm:text-2xl font-black text-[#3C2A2A]">
+            Cara Pakainya
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 01 */}
-          <div className="bg-[#FFF9F6] border border-[#F2C6D1] p-6 rounded-2xl text-left space-y-3 flex flex-col justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-[#FF85A1] text-white flex items-center justify-center font-black text-xl shadow-xs border border-[#E05770]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-pink-50/60 border border-pink-200 p-5 rounded-2xl text-left space-y-3 flex flex-col justify-between">
+            <div className="w-10 h-10 rounded-xl bg-pink-400 text-white flex items-center justify-center font-black text-lg shadow-xs border border-pink-500">
               01
             </div>
             <div className="space-y-1">
-              <h3 className="font-extrabold text-[#3C2A2A] text-base">
-                Siapin pose
+              <h3 className="font-extrabold text-[#3C2A2A] text-sm">
+                Izinkan Kamera
               </h3>
-              <p className="text-xs text-[#6B5252] leading-relaxed font-medium">
-                Izinkan akses kamera dan cari angle terbaik kamu.
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                Akses kamera browser kamu
               </p>
             </div>
           </div>
 
-          {/* Card 02 */}
-          <div className="bg-[#FFF9F6] border border-[#F2C6D1] p-6 rounded-2xl text-left space-y-3 flex flex-col justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-[#FF85A1] text-white flex items-center justify-center font-black text-xl shadow-xs border border-[#E05770]">
+          <div className="bg-pink-50/60 border border-pink-200 p-5 rounded-2xl text-left space-y-3 flex flex-col justify-between">
+            <div className="w-10 h-10 rounded-xl bg-pink-400 text-white flex items-center justify-center font-black text-lg shadow-xs border border-pink-500">
               02
             </div>
             <div className="space-y-1">
-              <h3 className="font-extrabold text-[#3C2A2A] text-base">
-                Pose peace
+              <h3 className="font-extrabold text-[#3C2A2A] text-sm">
+                Pose Peace
               </h3>
-              <p className="text-xs text-[#6B5252] leading-relaxed font-medium">
-                Nggak perlu pencet shutter. Cukup pose dan kamera akan otomatis mengambil foto.
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                Kamera otomatis jepret foto
               </p>
             </div>
           </div>
 
-          {/* Card 03 */}
-          <div className="bg-[#FFF9F6] border border-[#F2C6D1] p-6 rounded-2xl text-left space-y-3 flex flex-col justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-[#FF85A1] text-white flex items-center justify-center font-black text-xl shadow-xs border border-[#E05770]">
+          <div className="bg-pink-50/60 border border-pink-200 p-5 rounded-2xl text-left space-y-3 flex flex-col justify-between">
+            <div className="w-10 h-10 rounded-xl bg-pink-400 text-white flex items-center justify-center font-black text-lg shadow-xs border border-pink-500">
               03
             </div>
             <div className="space-y-1">
-              <h3 className="font-extrabold text-[#3C2A2A] text-base">
-                Pilih & simpan
+              <h3 className="font-extrabold text-[#3C2A2A] text-sm">
+                Simpan Foto
               </h3>
-              <p className="text-xs text-[#6B5252] leading-relaxed font-medium">
-                Atur hasilnya, pilih mirror atau normal, lalu simpan photostrip kamu.
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                Unduh photo strip HD & Live Video
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 8. MOMENTS SECTION */}
-      <section className="w-full bg-[#FFF9F6] border border-[#F2C6D1] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6 text-center">
-        <div className="space-y-2 max-w-xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-black text-[#3C2A2A]">
-            buat momen apa aja.
-          </h2>
-          <p className="text-xs sm:text-sm text-[#6B5252] font-medium leading-relaxed">
-            Serius mau foto, iseng, atau cuma pengen punya photostrip baru — semuanya boleh.
-          </p>
-        </div>
-
-        {/* Flat Category Tags (no emojis) */}
-        <div className="flex flex-wrap justify-center gap-2.5 max-w-lg mx-auto pt-2">
-          {["sendiri", "bareng teman", "couple", "hts", "just friend"].map((tag, idx) => (
-            <span
-              key={idx}
-              className="px-4 py-2 bg-white border border-[#F2C6D1] text-[#3C2A2A] text-xs font-extrabold rounded-full shadow-xs"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* 9. FEATURE SUMMARY */}
-      <section className="w-full bg-white border border-[#F2C6D1] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6 text-center">
-        <h2 className="text-2xl sm:text-3xl font-black text-[#3C2A2A]">
-          yang bikin rielllybooth beda
+      {/* 4. FAQ ACCORDION */}
+      <section className="w-full bg-white border border-pink-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-5 text-left">
+        <h2 className="text-xl sm:text-2xl font-black text-[#3C2A2A] text-center">
+          Pertanyaan Sering Diajukan
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
-          {[
-            "AUTO JEPRET",
-            "FLIP FOTO",
-            "HD",
-            "TANPA DAFTAR",
-            "GRATIS",
-            "PHOTOSTRIP",
-            "MUSIK",
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="p-4 bg-[#FFF9F6] border border-[#F2C6D1] rounded-2xl text-xs font-black text-[#3C2A2A] flex items-center justify-center text-center shadow-xs"
-            >
-              {item}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 10. CTA SECTION */}
-      <section className="w-full bg-[#FFF0F3] border-2 border-[#F2C6D1] rounded-3xl p-8 sm:p-12 shadow-xs text-center space-y-6">
-        <div className="space-y-3 max-w-md mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-black text-[#3C2A2A]">
-            nggak perlu ribet.
-          </h2>
-          <p className="text-sm font-bold text-[#6B5252] leading-relaxed whitespace-pre-line">
-            {`Buka kamera.
-Cari pose.
-Pose peace.
-Sisanya biar rielllybooth.`}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={onStart}
-          className="bg-[#FF85A1] hover:bg-[#F472B6] border-2 border-[#E05770] text-white rounded-full px-8 sm:px-10 py-4 text-base font-extrabold shadow-sm hover:scale-105 active:scale-95 transition-all inline-flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <span>Mulai Photobooth</span>
-          <ArrowRight className="w-5 h-5" />
-        </button>
-      </section>
-
-      {/* 11. FAQ ACCORDION */}
-      <section className="w-full bg-white border border-[#F2C6D1] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6 text-left">
-        <h2 className="text-2xl sm:text-3xl font-black text-[#3C2A2A] text-center">
-          pertanyaan yang sering ditanya
-        </h2>
-
-        <div className="space-y-3 max-w-3xl mx-auto">
+        <div className="space-y-2.5 max-w-2xl mx-auto">
           {faqs.map((faq, idx) => {
             const isOpen = openFaqIndex === idx;
             return (
               <div
                 key={idx}
-                className="border border-[#F2C6D1] rounded-2xl overflow-hidden bg-[#FFF9F6] transition-all duration-200"
+                className="border border-pink-200 rounded-2xl overflow-hidden bg-pink-50/40 transition-all duration-200"
               >
                 <button
                   type="button"
                   onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                  className="w-full px-5 py-4 flex justify-between items-center font-extrabold text-[#3C2A2A] text-xs sm:text-sm hover:bg-white transition text-left cursor-pointer"
+                  className="w-full px-4 py-3.5 flex justify-between items-center font-extrabold text-[#3C2A2A] text-xs sm:text-sm hover:bg-white transition text-left cursor-pointer"
                 >
                   <span>{faq.q}</span>
                   {isOpen ? (
-                    <ChevronUp className="w-4 h-4 text-[#FF85A1] shrink-0" />
+                    <ChevronUp className="w-4 h-4 text-pink-500 shrink-0" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#8C6B6B] shrink-0" />
+                    <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                   )}
                 </button>
                 {isOpen && (
-                  <div className="px-5 pb-4 text-xs font-medium text-[#6B5252] leading-relaxed border-t border-[#F2C6D1] pt-3 bg-white">
+                  <div className="px-4 pb-3.5 text-xs font-medium text-slate-600 leading-relaxed border-t border-pink-200 pt-2.5 bg-white">
                     {faq.a}
                   </div>
                 )}
@@ -486,13 +356,13 @@ Sisanya biar rielllybooth.`}
         </div>
       </section>
 
-      {/* 12. FINAL CTA */}
-      <section className="w-full bg-white border border-[#F2C6D1] rounded-3xl p-8 sm:p-10 shadow-xs text-center space-y-4">
+      {/* 5. FINAL CTA */}
+      <section className="w-full bg-pink-50/70 border-2 border-pink-300 rounded-3xl p-6 sm:p-8 shadow-xs text-center space-y-3">
         <div className="space-y-1">
-          <h2 className="text-2xl sm:text-3xl font-black text-[#3C2A2A]">
+          <h2 className="text-xl sm:text-2xl font-black text-[#3C2A2A]">
             satu foto lagi?
           </h2>
-          <p className="text-xs sm:text-sm font-medium text-[#6B5252]">
+          <p className="text-xs font-medium text-slate-600">
             Kalau tadi belum dapet yang pas, coba lagi.
           </p>
         </div>
@@ -500,14 +370,14 @@ Sisanya biar rielllybooth.`}
         <button
           type="button"
           onClick={onStart}
-          className="bg-[#FF85A1] hover:bg-[#F472B6] border-2 border-[#E05770] text-white rounded-full px-8 py-3.5 text-sm sm:text-base font-extrabold shadow-sm hover:scale-105 active:scale-95 transition-all inline-flex items-center justify-center gap-2 cursor-pointer"
+          className="bg-pink-400 hover:bg-pink-500 border-2 border-pink-500 text-white rounded-full px-7 py-3 text-xs sm:text-sm font-extrabold shadow-md hover:scale-105 active:scale-95 transition-all inline-flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>Foto Lagi 🎀</span>
         </button>
       </section>
 
-      {/* 13. COMPACT FOOTER */}
-      <footer className="w-full border-t border-[#F2C6D1] pt-8 pb-4 text-center text-xs text-[#6B5252] flex flex-col items-center justify-center gap-3">
+      {/* 6. SINGLE COMPACT FOOTER WITH VECTOR ICONS */}
+      <footer className="w-full border-t border-pink-200 pt-6 pb-2 text-center text-xs text-slate-600 flex flex-col items-center justify-center gap-2.5">
         <div className="font-bold text-[#3C2A2A]">
           © 2026 rielllybooth 🎀 · &ldquo;buat momen yang pengen kamu simpan&rdquo;
         </div>
@@ -515,36 +385,40 @@ Sisanya biar rielllybooth.`}
         <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-bold">
           <a
             href="mailto:rielllybooth@gmail.com"
-            className="hover:text-[#FF85A1] transition inline-flex items-center gap-1"
+            className="hover:text-pink-600 transition inline-flex items-center gap-1.5"
           >
-            ✉ rielllybooth@gmail.com
+            <Mail className="w-3.5 h-3.5 text-pink-500" />
+            <span>rielllybooth@gmail.com</span>
           </a>
-          <span className="text-[#F2C6D1]">·</span>
+          <span className="text-pink-300">·</span>
           <a
             href="https://instagram.com/rielllybooth"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#FF85A1] hover:underline transition inline-flex items-center gap-1"
+            className="text-pink-600 hover:underline transition inline-flex items-center gap-1.5"
           >
-            ◎ @rielllybooth
+            <Instagram className="w-3.5 h-3.5 text-pink-500" />
+            <span>@rielllybooth</span>
           </a>
-          <span className="text-[#F2C6D1]">·</span>
+          <span className="text-pink-300">·</span>
           <a
             href="https://tiktok.com/@riellybooth_"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-[#FF85A1] transition inline-flex items-center gap-1"
+            className="hover:text-pink-600 transition inline-flex items-center gap-1.5"
           >
-            ♫ @riellybooth_
+            <TikTokIcon className="w-3.5 h-3.5 text-pink-500" />
+            <span>@riellybooth_</span>
           </a>
-          <span className="text-[#F2C6D1]">·</span>
+          <span className="text-pink-300">·</span>
           <a
-            href="https://instagram.com/dhikastriaaa"
+            href="https://instagram.com/dhikasatriaaa"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#6B5252] hover:text-[#FF85A1] underline transition"
+            className="text-slate-600 hover:text-pink-600 underline transition inline-flex items-center gap-1.5"
           >
-            Dev: @dhikastriaaa
+            <Instagram className="w-3.5 h-3.5 text-[#8B4A5A]" />
+            <span>Dev: @dhikasatriaaa</span>
           </a>
         </div>
       </footer>

@@ -8,6 +8,11 @@
   }
 }
 
+.bg-pattern-polkadot {
+  background-image: radial-gradient(#f472b6 1.2px, transparent 1.2px);
+  background-size: 20px 20px;
+}
+
 /* Custom Micro-Animation Utilities */
 @keyframes spinSlow {
   from {
