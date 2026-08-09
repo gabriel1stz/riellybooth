@@ -1425,28 +1425,28 @@ export const drawPhotoStrip = (
     ctx.fillStyle = "#F6F3EB";
     ctx.fillRect(0, 0, canvas.width, 900);
 
-    // Y = 80px: Render header "SUMMER MEMORIES PASSPORT" in dark red (#8B1E1E, font bold 48px serif) centered
+    // Y = 70px: Render header "SUMMER MEMORIES PASSPORT" in dark red (#8B1E1E, font bold 46px serif) centered
     ctx.fillStyle = "#8B1E1E";
-    ctx.font = "bold 48px 'Georgia', serif";
+    ctx.font = "bold 46px 'Georgia', serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("SUMMER MEMORIES PASSPORT", canvas.width / 2, 80);
+    ctx.fillText("SUMMER MEMORIES PASSPORT", canvas.width / 2, 70);
 
-    // Y = 130px: Draw 3 red star vectors ⭐⭐⭐ centered. Draw double rule lines below at Y = 160px
+    // Y = 120px: Draw 3 red star vectors ⭐⭐⭐ centered. Draw double rule line at Y = 150px
     ctx.fillStyle = "#8B1E1E";
     ctx.font = "bold 24px sans-serif";
-    ctx.fillText("★   ★   ★", canvas.width / 2, 130);
+    ctx.fillText("★   ★   ★", canvas.width / 2, 120);
 
     ctx.strokeStyle = "#8B1E1E";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(60, 156);
-    ctx.lineTo(canvas.width - 60, 156);
+    ctx.moveTo(60, 148);
+    ctx.lineTo(canvas.width - 60, 148);
     ctx.stroke();
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(60, 162);
-    ctx.lineTo(canvas.width - 60, 162);
+    ctx.moveTo(60, 154);
+    ctx.lineTo(canvas.width - 60, 154);
     ctx.stroke();
 
     // Right Passport Data Fields (X = 540px, dark red #8B1E1E font bold 22px monospace)
@@ -1456,22 +1456,22 @@ export const drawPhotoStrip = (
     ctx.fillStyle = "#8B1E1E";
     ctx.font = "bold 22px monospace";
 
-    ctx.fillText("LAST NAME    :  THE FAVORITE", fieldX, 220);
-    ctx.fillText("FIRST NAME   :  XO XO XO", fieldX, 270);
+    ctx.fillText("LAST NAME    :  THE FAVORITE", fieldX, 200);
+    ctx.fillText("FIRST NAME   :  XO XO XO", fieldX, 250);
 
-    // Y = 320px: Draw 5 checkbox squares ☐  ☐  ☐  ☐  ☐
+    // Y = 300px: Draw 5 Checkboxes ☐  ☐  ☐  ☐  ☐
     for (let c = 0; c < 5; c++) {
-      ctx.strokeRect(fieldX + c * 40, 304, 22, 22);
+      ctx.strokeRect(fieldX + c * 40, 284, 22, 22);
     }
 
-    ctx.fillText("NATIONALITY  :  INDONESIAN", fieldX, 370);
-    ctx.fillText("BIRTHDAY     :  12.12.2000", fieldX, 420);
-    ctx.fillText("PLACE OF BIRTH: YOGYAKARTA", fieldX, 470);
-    ctx.fillText("VALID UNTIL  :  12.09.26", fieldX, 520);
+    ctx.fillText("NATIONALITY  :  INDONESIAN", fieldX, 350);
+    ctx.fillText("BIRTHDAY     :  12.12.2000", fieldX, 400);
+    ctx.fillText("PLACE OF BIRTH: YOGYAKARTA", fieldX, 450);
+    ctx.fillText("VALID UNTIL  :  12.09.26", fieldX, 500);
 
-    // Y = 510px: Draw a blue ink stamp rotated -12deg at X = 720px with text "12.09.26"
+    // Y = 490px: Slanted blue stamp rotated -12deg at X = 720px with text "12.09.26"
     ctx.save();
-    ctx.translate(760, 500);
+    ctx.translate(720, 490);
     ctx.rotate(-0.21);
     ctx.strokeStyle = "#1d4ed8";
     ctx.lineWidth = 4;
@@ -1483,41 +1483,41 @@ export const drawPhotoStrip = (
     ctx.fillText("12.09.26", 0, 0);
     ctx.restore();
 
-    // Y = 580px: Draw wrapped passport description paragraph (15px monospace, max-width 580px)
+    // Y = 560px: Draw wrapped passport description paragraph (15px monospace, max-width 580px)
     ctx.fillStyle = "#8B1E1E";
     ctx.font = "bold 15px monospace";
     drawWrappedCanvasText(
       ctx,
       "Like flipping through an old passport, each photo captures who you were in that moment. Freeze today's chapter and add it to the memoir you'll look back on tomorrow.",
       fieldX,
-      580,
+      560,
       580,
       24
     );
 
-    // Y = 840px: Draw divider line with centered text "VICTION"
+    // Y = 830px: Draw divider line with centered text "VICTION"
     ctx.strokeStyle = "#8B1E1E";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(60, 840);
-    ctx.lineTo(520, 840);
+    ctx.moveTo(60, 830);
+    ctx.lineTo(520, 830);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(680, 840);
-    ctx.lineTo(canvas.width - 60, 840);
+    ctx.moveTo(680, 830);
+    ctx.lineTo(canvas.width - 60, 830);
     ctx.stroke();
 
     ctx.fillStyle = "#8B1E1E";
     ctx.font = "bold 18px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("VICTION", canvas.width / 2, 840);
+    ctx.fillText("VICTION", canvas.width / 2, 830);
 
-    // BOTTOM SCRAPBOOK PAGE (Y = 900 to 1800px, Tan Background #EBDCB9)
+    // BOTTOM SCRAPBOOK PAGE (Y = 900 to 1800px, Background #EBDCB9)
     ctx.fillStyle = "#EBDCB9";
     ctx.fillRect(0, 900, canvas.width, 900);
 
-    // Y = 930px: Draw dark red header banner (#8B1E1E) with white text "IDENTIFICATIONS AS OF LATE" centered
+    // Y = 930px: Dark red header banner (#8B1E1E) with white text "IDENTIFICATIONS AS OF LATE" centered
     ctx.fillStyle = "#8B1E1E";
     ctx.fillRect(200, 905, 800, 50);
 
@@ -1542,16 +1542,13 @@ export const drawPhotoStrip = (
 
   // STEP 2: DRAW PHOTOS ACCORDING TO THE LAYOUT MODES WITH STRICT CLIPPING
   if (preset === "cupids_letter") {
-    // 💌 CUPID'S LETTER STAMP PHOTO SLOTS
-    // 4 Scalloped Postage Stamp Photo Slots in Right Column
+    // 💌 CUPID'S LETTER STAMP PHOTO SLOTS (2 STACKED STAMPS)
     const stampSlots = [
-      { x: 630, y: 200, w: 480, h: 340 },
-      { x: 630, y: 570, w: 480, h: 340 },
-      { x: 630, y: 940, w: 480, h: 340 },
-      { x: 630, y: 1310, w: 480, h: 340 },
+      { x: 630, y: 240, w: 480, h: 380 },
+      { x: 630, y: 760, w: 480, h: 380 },
     ];
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       const slot = stampSlots[i];
       const img = images[i];
 
