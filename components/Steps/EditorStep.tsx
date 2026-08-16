@@ -247,6 +247,68 @@ export default function EditorStep({
     };
   };
 
+  // Extract and update Valorant fields
+  const valoStats = React.useMemo(() => {
+    let ign = "guraisu";
+    let role = "Smoker";
+    let agent = "Clove";
+    let rank = "Ascendant";
+    let line = "Kaget anjg, game sialan";
+
+    if (customText && customText !== "rielllybooth ♡") {
+      if (customText.includes("|")) {
+        const parts = customText.split("|");
+        if (parts[0]) ign = parts[0];
+        if (parts[1]) role = parts[1];
+        if (parts[2]) agent = parts[2];
+        if (parts[3]) rank = parts[3];
+        if (parts[4]) line = parts[4];
+      } else {
+        ign = customText;
+      }
+    }
+    if (subtitleText && subtitleText.trim() && !subtitleText.includes("✨")) {
+      line = subtitleText.trim();
+    }
+    return { ign, role, agent, rank, line };
+  }, [customText, subtitleText]);
+
+  const updateValoField = (field: string, val: string) => {
+    const updated = { ...valoStats, [field]: val };
+    setCustomText(`${updated.ign}|${updated.role}|${updated.agent}|${updated.rank}|${updated.line}`);
+  };
+
+  // Extract and update Student ID fields
+  const studentStats = React.useMemo(() => {
+    let name = "STEFANY PUTRI";
+    let idNo = "2024-08912";
+    let grade = "CLASS 3-A";
+    let major = "VISUAL ARTS & MUSIC";
+    let dob = "16 AUG 2006";
+
+    if (customText && customText !== "rielllybooth ♡") {
+      if (customText.includes("|")) {
+        const parts = customText.split("|");
+        if (parts[0]) name = parts[0];
+        if (parts[1]) idNo = parts[1];
+        if (parts[2]) grade = parts[2];
+        if (parts[3]) major = parts[3];
+        if (parts[4]) dob = parts[4];
+      } else {
+        name = customText;
+      }
+    }
+    if (subtitleText && subtitleText.trim() && !subtitleText.includes("✨")) {
+      grade = subtitleText.trim();
+    }
+    return { name, idNo, grade, major, dob };
+  }, [customText, subtitleText]);
+
+  const updateStudentField = (field: string, val: string) => {
+    const updated = { ...studentStats, [field]: val };
+    setCustomText(`${updated.name}|${updated.idNo}|${updated.grade}|${updated.major}|${updated.dob}`);
+  };
+
   const handlePointerDown = (clientX: number, clientY: number) => {
     const pos = getCanvasPos(clientX, clientY);
     if (!pos || placedStickers.length === 0) return;
@@ -559,6 +621,10 @@ export default function EditorStep({
                 <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z Indonesia:</label>
                 <div className="max-h-48 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
                   {[
+                    { id: "student_id", label: "🪪 Student ID Card" },
+                    { id: "school_4cut", label: "🏫 Manner High (4-Cut)" },
+                    { id: "supermarket_crate", label: "🥦 Fruit Market Crate" },
+                    { id: "valorant_id", label: "🎯 Valorant Player ID" },
                     { id: "cupids_letter", label: "💌 Cupid's Letter" },
                     { id: "passport", label: "✈️ Passport Memories" },
                     { id: "toy_story", label: "🤠 Toy Story" },
@@ -804,36 +870,194 @@ export default function EditorStep({
                 </div>
               </div>
 
-              {/* FOOTER TEXT EDITORS */}
-              {!customLogoUrl && (
-                <div className="space-y-1.5 pt-1">
-                  <label className="text-xs font-bold text-slate-700">Teks Judul Utama Footer:</label>
-                  <input
-                    type="text"
-                    value={customText}
-                    onChange={(e) => setCustomText(e.target.value)}
-                    placeholder="Contoh: rielllybooth ♡"
-                    className="w-full px-3.5 py-2 rounded-xl border-2 border-pink-200 text-xs font-bold focus:border-pink-500 outline-none transition"
-                  />
+              {/* SPECIAL VALORANT PLAYER STATS FORM OR REGULAR FOOTER EDITORS */}
+              {preset === "valorant_id" ? (
+                <div className="space-y-3 bg-slate-900 border-2 border-red-500/60 p-3.5 rounded-2xl text-slate-100 shadow-md">
+                  <div className="flex items-center justify-between border-b border-slate-700 pb-2">
+                    <span className="text-red-500 font-black text-xs tracking-wider flex items-center gap-1.5">
+                      🎯 VALORANT IDENTIFICATION
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">PROTOCOL // 00</span>
+                  </div>
+
+                  {/* IGN */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-300 font-mono">IGN (In-Game Name):</label>
+                    <input
+                      type="text"
+                      value={valoStats.ign}
+                      onChange={(e) => updateValoField("ign", e.target.value)}
+                      placeholder="Contoh: guraisu"
+                      className="w-full px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
+                    />
+                  </div>
+
+                  {/* ROLE & AGENT */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-300 font-mono">Role:</label>
+                      <select
+                        value={valoStats.role}
+                        onChange={(e) => updateValoField("role", e.target.value)}
+                        className="w-full px-2 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
+                      >
+                        <option value="Smoker">💨 Smoker</option>
+                        <option value="Duelist">⚔️ Duelist</option>
+                        <option value="Initiator">🎯 Initiator</option>
+                        <option value="Sentinel">🛡️ Sentinel</option>
+                        <option value="Flex">✨ Flex</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-300 font-mono">Favorite Agent:</label>
+                      <input
+                        type="text"
+                        value={valoStats.agent}
+                        onChange={(e) => updateValoField("agent", e.target.value)}
+                        placeholder="Contoh: Clove"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
+                      />
+                    </div>
+                  </div>
+
+                  {/* PEAK RANK */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-300 font-mono">Peak Rank:</label>
+                    <select
+                      value={valoStats.rank}
+                      onChange={(e) => updateValoField("rank", e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
+                    >
+                      <option value="Radiant">👑 Radiant</option>
+                      <option value="Immortal">💎 Immortal</option>
+                      <option value="Ascendant">🟢 Ascendant</option>
+                      <option value="Diamond">🔷 Diamond</option>
+                      <option value="Platinum">💠 Platinum</option>
+                      <option value="Gold">🟡 Gold</option>
+                      <option value="Silver">⚪ Silver</option>
+                      <option value="Bronze">🟤 Bronze</option>
+                      <option value="Iron">⚫ Iron</option>
+                    </select>
+                  </div>
+
+                  {/* MOST SAID LINE */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-300 font-mono">Most Said Line:</label>
+                    <input
+                      type="text"
+                      value={valoStats.line}
+                      onChange={(e) => updateValoField("line", e.target.value)}
+                      placeholder="Contoh: Kaget anjg, game sialan"
+                      className="w-full px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
+                    />
+                  </div>
                 </div>
+              ) : preset === "student_id" ? (
+                <div className="space-y-3 bg-slate-900 border-2 border-blue-500/60 p-3.5 rounded-2xl text-slate-100 shadow-md">
+                  <div className="flex items-center justify-between border-b border-slate-700 pb-2">
+                    <span className="text-blue-400 font-black text-xs tracking-wider flex items-center gap-1.5">
+                      🪪 STUDENT IDENTIFICATION CARD
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">MANNER HIGH</span>
+                  </div>
+
+                  {/* STUDENT NAME */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-300 font-mono">Nama Siswa / Name:</label>
+                    <input
+                      type="text"
+                      value={studentStats.name}
+                      onChange={(e) => updateStudentField("name", e.target.value)}
+                      placeholder="Contoh: STEFANY PUTRI"
+                      className="w-full px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
+                    />
+                  </div>
+
+                  {/* STUDENT ID NO & CLASS */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-300 font-mono">No. Pelajar / ID:</label>
+                      <input
+                        type="text"
+                        value={studentStats.idNo}
+                        onChange={(e) => updateStudentField("idNo", e.target.value)}
+                        placeholder="2024-08912"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-300 font-mono">Kelas / Grade:</label>
+                      <input
+                        type="text"
+                        value={studentStats.grade}
+                        onChange={(e) => updateStudentField("grade", e.target.value)}
+                        placeholder="CLASS 3-A"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
+                      />
+                    </div>
+                  </div>
+
+                  {/* MAJOR / CLUB & DOB */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-300 font-mono">Jurusan / Club:</label>
+                      <input
+                        type="text"
+                        value={studentStats.major}
+                        onChange={(e) => updateStudentField("major", e.target.value)}
+                        placeholder="VISUAL ARTS"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-300 font-mono">Tgl Lahir / DOB:</label>
+                      <input
+                        type="text"
+                        value={studentStats.dob}
+                        onChange={(e) => updateStudentField("dob", e.target.value)}
+                        placeholder="16 AUG 2006"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* FOOTER TEXT EDITORS */}
+                  {!customLogoUrl && (
+                    <div className="space-y-1.5 pt-1">
+                      <label className="text-xs font-bold text-slate-700">Teks Judul Utama Footer:</label>
+                      <input
+                        type="text"
+                        value={customText}
+                        onChange={(e) => setCustomText(e.target.value)}
+                        placeholder="Contoh: rielllybooth ♡"
+                        className="w-full px-3.5 py-2 rounded-xl border-2 border-pink-200 text-xs font-bold focus:border-pink-500 outline-none transition"
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Teks Subtitle Tanggal / Pesan:</label>
+                    <input
+                      type="text"
+                      value={subtitleText}
+                      onChange={(e) => setSubtitleText(e.target.value)}
+                      placeholder="Contoh: ✨ 04 Agu 2026 ✨"
+                      className="w-full px-3.5 py-2 rounded-xl border-2 border-pink-200 text-xs font-bold focus:border-pink-500 outline-none transition"
+                    />
+                  </div>
+
+                  <ColorPicker
+                    label="Warna Teks Typography"
+                    value={textColor}
+                    onChange={setTextColor}
+                  />
+                </>
               )}
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Teks Subtitle Tanggal / Pesan:</label>
-                <input
-                  type="text"
-                  value={subtitleText}
-                  onChange={(e) => setSubtitleText(e.target.value)}
-                  placeholder="Contoh: ✨ 04 Agu 2026 ✨"
-                  className="w-full px-3.5 py-2 rounded-xl border-2 border-pink-200 text-xs font-bold focus:border-pink-500 outline-none transition"
-                />
-              </div>
-
-              <ColorPicker
-                label="Warna Teks Typography"
-                value={textColor}
-                onChange={setTextColor}
-              />
             </div>
           )}
         </div>

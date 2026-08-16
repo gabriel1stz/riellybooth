@@ -24,6 +24,10 @@ export type LayoutMode =
 
 export type FramePreset =
   | "clean"
+  | "valorant_id"
+  | "supermarket_crate"
+  | "student_id"
+  | "school_4cut"
   | "coquette"
   | "coquette_black"
   | "y2k"
@@ -758,6 +762,1495 @@ function drawScallopedStampFrame(
 }
 
 /**
+ * Official Valorant V-mark vector logo
+ */
+function drawValorantLogo(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string = "#ff4655") {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.fillStyle = color;
+  const s = size / 40;
+
+  // Left blade: /| shape
+  ctx.beginPath();
+  ctx.moveTo(-16 * s, -18 * s);
+  ctx.lineTo(-4 * s, -18 * s);
+  ctx.lineTo(-4 * s, 18 * s);
+  ctx.lineTo(-12 * s, 18 * s);
+  ctx.lineTo(-16 * s, 6 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Right blade: |\ shape
+  ctx.beginPath();
+  ctx.moveTo(16 * s, -18 * s);
+  ctx.lineTo(4 * s, -18 * s);
+  ctx.lineTo(4 * s, 6 * s);
+  ctx.lineTo(12 * s, 18 * s);
+  ctx.lineTo(16 * s, 18 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Riot Games iconic fist logo mark
+ */
+function drawRiotFistLogo(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string = "#ffffff") {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.fillStyle = color;
+  const s = size / 30;
+
+  // 4 fingers
+  ctx.beginPath();
+  ctx.moveTo(-12 * s, -10 * s);
+  ctx.lineTo(-7 * s, -12 * s);
+  ctx.lineTo(-7 * s, 2 * s);
+  ctx.lineTo(-12 * s, 2 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(-5 * s, -13 * s);
+  ctx.lineTo(0 * s, -14 * s);
+  ctx.lineTo(0 * s, 2 * s);
+  ctx.lineTo(-5 * s, 2 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(2 * s, -13 * s);
+  ctx.lineTo(7 * s, -12 * s);
+  ctx.lineTo(7 * s, 2 * s);
+  ctx.lineTo(2 * s, 2 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(9 * s, -10 * s);
+  ctx.lineTo(13 * s, -8 * s);
+  ctx.lineTo(13 * s, 2 * s);
+  ctx.lineTo(9 * s, 2 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Palm base
+  ctx.beginPath();
+  ctx.moveTo(-13 * s, 4 * s);
+  ctx.lineTo(13 * s, 4 * s);
+  ctx.lineTo(11 * s, 14 * s);
+  ctx.lineTo(-10 * s, 14 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Top-left tactical lanyard strap with Riot logo buckle
+ */
+function drawLanyardStrap(ctx: CanvasRenderingContext2D, x: number, y: number, angleDeg: number = -16) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate((angleDeg * Math.PI) / 180);
+
+  // Drop shadow
+  ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetY = 10;
+
+  // Black woven nylon strap
+  ctx.fillStyle = "#18181b";
+  ctx.fillRect(-45, -200, 90, 280);
+
+  // Red accent edge stripes
+  ctx.fillStyle = "#eb0029";
+  ctx.fillRect(-45, -200, 6, 280);
+  ctx.fillRect(39, -200, 6, 280);
+
+  // Strap texture weave
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+  ctx.lineWidth = 1;
+  for (let sy = -200; sy < 80; sy += 8) {
+    ctx.beginPath();
+    ctx.moveTo(-45, sy);
+    ctx.lineTo(45, sy + 6);
+    ctx.stroke();
+  }
+
+  // Buckle release / clip
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = "#27272a";
+  ctx.beginPath();
+  ctx.roundRect(-52, 40, 104, 75, 12);
+  ctx.fill();
+
+  // Buckle center cutout & Riot logo
+  ctx.fillStyle = "#eb0029";
+  ctx.beginPath();
+  ctx.roundRect(-38, 52, 76, 50, 6);
+  ctx.fill();
+
+  drawRiotFistLogo(ctx, 0, 77, 26, "#ffffff");
+
+  ctx.restore();
+}
+
+/**
+ * Top-right agent tactical keycard / sleeve ("PROTOCOL // 00")
+ */
+function drawTacticalKeycard(ctx: CanvasRenderingContext2D, x: number, y: number, angleDeg: number = 18) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate((angleDeg * Math.PI) / 180);
+
+  ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+  ctx.shadowBlur = 24;
+  ctx.shadowOffsetY = 12;
+
+  // Outer Cyan Metallic Bevel Card
+  const grad = ctx.createLinearGradient(-130, -180, 130, 180);
+  grad.addColorStop(0, "#475569");
+  grad.addColorStop(0.3, "#0284c7");
+  grad.addColorStop(0.7, "#0369a1");
+  grad.addColorStop(1, "#334155");
+
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.roundRect(-130, -190, 260, 380, 20);
+  ctx.fill();
+
+  // Cyan Neon Inner Border
+  ctx.strokeStyle = "#38bdf8";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Inner Dark Slate Screen
+  ctx.fillStyle = "#09131d";
+  ctx.beginPath();
+  ctx.roundRect(-110, -170, 220, 340, 14);
+  ctx.fill();
+
+  // Chamfered cut accents
+  ctx.fillStyle = "#0284c7";
+  ctx.fillRect(-110, -170, 40, 8);
+  ctx.fillRect(70, 162, 40, 8);
+
+  // Large White Valorant Logo in center
+  drawValorantLogo(ctx, 0, -20, 70, "#ffffff");
+
+  // Vertical text along right edge
+  ctx.save();
+  ctx.rotate(Math.PI / 2);
+  ctx.fillStyle = "#38bdf8";
+  ctx.font = "bold 13px monospace";
+  ctx.fillText("PROTOCOL // 00", -70, -85);
+  ctx.restore();
+
+  ctx.restore();
+}
+
+/**
+ * Realistic Gold Metallic Keychain Ring & Riot Games Tag
+ */
+function drawMetallicKeychain(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number = 58) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  ctx.shadowColor = "rgba(0, 0, 0, 0.55)";
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetY = 8;
+
+  // Outer Gold Metallic Ring
+  const goldGrad = ctx.createLinearGradient(-radius, -radius, radius, radius);
+  goldGrad.addColorStop(0, "#b45309");
+  goldGrad.addColorStop(0.2, "#fde047");
+  goldGrad.addColorStop(0.4, "#d97706");
+  goldGrad.addColorStop(0.6, "#fef08a");
+  goldGrad.addColorStop(0.8, "#b45309");
+  goldGrad.addColorStop(1, "#78350f");
+
+  ctx.strokeStyle = goldGrad;
+  ctx.lineWidth = 14;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Specular sheen ring highlight
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(-radius * 0.15, -radius * 0.15, radius - 4, -Math.PI / 2, 0);
+  ctx.stroke();
+
+  // Chain links cascading down
+  const linkYOffsets = [radius + 12, radius + 36, radius + 60];
+  linkYOffsets.forEach((ly, idx) => {
+    ctx.save();
+    ctx.translate(idx % 2 === 0 ? 0 : 2, ly);
+    ctx.strokeStyle = goldGrad;
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 9, 14, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  // Hanging Tag at bottom of chain
+  ctx.save();
+  ctx.translate(0, radius + 115);
+  ctx.rotate((-6 * Math.PI) / 180);
+
+  ctx.fillStyle = "#0f172a";
+  ctx.beginPath();
+  ctx.roundRect(-42, -42, 84, 84, 12);
+  ctx.fill();
+
+  ctx.strokeStyle = "#38bdf8";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Red accent corner
+  ctx.fillStyle = "#eb0029";
+  ctx.beginPath();
+  ctx.moveTo(18, 42);
+  ctx.lineTo(42, 18);
+  ctx.lineTo(42, 42);
+  ctx.closePath();
+  ctx.fill();
+
+  // Riot Fist Logo
+  drawRiotFistLogo(ctx, 0, 0, 32, "#ffffff");
+  ctx.restore();
+
+  ctx.restore();
+}
+
+/**
+ * Realistic Grooved Vinyl Record Player & Album Art Center Label
+ */
+function drawVinylRecord(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number = 290,
+  albumImg?: HTMLImageElement | HTMLVideoElement,
+  filterString?: string,
+  isFlipped?: boolean,
+  cuteFilter: CuteFilter = "none",
+  beautyGlow: number = 0,
+  filterIntensity: number = 100
+) {
+  ctx.save();
+
+  // Outer heavy drop shadow
+  ctx.shadowColor = "rgba(0, 0, 0, 0.75)";
+  ctx.shadowBlur = 36;
+  ctx.shadowOffsetX = -10;
+  ctx.shadowOffsetY = 16;
+
+  // Main Black Vinyl Body
+  ctx.fillStyle = "#0d0d10";
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Reset shadow for grooves
+  ctx.shadowColor = "transparent";
+
+  // Concentric vinyl micro-grooves
+  for (let r = 145; r < radius - 8; r += 4) {
+    const alpha = (Math.sin(r * 1.5) * 0.05 + 0.08);
+    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+    ctx.lineWidth = r % 16 === 0 ? 1.4 : 0.8;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Specular Light Cones (Vinyl Sheen Reflections across opposite quadrants)
+  const sheenGrad = ctx.createConicGradient(Math.PI / 4, cx, cy);
+  sheenGrad.addColorStop(0, "rgba(255, 255, 255, 0.0)");
+  sheenGrad.addColorStop(0.12, "rgba(255, 255, 255, 0.16)");
+  sheenGrad.addColorStop(0.25, "rgba(255, 255, 255, 0.0)");
+  sheenGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.0)");
+  sheenGrad.addColorStop(0.62, "rgba(255, 255, 255, 0.16)");
+  sheenGrad.addColorStop(0.75, "rgba(255, 255, 255, 0.0)");
+  sheenGrad.addColorStop(1.0, "rgba(255, 255, 255, 0.0)");
+
+  ctx.fillStyle = sheenGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Center Album Label Area
+  const labelRadius = 115;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, labelRadius, 0, Math.PI * 2);
+  ctx.clip();
+
+  const hasValidAlbumImg =
+    albumImg &&
+    ((albumImg instanceof HTMLImageElement && albumImg.naturalWidth > 0 && albumImg.src && !albumImg.src.endsWith("#")) ||
+      (albumImg instanceof HTMLVideoElement && albumImg.videoWidth > 0));
+
+  if (hasValidAlbumImg) {
+    // Custom/Captured photo in vinyl center
+    ctx.filter = filterString || "none";
+    drawImageCover(ctx, albumImg, cx - labelRadius, cy - labelRadius, labelRadius * 2, labelRadius * 2, 0, isFlipped);
+    applyCuteFilterOverlay(ctx, cx - labelRadius, cy - labelRadius, labelRadius * 2, labelRadius * 2, cuteFilter, beautyGlow, 0, filterIntensity);
+  } else {
+    // Default Official Valorant "Die For You / Champions" Album Artwork
+    ctx.fillStyle = "#eb0029";
+    ctx.fillRect(cx - labelRadius, cy - labelRadius, labelRadius * 2, labelRadius * 2);
+
+    // Dark geometric tech background
+    ctx.fillStyle = "#0f1923";
+    ctx.beginPath();
+    ctx.moveTo(cx - labelRadius, cy + 20);
+    ctx.lineTo(cx, cy - labelRadius + 10);
+    ctx.lineTo(cx + labelRadius, cy + 20);
+    ctx.lineTo(cx, cy + labelRadius);
+    ctx.closePath();
+    ctx.fill();
+
+    // Red geometric champion crown / agent silhouette
+    drawValorantLogo(ctx, cx, cy - 14, 52, "#ffffff");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 14px 'Plus Jakarta Sans', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("DIE FOR YOU", cx, cy + 40);
+
+    ctx.fillStyle = "#ff4655";
+    ctx.font = "bold 10px monospace";
+    ctx.fillText("VALORANT // GRABBITZ", cx, cy + 56);
+  }
+  ctx.restore();
+
+  // Inner Label Edge Ring
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(cx, cy, labelRadius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Center Spindle Hole & Silver Grommet
+  ctx.fillStyle = "#e2e8f0";
+  ctx.beginPath();
+  ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#0a0a0c";
+  ctx.beginPath();
+  ctx.arc(cx, cy, 11, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Plastic Grocery Fruit Crate Vector Frame with Ventilation Slits & Ribbed Texture
+ */
+function drawPlasticCrateFrame(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  baseColor: string,
+  darkColor: string,
+  lightColor: string
+) {
+  ctx.save();
+
+  // Subtle Outer Crate Drop Shadow
+  ctx.shadowColor = "rgba(0, 0, 0, 0.15)";
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 6;
+
+  // 1. Outer Crate Plastic Body
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 18);
+  ctx.fill();
+
+  ctx.shadowColor = "transparent";
+
+  // 2. Thick Outer Border / Rim
+  ctx.strokeStyle = darkColor;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 18);
+  ctx.stroke();
+
+  // Inner Highlight Rim
+  ctx.strokeStyle = lightColor;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x + 4, y + 4, w - 8, h - 8, 14);
+  ctx.stroke();
+
+  // 3. Crate Ventilation Slits (Top & Bottom borders)
+  const slotW = 16;
+  const slotH = 9;
+  const slotGap = 26;
+
+  ctx.fillStyle = darkColor;
+
+  // Top Slits Row
+  for (let sx = x + 35; sx < x + w - 40; sx += slotGap) {
+    ctx.beginPath();
+    ctx.roundRect(sx, y + 14, slotW, slotH, 3);
+    ctx.fill();
+  }
+
+  // Bottom Slits Row
+  for (let sx = x + 35; sx < x + w - 40; sx += slotGap) {
+    ctx.beginPath();
+    ctx.roundRect(sx, y + h - 23, slotW, slotH, 3);
+    ctx.fill();
+  }
+
+  // Left & Right Vertical Slits Rows
+  const vSlotW = 9;
+  const vSlotH = 16;
+  const vSlotGap = 26;
+
+  for (let sy = y + 40; sy < y + h - 45; sy += vSlotGap) {
+    ctx.beginPath();
+    ctx.roundRect(x + 14, sy, vSlotW, vSlotH, 3);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(x + w - 23, sy, vSlotW, vSlotH, 3);
+    ctx.fill();
+  }
+
+  // Crate Corner Reinforcements (Diagonal plastic braces)
+  ctx.fillStyle = darkColor;
+  const cSize = 22;
+  // Top-Left
+  ctx.beginPath();
+  ctx.moveTo(x + 6, y + cSize);
+  ctx.lineTo(x + cSize, y + 6);
+  ctx.lineTo(x + 6, y + 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Top-Right
+  ctx.beginPath();
+  ctx.moveTo(x + w - 6, y + cSize);
+  ctx.lineTo(x + w - cSize, y + 6);
+  ctx.lineTo(x + w - 6, y + 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Bottom-Left
+  ctx.beginPath();
+  ctx.moveTo(x + 6, y + h - cSize);
+  ctx.lineTo(x + cSize, y + h - 6);
+  ctx.lineTo(x + 6, y + h - 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Bottom-Right
+  ctx.beginPath();
+  ctx.moveTo(x + w - 6, y + h - cSize);
+  ctx.lineTo(x + w - cSize, y + h - 6);
+  ctx.lineTo(x + w - 6, y + h - 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // 4. Inner Photo Opening Cutout Border
+  const innerX = x + 34;
+  const innerY = y + 34;
+  const innerW = w - 68;
+  const innerH = h - 68;
+
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.roundRect(innerX, innerY, innerW, innerH, 12);
+  ctx.fill();
+
+  ctx.strokeStyle = darkColor;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(innerX, innerY, innerW, innerH, 12);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/**
+ * Fresh Green Broccoli Vector
+ */
+function drawBroccoli(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 48) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 50;
+
+  // Stalk
+  ctx.fillStyle = "#86efac";
+  ctx.strokeStyle = "#15803d";
+  ctx.lineWidth = 2.5 * s;
+
+  ctx.beginPath();
+  ctx.moveTo(-10 * s, 10 * s);
+  ctx.lineTo(-8 * s, 26 * s);
+  ctx.quadraticCurveTo(0, 30 * s, 8 * s, 26 * s);
+  ctx.lineTo(10 * s, 10 * s);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Florets (bumpy cloud clusters)
+  ctx.fillStyle = "#22c55e";
+  const florets = [
+    { x: -16 * s, y: 0, r: 14 * s },
+    { x: 16 * s, y: 0, r: 14 * s },
+    { x: -10 * s, y: -14 * s, r: 16 * s },
+    { x: 10 * s, y: -14 * s, r: 16 * s },
+    { x: 0, y: -20 * s, r: 18 * s },
+    { x: 0, y: -4 * s, r: 16 * s },
+  ];
+
+  ctx.fillStyle = "#16a34a";
+  florets.forEach((f) => {
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.fillStyle = "#22c55e";
+  florets.forEach((f) => {
+    ctx.beginPath();
+    ctx.arc(f.x, f.y - 2 * s, f.r * 0.85, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Highlight dots
+  ctx.fillStyle = "#86efac";
+  ctx.beginPath();
+  ctx.arc(-6 * s, -14 * s, 3 * s, 0, Math.PI * 2);
+  ctx.arc(8 * s, -10 * s, 2.5 * s, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Fresh Kiwi Fruit Slice
+ */
+function drawKiwiSlice(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 24) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Brown Fuzzy Outer Peel
+  ctx.fillStyle = "#854d0e";
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bright Green Flesh
+  ctx.fillStyle = "#84cc16";
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Pale Creamy Center Core
+  ctx.fillStyle = "#fef08a";
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.35, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Radiating Rays & Black Seeds
+  ctx.strokeStyle = "rgba(254, 240, 138, 0.6)";
+  ctx.lineWidth = 1.5;
+  ctx.fillStyle = "#1c1917";
+
+  const numSeeds = 10;
+  for (let i = 0; i < numSeeds; i++) {
+    const angle = (i * Math.PI * 2) / numSeeds;
+    const rx = Math.cos(angle) * (radius * 0.58);
+    const ry = Math.sin(angle) * (radius * 0.58);
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(angle) * (radius * 0.75), Math.sin(angle) * (radius * 0.75));
+    ctx.stroke();
+
+    // Black seed dot
+    ctx.beginPath();
+    ctx.ellipse(rx, ry, 1.8, 2.8, angle, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Sweet Red Strawberry Vector
+ */
+function drawStrawberry(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 26) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 30;
+
+  // Berry Body
+  ctx.fillStyle = "#ef4444";
+  ctx.beginPath();
+  ctx.moveTo(0, 22 * s);
+  ctx.bezierCurveTo(-22 * s, 10 * s, -18 * s, -12 * s, 0, -12 * s);
+  ctx.bezierCurveTo(18 * s, -12 * s, 22 * s, 10 * s, 0, 22 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Green Leaves Calyx
+  ctx.fillStyle = "#22c55e";
+  const leafAngles = [-0.6, -0.2, 0.2, 0.6];
+  leafAngles.forEach((a) => {
+    ctx.beginPath();
+    ctx.ellipse(Math.sin(a) * 12 * s, -13 * s, 4 * s, 10 * s, a, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Little Stem
+  ctx.strokeStyle = "#16a34a";
+  ctx.lineWidth = 2.5 * s;
+  ctx.beginPath();
+  ctx.moveTo(0, -12 * s);
+  ctx.quadraticCurveTo(3 * s, -22 * s, 8 * s, -22 * s);
+  ctx.stroke();
+
+  // Yellow Seed Dots
+  ctx.fillStyle = "#fef08a";
+  const seedPositions = [
+    { x: -7 * s, y: -4 * s },
+    { x: 0, y: -5 * s },
+    { x: 7 * s, y: -4 * s },
+    { x: -10 * s, y: 3 * s },
+    { x: -3 * s, y: 4 * s },
+    { x: 4 * s, y: 3 * s },
+    { x: 10 * s, y: 3 * s },
+    { x: -5 * s, y: 11 * s },
+    { x: 2 * s, y: 12 * s },
+    { x: 0, y: 17 * s },
+  ];
+
+  seedPositions.forEach((sp) => {
+    ctx.beginPath();
+    ctx.ellipse(sp.x, sp.y, 1.2 * s, 1.8 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.restore();
+}
+
+/**
+ * Golden Sweet Mango Vector
+ */
+function drawMango(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 32) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 35;
+
+  // Mango Gradient
+  const grad = ctx.createRadialGradient(-6 * s, -4 * s, 4 * s, 0, 4 * s, 26 * s);
+  grad.addColorStop(0, "#fbbf24");
+  grad.addColorStop(0.6, "#f59e0b");
+  grad.addColorStop(1, "#ea580c");
+
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(0, -18 * s);
+  ctx.bezierCurveTo(18 * s, -14 * s, 26 * s, 10 * s, 10 * s, 24 * s);
+  ctx.bezierCurveTo(-6 * s, 28 * s, -22 * s, 14 * s, -18 * s, -2 * s);
+  ctx.bezierCurveTo(-14 * s, -16 * s, -8 * s, -18 * s, 0, -18 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Green Leaf on Top
+  ctx.fillStyle = "#16a34a";
+  ctx.beginPath();
+  ctx.ellipse(-8 * s, -22 * s, 6 * s, 12 * s, -Math.PI / 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Creamy Fresh Avocado Half Vector
+ */
+function drawAvocado(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 32) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 35;
+
+  // Dark Green Skin
+  ctx.fillStyle = "#14532d";
+  ctx.beginPath();
+  ctx.moveTo(0, -22 * s);
+  ctx.bezierCurveTo(16 * s, -18 * s, 22 * s, 6 * s, 18 * s, 22 * s);
+  ctx.bezierCurveTo(12 * s, 30 * s, -12 * s, 30 * s, -18 * s, 22 * s);
+  ctx.bezierCurveTo(-22 * s, 6 * s, -16 * s, -18 * s, 0, -22 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Pale Lime/Yellow Flesh
+  ctx.fillStyle = "#bef264";
+  ctx.beginPath();
+  ctx.moveTo(0, -18 * s);
+  ctx.bezierCurveTo(13 * s, -14 * s, 18 * s, 5 * s, 14 * s, 18 * s);
+  ctx.bezierCurveTo(9 * s, 25 * s, -9 * s, 25 * s, -14 * s, 18 * s);
+  ctx.bezierCurveTo(-18 * s, 5 * s, -13 * s, -14 * s, 0, -18 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Large Round Brown Pit
+  const pitGrad = ctx.createRadialGradient(-3 * s, 4 * s, 2 * s, 0, 7 * s, 14 * s);
+  pitGrad.addColorStop(0, "#92400e");
+  pitGrad.addColorStop(0.7, "#78350f");
+  pitGrad.addColorStop(1, "#451a03");
+
+  ctx.fillStyle = pitGrad;
+  ctx.beginPath();
+  ctx.arc(0, 8 * s, 10 * s, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Specular reflection on pit
+  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.beginPath();
+  ctx.arc(-3 * s, 5 * s, 3 * s, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Juicy Orange Citrus Slice
+ */
+function drawOrangeSlice(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 24) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Orange Outer Rind
+  ctx.fillStyle = "#ea580c";
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // White Pith Layer
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Orange Pulp Segments
+  ctx.fillStyle = "#f97316";
+  const numSegments = 8;
+  const segRadius = radius * 0.78;
+
+  for (let i = 0; i < numSegments; i++) {
+    const startA = (i * Math.PI * 2) / numSegments + 0.08;
+    const endA = ((i + 1) * Math.PI * 2) / numSegments - 0.08;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, segRadius, startA, endA);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Small White Center Core
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Ripe Red Tomato / Hibiscus Vector
+ */
+function drawTomato(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 26) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 30;
+
+  // Red Body
+  ctx.fillStyle = "#ef4444";
+  ctx.beginPath();
+  ctx.ellipse(0, 2 * s, 16 * s, 14 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Green Sepals
+  ctx.fillStyle = "#16a34a";
+  for (let i = 0; i < 5; i++) {
+    const a = (i * Math.PI * 2) / 5 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.ellipse(Math.cos(a) * 7 * s, Math.sin(a) * 7 * s - 8 * s, 3 * s, 7 * s, a, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Little Stem
+  ctx.strokeStyle = "#15803d";
+  ctx.lineWidth = 2.5 * s;
+  ctx.beginPath();
+  ctx.moveTo(0, -8 * s);
+  ctx.lineTo(0, -16 * s);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/**
+ * Curved Sweet Yellow Banana Vector
+ */
+function drawBanana(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 36, angleDeg: number = -15) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((angleDeg * Math.PI) / 180);
+  const s = size / 40;
+
+  // Banana Body
+  ctx.fillStyle = "#facc15";
+  ctx.beginPath();
+  ctx.moveTo(-18 * s, 14 * s);
+  ctx.quadraticCurveTo(0, 24 * s, 22 * s, -4 * s);
+  ctx.quadraticCurveTo(6 * s, 10 * s, -14 * s, 4 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Banana Highlight & Ridge
+  ctx.strokeStyle = "#eab308";
+  ctx.lineWidth = 2 * s;
+  ctx.beginPath();
+  ctx.moveTo(-16 * s, 10 * s);
+  ctx.quadraticCurveTo(0, 18 * s, 20 * s, -2 * s);
+  ctx.stroke();
+
+  // Brown Tips
+  ctx.fillStyle = "#854d0e";
+  ctx.beginPath();
+  ctx.arc(-18 * s, 14 * s, 2.5 * s, 0, Math.PI * 2);
+  ctx.arc(22 * s, -4 * s, 2.5 * s, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Green Stem
+  ctx.fillStyle = "#65a30d";
+  ctx.beginPath();
+  ctx.fillRect(-22 * s, 13 * s, 5 * s, 3 * s);
+
+  ctx.restore();
+}
+
+/**
+ * Juicy Purple Grape Cluster Vector
+ */
+function drawGrapeCluster(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 34) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 35;
+
+  // Green Leaf on Top
+  ctx.fillStyle = "#16a34a";
+  ctx.beginPath();
+  ctx.ellipse(-6 * s, -18 * s, 6 * s, 10 * s, -Math.PI / 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Brown Vine Stem
+  ctx.strokeStyle = "#78350f";
+  ctx.lineWidth = 2 * s;
+  ctx.beginPath();
+  ctx.moveTo(0, -14 * s);
+  ctx.quadraticCurveTo(6 * s, -22 * s, 12 * s, -18 * s);
+  ctx.stroke();
+
+  // Purple Grapes
+  const grapePositions = [
+    { x: -10 * s, y: -8 * s, r: 6.5 * s },
+    { x: 0, y: -10 * s, r: 6.5 * s },
+    { x: 10 * s, y: -8 * s, r: 6.5 * s },
+    { x: -6 * s, y: 0, r: 6.5 * s },
+    { x: 6 * s, y: 0, r: 6.5 * s },
+    { x: -12 * s, y: 4 * s, r: 6 * s },
+    { x: 0, y: 8 * s, r: 6.5 * s },
+    { x: 12 * s, y: 4 * s, r: 6 * s },
+    { x: -5 * s, y: 16 * s, r: 5.5 * s },
+    { x: 5 * s, y: 16 * s, r: 5.5 * s },
+    { x: 0, y: 24 * s, r: 5 * s },
+  ];
+
+  ctx.fillStyle = "#7c3aed";
+  grapePositions.forEach((gp) => {
+    ctx.beginPath();
+    ctx.arc(gp.x, gp.y, gp.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Highlights
+  ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+  grapePositions.forEach((gp) => {
+    ctx.beginPath();
+    ctx.arc(gp.x - gp.r * 0.35, gp.y - gp.r * 0.35, gp.r * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.restore();
+}
+
+/**
+ * Twin Glossy Red Cherries Vector
+ */
+function drawTwinCherries(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 32) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 35;
+
+  // Stems
+  ctx.strokeStyle = "#16a34a";
+  ctx.lineWidth = 2.5 * s;
+  ctx.beginPath();
+  ctx.moveTo(0, -18 * s);
+  ctx.quadraticCurveTo(-12 * s, -6 * s, -12 * s, 8 * s);
+  ctx.moveTo(0, -18 * s);
+  ctx.quadraticCurveTo(8 * s, -4 * s, 14 * s, 6 * s);
+  ctx.stroke();
+
+  // Green Leaf at Joint
+  ctx.fillStyle = "#22c55e";
+  ctx.beginPath();
+  ctx.ellipse(6 * s, -20 * s, 5 * s, 10 * s, Math.PI / 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cherry 1 (Left)
+  ctx.fillStyle = "#dc2626";
+  ctx.beginPath();
+  ctx.arc(-12 * s, 10 * s, 9 * s, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cherry 2 (Right)
+  ctx.beginPath();
+  ctx.arc(14 * s, 8 * s, 8.5 * s, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Specular Highlights
+  ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+  ctx.beginPath();
+  ctx.arc(-15 * s, 7 * s, 2.5 * s, 0, Math.PI * 2);
+  ctx.arc(11 * s, 5 * s, 2.2 * s, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Fresh Yellow Lemon Slice
+ */
+function drawLemonSlice(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 22) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Yellow Rind
+  ctx.fillStyle = "#eab308";
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // White Pith
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Lemon Segments
+  ctx.fillStyle = "#facc15";
+  const numSegs = 8;
+  const segR = radius * 0.78;
+  for (let i = 0; i < numSegs; i++) {
+    const a1 = (i * Math.PI * 2) / numSegs + 0.08;
+    const a2 = ((i + 1) * Math.PI * 2) / numSegs - 0.08;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, segR, a1, a2);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // White Core
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.15, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Cute Red Spotted Mushroom Vector
+ */
+function drawMushroom(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 28) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 30;
+
+  // Stalk
+  ctx.fillStyle = "#fef3c7";
+  ctx.beginPath();
+  ctx.roundRect(-6 * s, 0, 12 * s, 14 * s, 4 * s);
+  ctx.fill();
+
+  // Cap
+  ctx.fillStyle = "#ef4444";
+  ctx.beginPath();
+  ctx.arc(0, 0, 16 * s, Math.PI, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // White Spots
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(-8 * s, -6 * s, 3 * s, 0, Math.PI * 2);
+  ctx.arc(0, -11 * s, 3.5 * s, 0, Math.PI * 2);
+  ctx.arc(8 * s, -6 * s, 2.5 * s, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Bright Orange Carrot Vector
+ */
+function drawCarrot(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 32, angleDeg: number = 25) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((angleDeg * Math.PI) / 180);
+  const s = size / 35;
+
+  // Green leafy top
+  ctx.fillStyle = "#22c55e";
+  ctx.beginPath();
+  ctx.ellipse(-5 * s, -18 * s, 3 * s, 8 * s, -0.3, 0, Math.PI * 2);
+  ctx.ellipse(0, -20 * s, 3 * s, 10 * s, 0, 0, Math.PI * 2);
+  ctx.ellipse(5 * s, -18 * s, 3 * s, 8 * s, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Orange carrot cone
+  ctx.fillStyle = "#f97316";
+  ctx.beginPath();
+  ctx.moveTo(-7 * s, -12 * s);
+  ctx.quadraticCurveTo(0, -14 * s, 7 * s, -12 * s);
+  ctx.lineTo(0, 18 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Horizontal ridge lines
+  ctx.strokeStyle = "#ea580c";
+  ctx.lineWidth = 1.5 * s;
+  ctx.beginPath();
+  ctx.moveTo(-4 * s, -6 * s);
+  ctx.lineTo(2 * s, -6 * s);
+  ctx.moveTo(-2 * s, 2 * s);
+  ctx.lineTo(4 * s, 2 * s);
+  ctx.moveTo(-1 * s, 10 * s);
+  ctx.lineTo(2 * s, 10 * s);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/**
+ * Official School Academy Shield Crest Vector
+ */
+function drawSchoolCrest(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 48) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 50;
+
+  // Gold Laurel Wreath Left & Right
+  ctx.fillStyle = "#d97706";
+  for (let i = -4; i <= 4; i++) {
+    const a = (i * Math.PI) / 8;
+    // Left leaves
+    ctx.beginPath();
+    ctx.ellipse(-26 * s + Math.sin(a) * 4 * s, i * 6 * s, 4 * s, 8 * s, a - 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    // Right leaves
+    ctx.beginPath();
+    ctx.ellipse(26 * s - Math.sin(a) * 4 * s, i * 6 * s, 4 * s, 8 * s, -a + 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Outer Shield Body
+  ctx.fillStyle = "#1e3a8a"; // School Navy
+  ctx.strokeStyle = "#d97706"; // Gold Rim
+  ctx.lineWidth = 3 * s;
+
+  ctx.beginPath();
+  ctx.moveTo(-18 * s, -22 * s);
+  ctx.lineTo(18 * s, -22 * s);
+  ctx.lineTo(18 * s, 4 * s);
+  ctx.bezierCurveTo(18 * s, 22 * s, 0, 28 * s, 0, 28 * s);
+  ctx.bezierCurveTo(0, 28 * s, -18 * s, 22 * s, -18 * s, 4 * s);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Shield Inner Chevron / Division
+  ctx.fillStyle = "#b91c1c"; // Crimson
+  ctx.beginPath();
+  ctx.moveTo(0, -22 * s);
+  ctx.lineTo(18 * s, -22 * s);
+  ctx.lineTo(18 * s, 4 * s);
+  ctx.bezierCurveTo(18 * s, 22 * s, 0, 28 * s, 0, 28 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Gold Star / Torch Centerpiece
+  ctx.fillStyle = "#fbbf24";
+  ctx.font = `bold ${Math.round(18 * s)}px 'Georgia', serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("M", 0, 0);
+
+  // Bottom Banner Ribbon
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "#1e3a8a";
+  ctx.lineWidth = 1.5 * s;
+  ctx.beginPath();
+  ctx.roundRect(-24 * s, 20 * s, 48 * s, 14 * s, 3 * s);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#1e3a8a";
+  ctx.font = `900 ${Math.round(7.5 * s)}px 'Plus Jakarta Sans', sans-serif`;
+  ctx.fillText("MANNER HIGH", 0, 27 * s);
+
+  ctx.restore();
+}
+
+/**
+ * Circular Official Verified School Stamp Watermark
+ */
+function drawOfficialSchoolStamp(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 52) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((-12 * Math.PI) / 180);
+
+  // Red/Burgundy Stamp Color with slight translucency
+  const stampColor = "rgba(185, 28, 28, 0.88)";
+  ctx.strokeStyle = stampColor;
+  ctx.fillStyle = stampColor;
+
+  // Outer Circular Ring
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Inner Dashed / Dotted Ring
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.arc(0, 0, radius - 6, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Inner Core Ring
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius - 16, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Circular Curved Text
+  ctx.font = "900 9px monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("★ MANNER HIGH ★", 0, -radius * 0.58);
+  ctx.fillText("★ OFFICIAL SEAL ★", 0, radius * 0.58);
+
+  // Center Bold VERIFIED
+  ctx.font = "900 13px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("VERIFIED", 0, -2);
+  ctx.font = "bold 8px monospace";
+  ctx.fillText("STUDENT ID", 0, 10);
+
+  ctx.restore();
+}
+
+/**
+ * Cute Vintage School Clock Doodle
+ */
+function drawSchoolClockDoodle(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 24) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  ctx.strokeStyle = "#1e3a8a";
+  ctx.fillStyle = "#ffffff";
+  ctx.lineWidth = 3;
+
+  // Outer Clock Circle
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Top Bells / Loop
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(-radius * 0.6, -radius * 0.8, 6, Math.PI, 0);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(radius * 0.6, -radius * 0.8, 6, Math.PI, 0);
+  ctx.stroke();
+
+  // Clock Hands (3:00)
+  ctx.strokeStyle = "#b91c1c";
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, -radius * 0.6); // 12 o'clock
+  ctx.moveTo(0, 0);
+  ctx.lineTo(radius * 0.5, 0); // 3 o'clock
+  ctx.stroke();
+
+  // Center Pivot Dot
+  ctx.fillStyle = "#1e3a8a";
+  ctx.beginPath();
+  ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Cute Wooden Pencil Doodle
+ */
+function drawPencilDoodle(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 36, angleDeg: number = 35) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((angleDeg * Math.PI) / 180);
+  const s = size / 40;
+
+  // Pink Eraser
+  ctx.fillStyle = "#f472b6";
+  ctx.fillRect(-6 * s, -22 * s, 12 * s, 8 * s);
+
+  // Metal Ferrule
+  ctx.fillStyle = "#94a3b8";
+  ctx.fillRect(-6 * s, -14 * s, 12 * s, 4 * s);
+
+  // Yellow Body
+  ctx.fillStyle = "#facc15";
+  ctx.fillRect(-6 * s, -10 * s, 12 * s, 22 * s);
+
+  // Sharpened Wooden Tip
+  ctx.fillStyle = "#fed7aa";
+  ctx.beginPath();
+  ctx.moveTo(-6 * s, 12 * s);
+  ctx.lineTo(6 * s, 12 * s);
+  ctx.lineTo(0, 22 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Graphite Lead Tip
+  ctx.fillStyle = "#1e293b";
+  ctx.beginPath();
+  ctx.moveTo(-2.5 * s, 18 * s);
+  ctx.lineTo(2.5 * s, 18 * s);
+  ctx.lineTo(0, 22 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Outline
+  ctx.strokeStyle = "#1e3a8a";
+  ctx.lineWidth = 1.8 * s;
+  ctx.strokeRect(-6 * s, -22 * s, 12 * s, 34 * s);
+
+  ctx.restore();
+}
+
+/**
+ * Gold Academic Medal with Ribbon
+ */
+function drawHonorMedal(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 36) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 40;
+
+  // Tricolor Ribbon Tails
+  ctx.fillStyle = "#1e3a8a"; // Navy
+  ctx.beginPath();
+  ctx.moveTo(-10 * s, -14 * s);
+  ctx.lineTo(-14 * s, 14 * s);
+  ctx.lineTo(-8 * s, 10 * s);
+  ctx.lineTo(-4 * s, 14 * s);
+  ctx.lineTo(0, -14 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#b91c1c"; // Crimson
+  ctx.beginPath();
+  ctx.moveTo(0, -14 * s);
+  ctx.lineTo(4 * s, 14 * s);
+  ctx.lineTo(8 * s, 10 * s);
+  ctx.lineTo(14 * s, 14 * s);
+  ctx.lineTo(10 * s, -14 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Gold Circular Medal
+  const goldGrad = ctx.createRadialGradient(-3 * s, -3 * s, 2 * s, 0, 0, 16 * s);
+  goldGrad.addColorStop(0, "#fde68a");
+  goldGrad.addColorStop(0.5, "#f59e0b");
+  goldGrad.addColorStop(1, "#b45309");
+
+  ctx.fillStyle = goldGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, 15 * s, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "#78350f";
+  ctx.lineWidth = 1.8 * s;
+  ctx.stroke();
+
+  // Center Star
+  ctx.fillStyle = "#78350f";
+  ctx.font = `bold ${Math.round(14 * s)}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("★", 0, 1 * s);
+
+  ctx.restore();
+}
+
+/**
+ * Striped School Uniform Necktie Emblem
+ */
+function drawSchoolTie(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 38) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 40;
+
+  // Knot at top
+  ctx.fillStyle = "#1e3a8a";
+  ctx.beginPath();
+  ctx.moveTo(-6 * s, -16 * s);
+  ctx.lineTo(6 * s, -16 * s);
+  ctx.lineTo(4 * s, -8 * s);
+  ctx.lineTo(-4 * s, -8 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Tie body
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(-4 * s, -8 * s);
+  ctx.lineTo(4 * s, -8 * s);
+  ctx.lineTo(7 * s, 14 * s);
+  ctx.lineTo(0, 22 * s);
+  ctx.lineTo(-7 * s, 14 * s);
+  ctx.closePath();
+  ctx.clip();
+
+  ctx.fillStyle = "#1e3a8a"; // Navy
+  ctx.fill();
+
+  // Diagonal Crimson Stripes
+  ctx.fillStyle = "#b91c1c";
+  for (let y = -14 * s; y < 26 * s; y += 8 * s) {
+    ctx.beginPath();
+    ctx.moveTo(-12 * s, y);
+    ctx.lineTo(12 * s, y + 10 * s);
+    ctx.lineTo(12 * s, y + 13 * s);
+    ctx.lineTo(-12 * s, y + 3 * s);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Outline
+  ctx.strokeStyle = "#0f172a";
+  ctx.lineWidth = 1.5 * s;
+  ctx.beginPath();
+  ctx.moveTo(-4 * s, -8 * s);
+  ctx.lineTo(4 * s, -8 * s);
+  ctx.lineTo(7 * s, 14 * s);
+  ctx.lineTo(0, 22 * s);
+  ctx.lineTo(-7 * s, 14 * s);
+  ctx.closePath();
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/**
+ * School Pennant Flag Vector (MANNER HIGH)
+ */
+function drawSchoolPennant(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 44) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 45;
+
+  // Flagstick
+  ctx.fillStyle = "#78350f";
+  ctx.fillRect(-22 * s, -18 * s, 3 * s, 36 * s);
+
+  // Triangular Pennant
+  ctx.fillStyle = "#1e3a8a";
+  ctx.beginPath();
+  ctx.moveTo(-20 * s, -14 * s);
+  ctx.lineTo(24 * s, -2 * s);
+  ctx.lineTo(-20 * s, 10 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = "#fbbf24";
+  ctx.lineWidth = 1.5 * s;
+  ctx.stroke();
+
+  // Text inside pennant
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `900 ${Math.round(8 * s)}px 'Plus Jakarta Sans', sans-serif`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.fillText("MANNER", -14 * s, -2 * s);
+
+  ctx.restore();
+}
+
+/**
+ * Golden Star / Honor Ribbon Badge
+ */
+function drawSchoolStarBadge(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 18, text: string = "★") {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Gold Starburst
+  ctx.fillStyle = "#f59e0b";
+  ctx.strokeStyle = "#b45309";
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `900 ${Math.round(radius * 0.9)}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, 0, 0.5);
+
+  ctx.restore();
+}
+
+/**
  * Load all photo images asynchronously using Promise.all to guarantee 100% complete loading
  */
 export const loadCanvasImages = (shots: { dataUrl: string }[]): Promise<HTMLImageElement[]> => {
@@ -835,9 +2328,21 @@ export const drawPhotoStrip = (
     targetH = 1100;
   }
 
-  // PASSPORT is a fixed 1200x1800 composition, independent of the selected layout mode.
-  if (preset === "passport") {
-    photoCount = 4;
+  // Fixed special layout presets:
+  if (preset === "valorant_id") {
+    photoCount = 2;
+    targetW = 1080;
+    targetH = 1920;
+  } else if (preset === "supermarket_crate" || preset === "school_4cut") {
+    photoCount = preset === "supermarket_crate" ? 3 : 4;
+    targetW = 600;
+    targetH = 1800;
+  } else if (preset === "student_id") {
+    photoCount = 1;
+    targetW = 1200;
+    targetH = 750;
+  } else if (preset === "passport" || preset === "cupids_letter") {
+    photoCount = preset === "passport" ? 4 : 2;
     targetW = 1200;
     targetH = 1800;
   }
@@ -1582,6 +3087,617 @@ export const drawPhotoStrip = (
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("IDENTIFICATIONS AS OF LATE", 600, 925);
+  } else if (preset === "valorant_id") {
+    // 🎯 AUTHENTIC VALORANT PLAYER IDENTIFICATION FRAME ENGINE ($1080x1920px CANVAS)
+    // 1. Dark tactical desk background
+    ctx.fillStyle = "#111216";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Tactical Desk Grid & Horizontal Wood grain lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.02)";
+    ctx.lineWidth = 1.5;
+    for (let gy = 20; gy < canvas.height; gy += 28) {
+      ctx.beginPath();
+      ctx.moveTo(0, gy);
+      ctx.lineTo(canvas.width, gy);
+      ctx.stroke();
+    }
+
+    // Warm Ambient Desk Lamp Spotlight (Centered near upper-middle)
+    const deskSpotlight = ctx.createRadialGradient(540, 360, 60, 540, 420, 820);
+    deskSpotlight.addColorStop(0, "rgba(245, 158, 11, 0.30)");
+    deskSpotlight.addColorStop(0.35, "rgba(180, 83, 9, 0.15)");
+    deskSpotlight.addColorStop(0.7, "rgba(15, 17, 23, 0.55)");
+    deskSpotlight.addColorStop(1, "rgba(8, 9, 13, 0.96)");
+
+    ctx.fillStyle = deskSpotlight;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. Top-Left: Lanyard Strap (Tilted ~ -22°)
+    drawLanyardStrap(ctx, 190, 80, -22);
+
+    // 3. Top-Right: Protocol Agent Keycard (Tilted ~ +22°)
+    drawTacticalKeycard(ctx, 890, 130, 22);
+
+    // 4. Main VALORANT PLAYER IDENTIFICATION Badge Card (Tilted ~ -6°)
+    ctx.save();
+    ctx.translate(540, 670);
+    ctx.rotate((-6 * Math.PI) / 180);
+
+    const cardW = 980;
+    const cardH = 820;
+    const cardX = -cardW / 2;
+    const cardY = -cardH / 2;
+
+    // Realistic Multi-Layer Card Drop Shadow
+    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+    ctx.shadowBlur = 36;
+    ctx.shadowOffsetX = -6;
+    ctx.shadowOffsetY = 24;
+
+    // Card Base with Tactical Chamfered Corners
+    ctx.beginPath();
+    ctx.moveTo(cardX + 28, cardY);
+    ctx.lineTo(cardX + cardW - 8, cardY);
+    ctx.lineTo(cardX + cardW, cardY + 8);
+    ctx.lineTo(cardX + cardW, cardY + cardH - 8);
+    ctx.lineTo(cardX + cardW - 8, cardY + cardH);
+    ctx.lineTo(cardX + 8, cardY + cardH);
+    ctx.lineTo(cardX, cardY + cardH - 8);
+    ctx.lineTo(cardX, cardY + 28);
+    ctx.closePath();
+
+    ctx.fillStyle = "#dedbd3";
+    ctx.fill();
+
+    // Dark Tactical Outer Card Border
+    ctx.strokeStyle = "#23262f";
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+
+    ctx.shadowColor = "transparent";
+
+    // Top Header Banner Polygon (#0f1923 Valorant Dark Navy)
+    const headerH = 118;
+    ctx.fillStyle = "#0f1923";
+    ctx.beginPath();
+    ctx.moveTo(cardX + 16, cardY + 16);
+    ctx.lineTo(cardX + cardW - 65, cardY + 16);
+    ctx.lineTo(cardX + cardW - 35, cardY + 16 + headerH);
+    ctx.lineTo(cardX + 16, cardY + 16 + headerH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Red Accent Slash / Tab on Header Top-Left
+    ctx.fillStyle = "#ff4655";
+    ctx.fillRect(cardX + 16, cardY + 16, 12, headerH);
+
+    // Official Red Valorant Logo on Header Left
+    drawValorantLogo(ctx, cardX + 72, cardY + 16 + headerH / 2, 44, "#ff4655");
+
+    // Center Red VALORANT Title & White PLAYER IDENTIFICATION Subtitle
+    ctx.fillStyle = "#ff4655";
+    ctx.font = "900 48px 'Plus Jakarta Sans', system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("VALORANT", 0, cardY + 62);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "bold 13px monospace";
+    ctx.letterSpacing = "4px";
+    ctx.fillText("PLAYER IDENTIFICATION", 0, cardY + 98);
+    ctx.letterSpacing = "0px";
+
+    // Sub-header Barcode Strip
+    const barX = cardX + 16;
+    const barY = cardY + 146;
+    const barW = cardW - 75;
+    const barH = 34;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(barX, barY, barW, barH);
+
+    ctx.fillStyle = "#111827";
+    ctx.font = "900 18px 'Consolas', 'Courier New', monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(">>>>>>>>>>> 0018-01988052", barX + 16, barY + barH / 2);
+
+    // Left Photo Frame Container (Base frame background)
+    const photoFrameX = cardX + 16;
+    const photoFrameY = cardY + 192;
+    const photoFrameW = 380;
+    const photoFrameH = 415;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(photoFrameX, photoFrameY, photoFrameW, photoFrameH);
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(photoFrameX, photoFrameY, photoFrameW, photoFrameH);
+
+    // Right Player Bio Table Container
+    const infoX = cardX + 410;
+    const infoY = cardY + 192;
+    const infoW = cardW - 468;
+    const infoH = 415;
+
+    ctx.fillStyle = "#f6f5ee";
+    ctx.fillRect(infoX, infoY, infoW, infoH);
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(infoX, infoY, infoW, infoH);
+
+    // IGN Top Cell Header Row in Bio Container
+    const ignRowH = 50;
+    ctx.fillStyle = "#edebe0";
+    ctx.fillRect(infoX, infoY, infoW, ignRowH);
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(infoX, infoY + ignRowH);
+    ctx.lineTo(infoX + infoW, infoY + ignRowH);
+    ctx.stroke();
+
+    // Parse player details from customText & subtitleText
+    let valoIgn = "riellybooth";
+    let valoRole = "Smoker";
+    let valoAgent = "Clove";
+    let valoRank = "Ascendant";
+    let valoLine = "Kaget anjg, game sialan";
+
+    if (customText && customText !== "rielllybooth ♡") {
+      if (customText.includes("|")) {
+        const parts = customText.split("|");
+        if (parts[0]) valoIgn = parts[0];
+        if (parts[1]) valoRole = parts[1];
+        if (parts[2]) valoAgent = parts[2];
+        if (parts[3]) valoRank = parts[3];
+        if (parts[4]) valoLine = parts[4];
+      } else {
+        valoIgn = customText;
+      }
+    }
+    if (subtitleText && subtitleText.trim() && !subtitleText.includes("✨")) {
+      valoLine = subtitleText.trim();
+    }
+
+    // IGN Text
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "900 24px 'Consolas', 'Courier New', monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`IGN:${valoIgn}`, infoX + 16, infoY + ignRowH / 2);
+
+    // Bio Rows (Role, Agent, Rank, Most Said Line)
+    ctx.font = "bold 20px 'Consolas', 'Courier New', monospace";
+    ctx.fillStyle = "#1e293b";
+
+    ctx.fillText(`Role: ${valoRole}`, infoX + 16, infoY + 95);
+    ctx.fillText(`Favorite Agent: ${valoAgent}`, infoX + 16, infoY + 155);
+    ctx.fillText(`Peak Rank: ${valoRank}`, infoX + 16, infoY + 215);
+
+    ctx.fillText("Most Said Line:", infoX + 16, infoY + 275);
+    ctx.font = "18px 'Consolas', 'Courier New', monospace";
+    ctx.textBaseline = "top";
+    drawWrappedCanvasText(ctx, `"${valoLine}"`, infoX + 16, infoY + 305, infoW - 32, 24);
+
+    // Right Vertical PROTOCOL Band
+    const protoX = cardX + cardW - 46;
+    const protoY = cardY + 16;
+    const protoW = 34;
+    const protoH = cardH - 32;
+
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(protoX, protoY, protoW, protoH);
+
+    ctx.save();
+    ctx.translate(protoX + protoW / 2, protoY + protoH / 2);
+    ctx.rotate(Math.PI / 2);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "bold 14px monospace";
+    ctx.letterSpacing = "4px";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("PROTOCOL  |||||||||  00", 0, 0);
+    ctx.restore();
+
+    // Bottom Barcode Section (Angled navy block on left)
+    const botBarY = cardY + 625;
+    const botBarH = 100;
+    const botBarW = 430;
+
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath();
+    ctx.moveTo(cardX + 16, botBarY);
+    ctx.lineTo(cardX + 16 + botBarW, botBarY);
+    ctx.lineTo(cardX + 16 + botBarW - 40, botBarY + botBarH);
+    ctx.lineTo(cardX + 16, botBarY + botBarH);
+    ctx.closePath();
+    ctx.fill();
+
+    // High Density Vertical Barcode Lines
+    ctx.fillStyle = "#ffffff";
+    for (let bx = cardX + 32; bx < cardX + botBarW - 35; bx += Math.floor(Math.random() * 7 + 4)) {
+      ctx.fillRect(bx, botBarY + 14, Math.random() > 0.5 ? 4 : 2, botBarH - 28);
+    }
+
+    // 3 Cyan Diagonal Slash Cuts
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 4;
+    for (let sx = 0; sx < 3; sx++) {
+      ctx.beginPath();
+      ctx.moveTo(cardX + botBarW + 2 + sx * 16, botBarY + 6);
+      ctx.lineTo(cardX + botBarW - 34 + sx * 16, botBarY + botBarH - 6);
+      ctx.stroke();
+    }
+
+    // Bold Red Italic Slogan: "TARA, VALO?"
+    ctx.fillStyle = "#ff4655";
+    ctx.font = "italic 900 48px 'Plus Jakarta Sans', sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillText("TARA, VALO?", cardX + cardW - 75, botBarY + botBarH / 2 + 8);
+
+    ctx.restore();
+  } else if (preset === "supermarket_crate") {
+    // 🥦 SUPERMARKET FRUIT CRATES (PHOTOMATICS RETRO MARKET)
+    // 1. Off-white clean retro tile grid background
+    ctx.fillStyle = "#faf9f5";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Ceramic tile grid lines (35px spacing)
+    ctx.strokeStyle = "rgba(226, 232, 240, 0.85)";
+    ctx.lineWidth = 1.5;
+    for (let gx = 0; gx <= canvas.width; gx += 35) {
+      ctx.beginPath();
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, canvas.height);
+      ctx.stroke();
+    }
+    for (let gy = 0; gy <= canvas.height; gy += 35) {
+      ctx.beginPath();
+      ctx.moveTo(0, gy);
+      ctx.lineTo(canvas.width, gy);
+      ctx.stroke();
+    }
+
+    // Top Header: Red Cursive Title
+    ctx.fillStyle = "#e11d48";
+    ctx.font = "italic bold 22px 'Georgia', cursive, serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("✦ rielllybooth market ✦", canvas.width / 2 + 10, 52);
+
+    // 2. Three Dynamic Zigzag Plastic Grocery Crates
+    const crateConfigs = [
+      { cx: 300, cy: 305, angle: -3.2, w: 520, h: 425, baseColor: "#f59e0b", darkColor: "#d97706", lightColor: "#fde68a" },
+      { cx: 302, cy: 765, angle: 3.0, w: 520, h: 425, baseColor: "#2563eb", darkColor: "#1d4ed8", lightColor: "#93c5fd" },
+      { cx: 298, cy: 1225, angle: -2.6, w: 520, h: 425, baseColor: "#dc2626", darkColor: "#b91c1c", lightColor: "#fca5a5" },
+    ];
+
+    crateConfigs.forEach((cfg) => {
+      ctx.save();
+      ctx.translate(cfg.cx, cfg.cy);
+      ctx.rotate((cfg.angle * Math.PI) / 180);
+      drawPlasticCrateFrame(ctx, -cfg.w / 2, -cfg.h / 2, cfg.w, cfg.h, cfg.baseColor, cfg.darkColor, cfg.lightColor);
+      ctx.restore();
+    });
+
+    // 3. Footer Branding
+    const footerTitle = customText && customText !== "rielllybooth ♡" ? customText.toUpperCase() : "RIELLLY";
+    const footerSubtitle = subtitleText && subtitleText.trim() && !subtitleText.includes("✨") ? subtitleText.trim() : "Market";
+
+    // Big Bold Red Collegiate Typography
+    ctx.fillStyle = "#dc2626";
+    ctx.font = "900 52px 'Plus Jakarta Sans', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(footerTitle, canvas.width / 2, 1585);
+
+    // Script Cursive Subtitle
+    ctx.fillStyle = "#475569";
+    ctx.font = "italic bold 28px 'Georgia', cursive, serif";
+    ctx.fillText(footerSubtitle, canvas.width / 2, 1640);
+  } else if (preset === "student_id") {
+    // 🪪 STUDENT IDENTIFICATION CARD ENGINE (1200x750px CANVAS)
+    // 1. Light Card Background with rounded corners & shadow
+    ctx.fillStyle = "#fdfcf7";
+    ctx.beginPath();
+    ctx.roundRect(25, 25, canvas.width - 50, canvas.height - 50, 24);
+    ctx.fill();
+
+    // Subtle Outer Card Border
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // 2. Guilloche Security Wave Lines (Anti-counterfeit pattern)
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(25, 25, canvas.width - 50, canvas.height - 50, 24);
+    ctx.clip();
+
+    ctx.strokeStyle = "rgba(30, 58, 138, 0.045)";
+    ctx.lineWidth = 1.2;
+    for (let gy = 35; gy < canvas.height - 35; gy += 14) {
+      ctx.beginPath();
+      ctx.moveTo(25, gy);
+      for (let gx = 25; gx <= canvas.width - 25; gx += 16) {
+        ctx.lineTo(gx, gy + Math.sin(gx * 0.035) * 6);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 3. Top Header Tricolor Banner (Red, White, Navy)
+    const cardTop = 25;
+    const cardLeft = 25;
+    const cardW = canvas.width - 50;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(cardLeft, cardTop, cardW, 40, [24, 24, 0, 0]);
+    ctx.clip();
+
+    // Top Red bar
+    ctx.fillStyle = "#dc2626";
+    ctx.fillRect(cardLeft, cardTop, cardW, 14);
+
+    // Middle White line
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(cardLeft, cardTop + 14, cardW, 4);
+
+    // Bottom Navy bar
+    ctx.fillStyle = "#1e3a8a";
+    ctx.fillRect(cardLeft, cardTop + 18, cardW, 14);
+    ctx.restore();
+
+    // 4. Header Academy Text & Top ID Badge
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "900 34px 'Plus Jakarta Sans', serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText("MANNER HIGH ACADEMY", 65, 105);
+
+    ctx.fillStyle = "#64748b";
+    ctx.font = "bold 13px monospace";
+    ctx.letterSpacing = "3px";
+    ctx.fillText("STUDENT IDENTIFICATION CARD  •  2024-2025", 65, 135);
+    ctx.letterSpacing = "0px";
+
+    // Top Right ID Badge Tag
+    ctx.fillStyle = "#1e3a8a";
+    ctx.beginPath();
+    ctx.roundRect(canvas.width - 240, 85, 175, 42, 8);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 15px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("ID: #2024-08912134", canvas.width - 152, 106);
+
+    // 5. Left Photo Container Box
+    const photoX = 65;
+    const photoY = 165;
+    const photoW = 380;
+    const photoH = 490;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(photoX, photoY, photoW, photoH);
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(photoX, photoY, photoW, photoH);
+
+    // 6. Right Student Info Fields Container
+    const infoX = 485;
+    const infoY = 165;
+
+    let studentName = "RIELLY BOOTH";
+    let studentId = "2024-08912134";
+    let studentClass = "CLASS 3-A";
+    let studentMajor = "VISUAL ARTS & MUSIC";
+    let studentDob = "16 AUG 2006";
+
+    if (customText && customText !== "rielllybooth ♡") {
+      if (customText.includes("|")) {
+        const parts = customText.split("|");
+        if (parts[0]) studentName = parts[0];
+        if (parts[1]) studentId = parts[1];
+        if (parts[2]) studentClass = parts[2];
+        if (parts[3]) studentMajor = parts[3];
+        if (parts[4]) studentDob = parts[4];
+      } else {
+        studentName = customText;
+      }
+    }
+    if (subtitleText && subtitleText.trim() && !subtitleText.includes("✨")) {
+      studentClass = subtitleText.trim();
+    }
+
+    const fields = [
+      { label: "NAME", value: studentName },
+      { label: "STUDENT ID", value: studentId },
+      { label: "GRADE / CLASS", value: studentClass },
+      { label: "MAJOR / CLUB", value: studentMajor },
+      { label: "DATE OF BIRTH", value: studentDob },
+    ];
+
+    let currentFieldY = infoY + 28;
+    fields.forEach((f) => {
+      ctx.fillStyle = "#64748b";
+      ctx.font = "bold 14px 'Courier New', monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(f.label + ":", infoX, currentFieldY);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "900 23px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText(f.value, infoX + 175, currentFieldY);
+
+      // Light underline
+      ctx.strokeStyle = "rgba(203, 213, 225, 0.8)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(infoX + 170, currentFieldY + 8);
+      ctx.lineTo(infoX + 620, currentFieldY + 8);
+      ctx.stroke();
+
+      currentFieldY += 56;
+    });
+
+    // Student Signature Line
+    ctx.fillStyle = "#64748b";
+    ctx.font = "bold 13px 'Courier New', monospace";
+    ctx.fillText("SIGNATURE:", infoX, currentFieldY + 8);
+
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(infoX + 130, currentFieldY + 14);
+    ctx.lineTo(infoX + 380, currentFieldY + 14);
+    ctx.stroke();
+
+    // Handwritten cursive signature
+    ctx.fillStyle = "#1e3a8a";
+    ctx.font = "italic bold 28px 'Georgia', cursive, serif";
+    ctx.fillText(studentName.split(" ")[0] || "Stefany", infoX + 150, currentFieldY + 6);
+
+    // Bottom Barcode Box
+    const barX = infoX;
+    const barY = currentFieldY + 36;
+    const barW = 400;
+    const barH = 58;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(barX, barY, barW, barH);
+
+    ctx.fillStyle = "#0f172a";
+    for (let bx = barX + 16; bx < barX + barW - 16; bx += Math.floor(Math.random() * 8 + 4)) {
+      ctx.fillRect(bx, barY + 8, Math.random() > 0.5 ? 3.5 : 2, 34);
+    }
+    ctx.font = "bold 10px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`|||  ${studentId}  |||`, barX + barW / 2, barY + barH - 4);
+
+    // Right Official School Shield Crest
+    drawSchoolCrest(ctx, canvas.width - 130, currentFieldY + 58, 62);
+  } else if (preset === "school_4cut") {
+    // 🏫 MANNER HIGH 4-CUT RETRO YEARBOOK STRIP (600x1800px CANVAS)
+    // 1. Vintage Yearbook Cream Paper Background
+    ctx.fillStyle = "#fbf8ee";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Subtle school notebook horizontal ruled lines
+    ctx.strokeStyle = "rgba(30, 58, 138, 0.04)";
+    ctx.lineWidth = 1.5;
+    for (let ny = 25; ny < canvas.height; ny += 36) {
+      ctx.beginPath();
+      ctx.moveTo(0, ny);
+      ctx.lineTo(canvas.width, ny);
+      ctx.stroke();
+    }
+
+    // 2. Header School Doodles & Academy Banner
+    drawSchoolClockDoodle(ctx, 60, 48, 20);
+    drawPencilDoodle(ctx, 540, 48, 30, 35);
+    drawSchoolStarBadge(ctx, 125, 48, 15, "★");
+    drawSchoolStarBadge(ctx, 475, 48, 15, "★");
+
+    ctx.fillStyle = "#1e3a8a";
+    ctx.font = "italic 900 24px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("✦ MANNER HIGH ✦", canvas.width / 2, 38);
+
+    ctx.fillStyle = "#b91c1c";
+    ctx.font = "bold 11px monospace";
+    ctx.letterSpacing = "3px";
+    ctx.fillText("* SCHOOL MEMORIES & DIARY *", canvas.width / 2, 68);
+    ctx.letterSpacing = "0px";
+
+    // 3. Four Photo Slot Frame Bases with Double Uniform Borders
+    const slotW = 520;
+    const slotH = 345;
+    const slotX = 40;
+    const slotYOffsets = [95, 460, 825, 1190];
+
+    slotYOffsets.forEach((sy) => {
+      // White Base
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(slotX, sy, slotW, slotH);
+
+      // Outer Navy Rim
+      ctx.strokeStyle = "#1e3a8a";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(slotX, sy, slotW, slotH);
+
+      // Inner Burgundy Rim
+      ctx.strokeStyle = "#b91c1c";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(slotX + 5, sy + 5, slotW - 10, slotH - 10);
+    });
+
+    // 4. Emblems & Badges Between Photo Slots
+    // Between Slot 1 & 2
+    drawSchoolTie(ctx, 46, 442, 32);
+    drawSchoolStarBadge(ctx, 540, 442, 16, "1st");
+
+    // Between Slot 2 & 3
+    drawSchoolPennant(ctx, 525, 808, 42);
+    drawOfficialSchoolStamp(ctx, 60, 808, 24);
+
+    // Between Slot 3 & 4
+    drawHonorMedal(ctx, 540, 1172, 32);
+    drawSchoolStarBadge(ctx, 55, 1172, 16, "★");
+
+    // 5. Footer School Crest, Clean Title & Academic Accents
+    let footerTitle = "MANNER HIGH";
+    if (customText && customText !== "rielllybooth ♡") {
+      if (customText.includes("|")) {
+        const first = customText.split("|")[0].trim();
+        footerTitle = first ? first.toUpperCase() : "MANNER HIGH";
+      } else {
+        footerTitle = customText.toUpperCase();
+      }
+    }
+    if (footerTitle.length > 20) {
+      footerTitle = footerTitle.substring(0, 18) + "...";
+    }
+
+    const footerSubtitle = subtitleText && subtitleText.trim() && !subtitleText.includes("✨") ? subtitleText.trim() : "★ CLASS OF 2024-2025 ★";
+
+    // Center Crest
+    drawSchoolCrest(ctx, canvas.width / 2, 1610, 54);
+
+    // Left & Right Footer Emblems
+    drawOfficialSchoolStamp(ctx, 115, 1640, 36);
+    drawHonorMedal(ctx, 485, 1640, 36);
+
+    // School Title Text (Neat & Clean)
+    ctx.fillStyle = "#1e3a8a";
+    ctx.font = "900 28px 'Plus Jakarta Sans', serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(footerTitle, canvas.width / 2, 1675);
+
+    // Subtitle Text
+    ctx.fillStyle = "#b91c1c";
+    ctx.font = "bold 13px monospace";
+    ctx.fillText(footerSubtitle, canvas.width / 2, 1708);
+
+    // Barcode Strip at the very bottom
+    ctx.fillStyle = "#0f172a";
+    for (let bx = 160; bx < 440; bx += Math.floor(Math.random() * 8 + 4)) {
+      ctx.fillRect(bx, 1735, Math.random() > 0.5 ? 3 : 1.5, 18);
+    }
+    ctx.font = "bold 9px monospace";
+    ctx.fillStyle = "#64748b";
+    ctx.fillText("||| 2024-MANNER-HIGH |||", canvas.width / 2, 1765);
   } else if (preset === "galau_quote") {
     // ☕ GALAU QUOTE AESTHETIC GEN Z
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -1597,7 +3713,217 @@ export const drawPhotoStrip = (
   ctx.restore();
 
   // STEP 2: DRAW PHOTOS ACCORDING TO THE LAYOUT MODES WITH STRICT CLIPPING
-  if (preset === "cupids_letter") {
+  if (preset === "valorant_id") {
+    // 🎯 VALORANT ID PHOTO SLOTS (ID Portrait + Vinyl Record)
+    // Photo #1 inside the tilted ID Card
+    ctx.save();
+    ctx.translate(540, 670);
+    ctx.rotate((-6 * Math.PI) / 180);
+
+    const cardW = 980;
+    const cardH = 820;
+    const cardX = -cardW / 2;
+    const cardY = -cardH / 2;
+
+    const photoSlotX = cardX + 16;
+    const photoSlotY = cardY + 192;
+    const photoSlotW = 380;
+    const photoSlotH = 415;
+
+    if (images[0]) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(photoSlotX, photoSlotY, photoSlotW, photoSlotH);
+      ctx.clip();
+      ctx.filter = filterString;
+      drawImageCover(ctx, images[0], photoSlotX, photoSlotY, photoSlotW, photoSlotH, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, photoSlotX, photoSlotY, photoSlotW, photoSlotH, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      ctx.restore();
+
+      // Tactical Reticle Corner Brackets
+      ctx.strokeStyle = "#ff4655";
+      ctx.lineWidth = 3.5;
+      const bracketLen = 18;
+      // Top-Left
+      ctx.beginPath();
+      ctx.moveTo(photoSlotX + bracketLen, photoSlotY);
+      ctx.lineTo(photoSlotX, photoSlotY);
+      ctx.lineTo(photoSlotX, photoSlotY + bracketLen);
+      ctx.stroke();
+      // Top-Right
+      ctx.beginPath();
+      ctx.moveTo(photoSlotX + photoSlotW - bracketLen, photoSlotY);
+      ctx.lineTo(photoSlotX + photoSlotW, photoSlotY);
+      ctx.lineTo(photoSlotX + photoSlotW, photoSlotY + bracketLen);
+      ctx.stroke();
+      // Bottom-Left
+      ctx.beginPath();
+      ctx.moveTo(photoSlotX, photoSlotY + photoSlotH - bracketLen);
+      ctx.lineTo(photoSlotX, photoSlotY + photoSlotH);
+      ctx.lineTo(photoSlotX + bracketLen, photoSlotY + photoSlotH);
+      ctx.stroke();
+      // Bottom-Right
+      ctx.beginPath();
+      ctx.moveTo(photoSlotX + photoSlotW - bracketLen, photoSlotY + photoSlotH);
+      ctx.lineTo(photoSlotX + photoSlotW, photoSlotY + photoSlotH);
+      ctx.lineTo(photoSlotX + photoSlotW, photoSlotY + photoSlotH - bracketLen);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Bottom-Left: Metallic Keychain & Song Label
+    drawMetallicKeychain(ctx, 160, 1480, 62);
+
+    ctx.save();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 24px 'Plus Jakarta Sans', sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("FAVORITE", 250, 1475);
+    ctx.fillText("VALORANT SONG:", 250, 1510);
+    ctx.restore();
+
+    // Bottom-Right: Realistic Grooved Vinyl Record
+    drawVinylRecord(ctx, 770, 1530, 310, images[1], filterString, isFlipped, cuteFilter, filter.beautyGlow, filterIntensity);
+  } else if (preset === "supermarket_crate") {
+    // 🥦 SUPERMARKET DYNAMIC ZIGZAG FRUIT CRATE PHOTO SLOTS & ABUNDANT FRUITS
+    const crateConfigs = [
+      { cx: 300, cy: 305, angle: -3.2, w: 520, h: 425 },
+      { cx: 302, cy: 765, angle: 3.0, w: 520, h: 425 },
+      { cx: 298, cy: 1225, angle: -2.6, w: 520, h: 425 },
+    ];
+
+    for (let i = 0; i < 3; i++) {
+      const cfg = crateConfigs[i];
+      const img = images[i];
+      const innerW = cfg.w - 68;
+      const innerH = cfg.h - 68;
+      const innerX = -innerW / 2;
+      const innerY = -innerH / 2;
+
+      if (img) {
+        ctx.save();
+        ctx.translate(cfg.cx, cfg.cy);
+        ctx.rotate((cfg.angle * Math.PI) / 180);
+        ctx.beginPath();
+        ctx.roundRect(innerX, innerY, innerW, innerH, 12);
+        ctx.clip();
+        ctx.filter = filterString;
+        drawImageCover(ctx, img, innerX, innerY, innerW, innerH, 0, isFlipped);
+        applyCuteFilterOverlay(ctx, innerX, innerY, innerW, innerH, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+        ctx.restore();
+      }
+    }
+
+    // Abundant Overlapping Vector Fruits & Veggies across the whole strip
+    // 1. Top Header Area
+    drawBroccoli(ctx, 60, 68, 54);
+    drawBroccoli(ctx, 96, 44, 36);
+    drawLemonSlice(ctx, 532, 54, 22);
+    drawStrawberry(ctx, 485, 48, 22);
+
+    // 2. Crate 1 (Yellow) Area
+    drawKiwiSlice(ctx, 536, 138, 25);
+    drawTwinCherries(ctx, 72, 142, 34);
+    drawStrawberry(ctx, 58, 480, 28);
+    drawBanana(ctx, 530, 520, 38, -25);
+
+    // 3. Crate 2 (Blue) Area
+    drawGrapeCluster(ctx, 62, 570, 36);
+    drawStrawberry(ctx, 78, 625, 30);
+    drawMango(ctx, 536, 945, 42);
+    drawCarrot(ctx, 58, 965, 34, 30);
+
+    // 4. Crate 3 (Red) Area
+    drawTomato(ctx, 535, 1045, 32);
+    drawOrangeSlice(ctx, 65, 1055, 26);
+    drawTwinCherries(ctx, 535, 1260, 28);
+    drawAvocado(ctx, 82, 1425, 48);
+    drawOrangeSlice(ctx, 530, 1410, 28);
+    drawMushroom(ctx, 130, 1495, 28);
+    drawKiwiSlice(ctx, 535, 1485, 22);
+
+    // 5. Footer Area
+    drawStrawberry(ctx, 100, 1615, 24);
+    drawLemonSlice(ctx, 500, 1615, 20);
+    drawBanana(ctx, 485, 1670, 32, 35);
+    drawGrapeCluster(ctx, 115, 1680, 26);
+  } else if (preset === "student_id") {
+    // 🪪 STUDENT ID PHOTO SLOT
+    const photoX = 65;
+    const photoY = 165;
+    const photoW = 380;
+    const photoH = 490;
+
+    if (images[0]) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(photoX, photoY, photoW, photoH);
+      ctx.clip();
+      ctx.filter = filterString;
+      drawImageCover(ctx, images[0], photoX, photoY, photoW, photoH, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, photoX, photoY, photoW, photoH, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      ctx.restore();
+
+      // Corner Crosshair Brackets
+      ctx.strokeStyle = "#1e3a8a";
+      ctx.lineWidth = 3;
+      const bLen = 16;
+      // Top-Left
+      ctx.beginPath();
+      ctx.moveTo(photoX + bLen, photoY);
+      ctx.lineTo(photoX, photoY);
+      ctx.lineTo(photoX, photoY + bLen);
+      ctx.stroke();
+      // Top-Right
+      ctx.beginPath();
+      ctx.moveTo(photoX + photoW - bLen, photoY);
+      ctx.lineTo(photoX + photoW, photoY);
+      ctx.lineTo(photoX + photoW, photoY + bLen);
+      ctx.stroke();
+      // Bottom-Left
+      ctx.beginPath();
+      ctx.moveTo(photoX, photoY + photoH - bLen);
+      ctx.lineTo(photoX, photoY + photoH);
+      ctx.lineTo(photoX + bLen, photoY + photoH);
+      ctx.stroke();
+      // Bottom-Right
+      ctx.beginPath();
+      ctx.moveTo(photoX + photoW - bLen, photoY + photoH);
+      ctx.lineTo(photoX + photoW, photoY + photoH);
+      ctx.lineTo(photoX + photoW, photoY + photoH - bLen);
+      ctx.stroke();
+    }
+
+    // Official Stamp Watermark Overlapping Photo Corner
+    drawOfficialSchoolStamp(ctx, 420, 600, 56);
+  } else if (preset === "school_4cut") {
+    // 🏫 MANNER HIGH 4-CUT PHOTO SLOTS
+    const slotW = 520;
+    const slotH = 345;
+    const slotX = 40;
+    const slotYOffsets = [95, 460, 825, 1190];
+
+    for (let i = 0; i < 4; i++) {
+      const sy = slotYOffsets[i];
+      const img = images[i];
+      const innerX = slotX + 7;
+      const innerY = sy + 7;
+      const innerW = slotW - 14;
+      const innerH = slotH - 14;
+
+      if (img) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(innerX, innerY, innerW, innerH);
+        ctx.clip();
+        ctx.filter = filterString;
+        drawImageCover(ctx, img, innerX, innerY, innerW, innerH, 0, isFlipped);
+        applyCuteFilterOverlay(ctx, innerX, innerY, innerW, innerH, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+        ctx.restore();
+      }
+    }
+  } else if (preset === "cupids_letter") {
     // 💌 CUPID'S LETTER STAMP PHOTO SLOTS (2 STACKED STAMPS)
     const stampSlots = [
       { x: 630, y: 240, w: 480, h: 380 },
@@ -1991,12 +4317,12 @@ export const drawPhotoStrip = (
         preset === "film"
           ? 4
           : preset === "photocard"
-          ? 24
-          : preset === "coquette" || preset === "polkadot"
-          ? 16
-          : preset === "retro_manga"
-          ? 0
-          : 12;
+            ? 24
+            : preset === "coquette" || preset === "polkadot"
+              ? 16
+              : preset === "retro_manga"
+                ? 0
+                : 12;
 
       ctx.save();
       ctx.filter = filterString;
@@ -2041,14 +4367,14 @@ export const drawPhotoStrip = (
         layout === "purikura_4cut"
           ? 32
           : preset === "film"
-          ? 4
-          : preset === "photocard"
-          ? 28
-          : preset === "coquette" || preset === "polkadot"
-          ? 20
-          : preset === "retro_manga"
-          ? 0
-          : 16;
+            ? 4
+            : preset === "photocard"
+              ? 28
+              : preset === "coquette" || preset === "polkadot"
+                ? 20
+                : preset === "retro_manga"
+                  ? 0
+                  : 16;
 
       ctx.save();
       ctx.filter = filterString;
@@ -2221,8 +4547,16 @@ export const drawPhotoStrip = (
     applyFilmGrainOverlay(ctx, canvas.width, canvas.height, filter.grain);
   }
 
-  // STEP 6: CUSTOM BRAND/EVENT LOGO & TYPOGRAPHY FOOTER (Non-newspaper presets)
-  if (!isNewspaper) {
+  // STEP 6: CUSTOM BRAND/EVENT LOGO & TYPOGRAPHY FOOTER (Non-newspaper & non-custom-story presets)
+  if (
+    !isNewspaper &&
+    preset !== "passport" &&
+    preset !== "cupids_letter" &&
+    preset !== "valorant_id" &&
+    preset !== "supermarket_crate" &&
+    preset !== "student_id" &&
+    preset !== "school_4cut"
+  ) {
     ctx.save();
     ctx.filter = "none";
     ctx.imageSmoothingEnabled = true;
