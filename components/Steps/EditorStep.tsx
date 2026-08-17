@@ -9,7 +9,7 @@ import Slider from "../UI/Slider";
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
 const STICKER_LIBRARY = [
-  "🎀", "💖", "🍒", "🧸", "✨", "👑", "✌️", "🐱",
+  "🇮🇩", "🦅", "🎗️", "🎀", "💖", "🍒", "🧸", "✨", "👑", "✌️", "🐱",
   "🐰", "🌸", "🍭", "🕶️", "👻", "⭐", "🍓", "🦋",
   "🍩", "🐾", "🍦", "🎈"
 ];
@@ -618,9 +618,11 @@ export default function EditorStep({
           {activeTab === "frame" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z Indonesia:</label>
+                <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z & Spesial Kemerdekaan:</label>
                 <div className="max-h-48 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
                   {[
+                    { id: "hut_ri_81_3strip", label: "🇮🇩 HUT RI 81 (3-Strip)" },
+                    { id: "hut_ri_81_4strip", label: "🇮🇩 HUT RI 81 (4-Strip)" },
                     { id: "student_id", label: "🪪 Student ID Card" },
                     { id: "school_4cut", label: "🏫 Manner High (4-Cut)" },
                     { id: "supermarket_crate", label: "🥦 Fruit Market Crate" },
@@ -662,7 +664,18 @@ export default function EditorStep({
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setPreset(item.id as FramePreset)}
+                      onClick={() => {
+                        setPreset(item.id as FramePreset);
+                        if (item.id === "hut_ri_81_3strip") {
+                          setLayout("strip_3cut");
+                          setFrameColor("#991b1b");
+                          setTextColor("#ffffff");
+                        } else if (item.id === "hut_ri_81_4strip") {
+                          setLayout("strip_1x4");
+                          setFrameColor("#fffdfa");
+                          setTextColor("#dc2626");
+                        }
+                      }}
                       className={`py-2 px-2.5 rounded-xl text-xs font-bold border-2 transition ${
                         preset === item.id
                           ? "bg-pink-400 text-white border-pink-500 shadow-xs"

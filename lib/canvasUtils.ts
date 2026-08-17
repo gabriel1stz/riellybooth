@@ -24,6 +24,8 @@ export type LayoutMode =
 
 export type FramePreset =
   | "clean"
+  | "hut_ri_81_3strip"
+  | "hut_ri_81_4strip"
   | "valorant_id"
   | "supermarket_crate"
   | "student_id"
@@ -2251,6 +2253,256 @@ function drawSchoolStarBadge(ctx: CanvasRenderingContext2D, cx: number, cy: numb
 }
 
 /**
+ * Fluttering Indonesian Merah Putih Flag Vector with Gold Finial
+ */
+function drawIndonesianFlag(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  w: number = 48,
+  h: number = 32,
+  angleDeg: number = 0,
+  poleHeight: number = 64
+) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((angleDeg * Math.PI) / 180);
+
+  // Wooden / Gold Flagpole
+  ctx.fillStyle = "#b45309";
+  ctx.fillRect(-w / 2 - 4, -poleHeight / 2, 4, poleHeight);
+
+  // Gold Finial Ball at top of pole
+  ctx.fillStyle = "#f59e0b";
+  ctx.beginPath();
+  ctx.arc(-w / 2 - 2, -poleHeight / 2, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Flag Body with waving shadow/gradient
+  const flagX = -w / 2;
+  const flagY = -poleHeight / 2 + 6;
+
+  // Red top half
+  ctx.fillStyle = "#dc2626";
+  ctx.beginPath();
+  ctx.roundRect(flagX, flagY, w, h / 2, [3, 3, 0, 0]);
+  ctx.fill();
+
+  // White bottom half
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.roundRect(flagX, flagY + h / 2, w, h / 2, [0, 0, 3, 3]);
+  ctx.fill();
+
+  // Flag Border
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.15)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(flagX, flagY, w, h);
+
+  // Subtle wave sheen
+  const waveGrad = ctx.createLinearGradient(flagX, flagY, flagX + w, flagY);
+  waveGrad.addColorStop(0, "rgba(255, 255, 255, 0.2)");
+  waveGrad.addColorStop(0.3, "rgba(0, 0, 0, 0.08)");
+  waveGrad.addColorStop(0.7, "rgba(255, 255, 255, 0.25)");
+  waveGrad.addColorStop(1, "rgba(0, 0, 0, 0.12)");
+  ctx.fillStyle = waveGrad;
+  ctx.fillRect(flagX, flagY, w, h);
+
+  ctx.restore();
+}
+
+/**
+ * Pristine 5-Petal Melati Flower (National Flower of Indonesia)
+ */
+function drawMelatiFlower(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number = 18) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // 5 pristine white petals
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "#fecdd3";
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+    const px = Math.cos(angle) * (size * 0.55);
+    const py = Math.sin(angle) * (size * 0.55);
+
+    ctx.beginPath();
+    ctx.ellipse(px, py, size * 0.45, size * 0.32, angle, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Golden Yellow Blossom Core
+  ctx.fillStyle = "#f59e0b";
+  ctx.beginPath();
+  ctx.arc(0, 0, size * 0.22, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Pleated Merah-Putih Rosette Medal with Hanging Tails & Gold 81 Center
+ */
+function drawMerahPutihRosette(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number = 24) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Hanging Red & White Ribbon Tails
+  ctx.fillStyle = "#dc2626";
+  ctx.beginPath();
+  ctx.moveTo(-10, radius * 0.6);
+  ctx.lineTo(-16, radius * 1.6);
+  ctx.lineTo(-8, radius * 1.4);
+  ctx.lineTo(0, radius * 1.6);
+  ctx.lineTo(0, radius * 0.6);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "rgba(0,0,0,0.15)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, radius * 0.6);
+  ctx.lineTo(0, radius * 1.6);
+  ctx.lineTo(8, radius * 1.4);
+  ctx.lineTo(16, radius * 1.6);
+  ctx.lineTo(10, radius * 0.6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Pleated outer rosette (16 segments alternating red & white)
+  const numPetals = 16;
+  for (let i = 0; i < numPetals; i++) {
+    const a1 = (i * Math.PI * 2) / numPetals;
+    const a2 = ((i + 1) * Math.PI * 2) / numPetals;
+    ctx.fillStyle = i % 2 === 0 ? "#dc2626" : "#ffffff";
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius, a1, a2);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Inner Gold Medal
+  const goldGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, radius * 0.55);
+  goldGrad.addColorStop(0, "#fef08a");
+  goldGrad.addColorStop(0.5, "#f59e0b");
+  goldGrad.addColorStop(1, "#b45309");
+
+  ctx.fillStyle = goldGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.55, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "#78350f";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // "81" in center
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `900 ${Math.round(radius * 0.52)}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("81", 0, 0.5);
+
+  ctx.restore();
+}
+
+/**
+ * Emblazoned 3D Gold "81th" Emblem with Red-White Ribbon Sash
+ */
+function drawHutRi81Emblem(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  size: number = 70,
+  style: "gold" | "red_white" = "gold"
+) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Outer glowing aura
+  ctx.shadowColor = "rgba(251, 191, 36, 0.6)";
+  ctx.shadowBlur = 16;
+
+  // Red & White decorative ribbon sash behind 81
+  ctx.fillStyle = "#dc2626";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, size * 0.9, size * 0.45, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#fbbf24";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // White inner ellipse
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, size * 0.78, size * 0.36, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3D Metallic Gold "81th" Text
+  const goldGrad = ctx.createLinearGradient(0, -size * 0.35, 0, size * 0.35);
+  goldGrad.addColorStop(0, "#fef08a");
+  goldGrad.addColorStop(0.3, "#f59e0b");
+  goldGrad.addColorStop(0.7, "#d97706");
+  goldGrad.addColorStop(1, "#78350f");
+
+  ctx.fillStyle = goldGrad;
+  ctx.font = `900 ${Math.round(size * 0.62)}px 'Plus Jakarta Sans', Impact, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("81th", 0, 2);
+
+  ctx.strokeStyle = "#78350f";
+  ctx.lineWidth = 1.5;
+  ctx.strokeText("81th", 0, 2);
+
+  ctx.restore();
+}
+
+/**
+ * Hanging Red & White Bunting Garland Across Top
+ */
+function drawMerahPutihGarland(ctx: CanvasRenderingContext2D, width: number, y: number) {
+  ctx.save();
+  ctx.strokeStyle = "#fbbf24";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(30, y);
+  ctx.quadraticCurveTo(width / 2, y + 16, width - 30, y);
+  ctx.stroke();
+
+  const numFlags = 9;
+  const step = (width - 80) / (numFlags - 1);
+  for (let i = 0; i < numFlags; i++) {
+    const fx = 40 + i * step;
+    const progress = i / (numFlags - 1) - 0.5;
+    const fy = y + (1 - Math.abs(progress) * 2) * 8;
+
+    ctx.save();
+    ctx.translate(fx, fy);
+    ctx.fillStyle = i % 2 === 0 ? "#dc2626" : "#ffffff";
+    ctx.strokeStyle = "#b91c1c";
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(-10, 0);
+    ctx.lineTo(10, 0);
+    ctx.lineTo(0, 18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+/**
  * Load all photo images asynchronously using Promise.all to guarantee 100% complete loading
  */
 export const loadCanvasImages = (shots: { dataUrl: string }[]): Promise<HTMLImageElement[]> => {
@@ -2329,7 +2581,15 @@ export const drawPhotoStrip = (
   }
 
   // Fixed special layout presets:
-  if (preset === "valorant_id") {
+  if (preset === "hut_ri_81_3strip") {
+    photoCount = 3;
+    targetW = 600;
+    targetH = 1500;
+  } else if (preset === "hut_ri_81_4strip") {
+    photoCount = 4;
+    targetW = 600;
+    targetH = 1800;
+  } else if (preset === "valorant_id") {
     photoCount = 2;
     targetW = 1080;
     targetH = 1920;
@@ -2408,6 +2668,63 @@ export const drawPhotoStrip = (
     ctx.moveTo(45, 245);
     ctx.lineTo(1155, 245);
     ctx.stroke();
+
+  } else if (preset === "hut_ri_81_3strip") {
+    // 🇮🇩 DIRGAHAYU 81 NUSANTARA MERAH PUTIH (3-STRIP FESTIVE)
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bgGrad.addColorStop(0, "#991b1b");
+    bgGrad.addColorStop(0.3, "#b91c1c");
+    bgGrad.addColorStop(0.7, "#be123c");
+    bgGrad.addColorStop(1, "#881337");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Subtle traditional songket / diamond geometric watermark
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.lineWidth = 1.5;
+    const stepBatik = 45;
+    for (let bx = 0; bx < canvas.width + stepBatik; bx += stepBatik) {
+      for (let by = 0; by < canvas.height + stepBatik; by += stepBatik) {
+        ctx.beginPath();
+        ctx.moveTo(bx, by - 12);
+        ctx.lineTo(bx + 12, by);
+        ctx.lineTo(bx, by + 12);
+        ctx.lineTo(bx - 12, by);
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+
+    // Gold Double Border
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+    ctx.strokeStyle = "rgba(254, 240, 138, 0.6)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(22, 22, canvas.width - 44, canvas.height - 44);
+
+  } else if (preset === "hut_ri_81_4strip") {
+    // 🇮🇩 DIRGAHAYU 81 PATRIOTIC RETRO (4-STRIP CLEAN MERAH PUTIH)
+    ctx.fillStyle = "#fffdfa";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Side Red-White Accent Bands
+    ctx.save();
+    ctx.fillStyle = "#dc2626";
+    ctx.fillRect(0, 0, 18, canvas.height);
+    ctx.fillRect(canvas.width - 18, 0, 18, canvas.height);
+
+    ctx.fillStyle = "#b91c1c";
+    ctx.fillRect(18, 0, 4, canvas.height);
+    ctx.fillRect(canvas.width - 22, 0, 4, canvas.height);
+
+    // Gold pinstripe
+    ctx.fillStyle = "#fbbf24";
+    ctx.fillRect(22, 0, 2, canvas.height);
+    ctx.fillRect(canvas.width - 24, 0, 2, canvas.height);
+    ctx.restore();
 
   } else if (preset === "polkadot") {
     ctx.fillStyle = frameColor || "#fce7f3";
@@ -4304,7 +4621,12 @@ export const drawPhotoStrip = (
       applyCuteFilterOverlay(ctx, sx, sy, sideW, sideH, cuteFilter, filter.beautyGlow, 12, filterIntensity);
     }
   } else if (layout.startsWith("strip") || layout === "y2k_checker") {
-    const topMargin = preset === "concert_ticket" || preset === "pestapora_pass" || preset === "retro_cassette" || preset === "toy_story" || preset === "spongebob" ? 220 : padding;
+    const topMargin =
+      preset === "hut_ri_81_3strip" || preset === "hut_ri_81_4strip"
+        ? 170
+        : preset === "concert_ticket" || preset === "pestapora_pass" || preset === "retro_cassette" || preset === "toy_story" || preset === "spongebob"
+          ? 220
+          : padding;
     const photoW = canvas.width - padding * 2;
     const availableH = canvas.height - topMargin - bottomFooterHeight - padding * photoCount;
     const photoH = availableH / photoCount;
@@ -4314,15 +4636,19 @@ export const drawPhotoStrip = (
       if (!img) continue;
       const y = topMargin + i * (photoH + padding);
       const borderRadius =
-        preset === "film"
-          ? 4
-          : preset === "photocard"
-            ? 24
-            : preset === "coquette" || preset === "polkadot"
-              ? 16
-              : preset === "retro_manga"
-                ? 0
-                : 12;
+        preset === "hut_ri_81_3strip"
+          ? 16
+          : preset === "hut_ri_81_4strip"
+            ? 14
+            : preset === "film"
+              ? 4
+              : preset === "photocard"
+                ? 24
+                : preset === "coquette" || preset === "polkadot"
+                  ? 16
+                  : preset === "retro_manga"
+                    ? 0
+                    : 12;
 
       ctx.save();
       ctx.filter = filterString;
@@ -4333,6 +4659,51 @@ export const drawPhotoStrip = (
         ctx.strokeStyle = "#000000";
         ctx.lineWidth = 6;
         ctx.strokeRect(padding, y, photoW, photoH);
+      } else if (preset === "hut_ri_81_3strip") {
+        // Crisp White & Gold Border for Dirgahayu 3-strip
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.roundRect(padding, y, photoW, photoH, borderRadius);
+        ctx.stroke();
+
+        ctx.strokeStyle = "#fbbf24";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(padding - 2, y - 2, photoW + 4, photoH + 4, borderRadius + 2);
+        ctx.stroke();
+
+        // Rosette between photos
+        if (i < photoCount - 1) {
+          drawMerahPutihRosette(ctx, canvas.width / 2, y + photoH + padding / 2, 16);
+        }
+      } else if (preset === "hut_ri_81_4strip") {
+        // Red and Gold Border for Dirgahayu 4-strip
+        ctx.strokeStyle = "#dc2626";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.roundRect(padding, y, photoW, photoH, borderRadius);
+        ctx.stroke();
+
+        ctx.strokeStyle = "#fbbf24";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(padding - 2, y - 2, photoW + 4, photoH + 4, borderRadius + 2);
+        ctx.stroke();
+
+        // Ticker divider between photos
+        if (i < photoCount - 1) {
+          const divY = y + photoH + padding / 2;
+          ctx.save();
+          ctx.fillStyle = "#dc2626";
+          ctx.fillRect(padding + 20, divY - 7, photoW - 40, 14);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 9px 'Plus Jakarta Sans', monospace";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("★ 17 AGUSTUS 1945 • HUT RI 81 • INDONESIA MERDEKA ★", canvas.width / 2, divY);
+          ctx.restore();
+        }
       }
 
       applyCuteFilterOverlay(ctx, padding, y, photoW, photoH, cuteFilter, filter.beautyGlow, borderRadius, filterIntensity);
@@ -4392,7 +4763,59 @@ export const drawPhotoStrip = (
   }
 
   // STEP 3: PRESET DECORATIVE VECTORS
-  if (preset === "coquette") {
+  if (preset === "hut_ri_81_3strip") {
+    // 🇮🇩 TOP CELEBRATION BANNER (3-STRIP FESTIVE)
+    drawIndonesianFlag(ctx, 68, 75, 52, 34, -10, 68);
+    drawIndonesianFlag(ctx, canvas.width - 68, 75, 52, 34, 10, 68);
+    drawMerahPutihGarland(ctx, canvas.width, 22);
+
+    ctx.save();
+    ctx.fillStyle = "#fef08a";
+    ctx.font = "bold 20px 'Georgia', serif";
+    ctx.textAlign = "center";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+    ctx.shadowBlur = 6;
+    ctx.fillText("DIRGAHAYU", canvas.width / 2, 68);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 26px 'Plus Jakarta Sans', serif";
+    ctx.fillText("REPUBLIK INDONESIA", canvas.width / 2, 100);
+
+    ctx.fillStyle = "#fde047";
+    ctx.font = "bold 12px 'Plus Jakarta Sans', monospace";
+    ctx.fillText("★ 17 AGUSTUS 1945 - 2026 ★", canvas.width / 2, 126);
+    ctx.restore();
+
+    drawY2kStar(ctx, 150, 45, 12, "#fde047");
+    drawY2kStar(ctx, canvas.width - 150, 45, 12, "#fde047");
+  } else if (preset === "hut_ri_81_4strip") {
+    // 🇮🇩 TOP CELEBRATION BANNER (4-STRIP PATRIOTIC)
+    drawIndonesianFlag(ctx, 65, 75, 48, 30, -8, 62);
+    drawIndonesianFlag(ctx, canvas.width - 65, 75, 48, 30, 8, 62);
+
+    ctx.save();
+    ctx.fillStyle = "#dc2626";
+    ctx.beginPath();
+    ctx.roundRect(canvas.width / 2 - 130, 40, 260, 44, 10);
+    ctx.fill();
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 22px 'Plus Jakarta Sans', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("HUT RI KE-81 🇮🇩", canvas.width / 2, 62);
+
+    ctx.fillStyle = "#dc2626";
+    ctx.font = "bold 13px 'Plus Jakarta Sans', monospace";
+    ctx.fillText("★ 17 AGUSTUS 1945 - 2026 ★", canvas.width / 2, 110);
+
+    drawY2kStar(ctx, 140, 60, 10, "#fbbf24");
+    drawY2kStar(ctx, canvas.width - 140, 60, 10, "#fbbf24");
+    ctx.restore();
+  } else if (preset === "coquette") {
     drawRibbonBow(ctx, padding + 20, 40, 0.9);
     drawRibbonBow(ctx, canvas.width - padding - 20, 40, 0.9);
     drawRibbonBow(ctx, canvas.width / 2, canvas.height - bottomFooterHeight + 10, 1.1);
@@ -4647,6 +5070,62 @@ export const drawPhotoStrip = (
         ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 85);
         ctx.font = `500 16px ${fontCss}`;
         ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 45);
+      } else if (preset === "hut_ri_81_3strip") {
+        // 🇮🇩 BOTTOM FOOTER FOR DIRGAHAYU 3-STRIP
+        const footerCenterY = canvas.height - 115;
+
+        // 3D Metallic Gold 81th Emblem
+        drawHutRi81Emblem(ctx, canvas.width / 2, footerCenterY - 26, 68, "gold");
+
+        // Primary Title
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 24px 'Georgia', serif";
+        ctx.textAlign = "center";
+        ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 2;
+        const mainText = customText && customText !== "rielllybooth ♡" ? customText : "DIRGAHAYU REPUBLIK INDONESIA";
+        ctx.fillText(mainText, canvas.width / 2, footerCenterY + 34);
+        ctx.shadowColor = "transparent";
+
+        // Subtitle / Slogan
+        ctx.fillStyle = "#fde047";
+        ctx.font = "bold 14px 'Plus Jakarta Sans', sans-serif";
+        ctx.fillText(
+          displaySubtitle.includes("✨") ? "★ NUSANTARA BARU • INDONESIA MAJU ★" : displaySubtitle,
+          canvas.width / 2,
+          footerCenterY + 62
+        );
+
+        // Melati flowers flanking left & right
+        drawMelatiFlower(ctx, 65, footerCenterY + 22, 22);
+        drawMelatiFlower(ctx, canvas.width - 65, footerCenterY + 22, 22);
+      } else if (preset === "hut_ri_81_4strip") {
+        // 🇮🇩 BOTTOM FOOTER FOR DIRGAHAYU 4-STRIP
+        const footerCenterY = canvas.height - 110;
+
+        // Merah-Putih Rosette Medal in center
+        drawMerahPutihRosette(ctx, canvas.width / 2, footerCenterY - 28, 26);
+
+        // Primary Title
+        ctx.fillStyle = "#dc2626";
+        ctx.font = "900 24px 'Plus Jakarta Sans', sans-serif";
+        ctx.textAlign = "center";
+        const mainText = customText && customText !== "rielllybooth ♡" ? customText : "81 TAHUN INDONESIA MERDEKA";
+        ctx.fillText(mainText, canvas.width / 2, footerCenterY + 32);
+
+        // Subtitle / Slogan
+        ctx.fillStyle = "#1e293b";
+        ctx.font = "bold 13px 'Plus Jakarta Sans', sans-serif";
+        ctx.fillText(
+          displaySubtitle.includes("✨") ? "✨ 17 AGUSTUS 1945 - 2026 • NUSANTARA BERDAULAT ✨" : displaySubtitle,
+          canvas.width / 2,
+          footerCenterY + 58
+        );
+
+        // Fluttering Flags on left & right
+        drawIndonesianFlag(ctx, 60, footerCenterY + 18, 42, 28, -6, 52);
+        drawIndonesianFlag(ctx, canvas.width - 60, footerCenterY + 18, 42, 28, 6, 52);
       } else {
         ctx.fillStyle = textColor || "#000000";
 
