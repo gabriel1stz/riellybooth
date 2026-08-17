@@ -668,11 +668,11 @@ export default function EditorStep({
                         setPreset(item.id as FramePreset);
                         if (item.id === "hut_ri_81_3strip") {
                           setLayout("strip_3cut");
-                          setFrameColor("#991b1b");
-                          setTextColor("#ffffff");
+                          setFrameColor("#ffffff");
+                          setTextColor("#dc2626");
                         } else if (item.id === "hut_ri_81_4strip") {
                           setLayout("strip_1x4");
-                          setFrameColor("#fffdfa");
+                          setFrameColor("#ffffff");
                           setTextColor("#dc2626");
                         }
                       }}
