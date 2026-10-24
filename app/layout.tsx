@@ -11,10 +11,12 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL("https://riellybooth.my.id"),
   title: "riellybooth ♡ Photobooth Online Gratis & Aesthetic Photo Strip",
-  description: "Bikin photo strip aesthetic langsung dari browser gratis tanpa watermark! Tersedia 16+ frame viral Gen Z (Photomatics News, Halloween Spooky, Coquette, Y2K), filter retro, dan Live Photo boomerang MP4.",
+  description: "Bikin photo strip aesthetic langsung dari browser gratis tanpa watermark! Tersedia 16+ frame viral Gen Z (Student Kalcer Si Paling Rajin, Riellmatics News, Halloween Spooky, Coquette, Y2K), filter retro, dan Live Photo boomerang MP4.",
   keywords: [
     "photobooth online gratis",
     "photo strip online",
+    "riellmatics online",
+    "student kalcer photobooth",
     "photomatics online",
     "photobox online",
     "riellybooth",
@@ -31,7 +33,7 @@ export const metadata: Metadata = {
     url: "https://riellybooth.my.id",
     siteName: "riellybooth",
     title: "riellybooth ♡ Photobooth Online Gratis & Aesthetic Photo Strip",
-    description: "Bikin photo strip aesthetic langsung dari browser gratis tanpa watermark! Pose peace ✌️ kamera jepret otomatis. Tersedia bingkai Photomatics News, Halloween, dan Live Photo video.",
+    description: "Bikin photo strip aesthetic langsung dari browser gratis tanpa watermark! Pose peace ✌️ kamera jepret otomatis. Tersedia bingkai Student Kalcer, Riellmatics News, Halloween, dan Live Photo video.",
     images: [
       {
         url: "/opengraph-image",
@@ -70,11 +72,6 @@ const jsonLd = {
     "@type": "Offer",
     price: "0",
     priceCurrency: "IDR",
-  },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    ratingCount: "158400",
   },
 };
 

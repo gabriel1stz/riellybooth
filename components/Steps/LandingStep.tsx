@@ -75,12 +75,22 @@ const FEATURED_FRAMES = [
     tags: ["Halloween", "Spooky", "Limited 🎃"],
   },
   {
-    id: "photomatics_news",
-    title: "Photomatics Daily News 📰",
+    id: "student_kalcer",
+    title: "Student Kalcer (Si Paling Rajin) 🎓",
+    badge: "Viral TikTok 🔥",
+    tagColor: "bg-stone-900 text-white",
+    cardBg: "bg-[#fbf9f4] border-stone-800 text-stone-900",
+    description: "Koran editorial vintage: headline Student Kalcer, si paling rajin, dan kolom berita ambis berstempel riellybooth.",
+    sampleUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=500&q=80",
+    tags: ["Student Kalcer", "Newspaper", "Viral TikTok"],
+  },
+  {
+    id: "riellmatics_news",
+    title: "Riellmatics Daily News 📰",
     badge: "Trending 🔥",
     tagColor: "bg-stone-900 text-white",
     cardBg: "bg-stone-100 border-stone-400 text-stone-900",
-    description: "Headline koran editorial retro hitam-putih ala majalah vintage.",
+    description: "Headline koran editorial retro hitam-putih ala majalah vintage khas riellybooth.",
     sampleUrl: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=500&q=80",
     tags: ["Editorial", "Monochrome", "Vintage"],
   },
@@ -116,7 +126,7 @@ const FEATURED_FRAMES = [
   },
   {
     id: "pestapora_pass",
-    title: "Pestapora Pass / Konser 🎫",
+    title: "Musikfest VIP Pass 🎫",
     badge: "Festival",
     tagColor: "bg-emerald-600 text-white",
     cardBg: "bg-emerald-950 border-emerald-400 text-emerald-200",
@@ -411,34 +421,12 @@ export default function LandingStep({
         <PhotostripTrioShowcase />
       </section>
 
-      {/* 2. SOCIAL PROOF & LIVE STATS COUNTER BAR */}
+      {/* 2. REAL FEATURES & PRIVACY HIGHLIGHTS BAR */}
       <section className="w-full bg-white border-2 border-pink-200 rounded-3xl p-4 sm:p-6 shadow-sm">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center divide-y md:divide-y-0 md:divide-x divide-pink-100">
           <div className="space-y-1 py-1">
-            <div className="text-2xl sm:text-3xl font-black text-[#FF5588]">158,400+</div>
-            <div className="text-xs font-bold text-slate-600">Photo Strip Dibuat</div>
-          </div>
-
-          <div className="space-y-1 py-1">
-            <div className="flex items-center justify-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-              <span className="text-2xl sm:text-3xl font-black text-slate-800">28+</span>
-            </div>
-            <div className="text-xs font-bold text-slate-600">Orang Sedang Foto Sekarang</div>
-          </div>
-
-          <div className="space-y-1 py-1">
-            <div className="flex items-center justify-center gap-1 text-amber-500">
-              <span className="text-2xl sm:text-3xl font-black text-slate-800">4.9</span>
-              <div className="flex text-amber-400">
-                <Star className="w-4 h-4 fill-amber-400" />
-                <Star className="w-4 h-4 fill-amber-400" />
-                <Star className="w-4 h-4 fill-amber-400" />
-                <Star className="w-4 h-4 fill-amber-400" />
-                <Star className="w-4 h-4 fill-amber-400" />
-              </div>
-            </div>
-            <div className="text-xs font-bold text-slate-600">Rating Komunitas Gen Z</div>
+            <div className="text-2xl sm:text-3xl font-black text-[#FF5588]">16+</div>
+            <div className="text-xs font-bold text-slate-600">Pilihan Bingkai Viral</div>
           </div>
 
           <div className="space-y-1 py-1">
@@ -446,7 +434,17 @@ export default function LandingStep({
               <ShieldCheck className="w-6 h-6 text-emerald-500" />
               <span>100%</span>
             </div>
-            <div className="text-xs font-bold text-slate-600">In-Browser Privacy (0 Upload)</div>
+            <div className="text-xs font-bold text-slate-600">Privasi Lokal Browser (0 Upload)</div>
+          </div>
+
+          <div className="space-y-1 py-1">
+            <div className="text-2xl sm:text-3xl font-black text-indigo-600">HD & 4R</div>
+            <div className="text-xs font-bold text-slate-600">Format Cetak & Boomerang MP4</div>
+          </div>
+
+          <div className="space-y-1 py-1">
+            <div className="text-2xl sm:text-3xl font-black text-rose-500">Gratis</div>
+            <div className="text-xs font-bold text-slate-600">Bebas Watermark Selamanya</div>
           </div>
         </div>
       </section>

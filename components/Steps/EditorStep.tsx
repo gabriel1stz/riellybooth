@@ -643,23 +643,24 @@ export default function EditorStep({
                 <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z & Spesial Kemerdekaan:</label>
                 <div className="max-h-48 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
                   {[
+                    { id: "student_kalcer", label: "🎓 Student Kalcer (Si Paling Rajin) 📰" },
+                    { id: "riellmatics_news", label: "📰 Riellmatics News" },
                     { id: "halloween_spooky", label: "🎃 Halloween Spooky 🕸️" },
-                    { id: "photomatics_news", label: "📰 Photomatics News" },
                     { id: "hut_ri_81_3strip", label: "🇮🇩 HUT RI 81 (3-Strip)" },
                     { id: "hut_ri_81_4strip", label: "🇮🇩 HUT RI 81 (4-Strip)" },
                     { id: "student_id", label: "🪪 Student ID Card" },
                     { id: "school_4cut", label: "🏫 Manner High (4-Cut)" },
                     { id: "supermarket_crate", label: "🥦 Fruit Market Crate" },
-                    { id: "valorant_id", label: "🎯 Valorant Player ID" },
+                    { id: "valorant_id", label: "🎯 Tactical Agent ID" },
                     { id: "cupids_letter", label: "💌 Cupid's Letter" },
                     { id: "passport", label: "✈️ Passport Memories" },
-                    { id: "toy_story", label: "🤠 Toy Story" },
-                    { id: "spongebob", label: "🧽 SpongeBob" },
-                    { id: "among_us", label: "📮 Among Us" },
+                    { id: "toy_story", label: "🤠 Space Cowboy" },
+                    { id: "spongebob", label: "🧽 Yellow Sponge" },
+                    { id: "among_us", label: "📮 Space Impostor" },
                     { id: "happy_birthday", label: "🎂 Happy Birthday" },
                     { id: "skena_coquette", label: "🎀 Skena Coquette" },
                     { id: "galau_club", label: "💅 Gen Z Galau Club" },
-                    { id: "pestapora_pass", label: "🎫 Pestapora Pass" },
+                    { id: "pestapora_pass", label: "🎫 Musikfest VIP Pass" },
                     { id: "struk_jaksel", label: "🧾 Struk Cafe Jaksel" },
                     { id: "photocard_bias", label: "📸 Photocard Idol Bias" },
                     { id: "coquette", label: "Coquette Ribbon 🎀" },
@@ -690,20 +691,26 @@ export default function EditorStep({
                       type="button"
                       onClick={() => {
                         setPreset(item.id as FramePreset);
-                        if (item.id === "halloween_spooky") {
+                        if (item.id === "student_kalcer") {
+                          setFrameColor("#fbf9f4");
+                          setTextColor("#111111");
+                          setFontFamily("serif");
+                          setCustomText("STUDENT KALCER");
+                          setSubtitleText("Si Paling Rajin");
+                        } else if (item.id === "riellmatics_news" || item.id === "photomatics_news") {
+                          setLayout("strip_2x4");
+                          setFrameColor("#ffffff");
+                          setTextColor("#000000");
+                          setFontFamily("serif");
+                          setCustomText("RIELLMATICS");
+                          setSubtitleText("Memory di sudut");
+                        } else if (item.id === "halloween_spooky") {
                           setLayout("strip_1x4");
                           setFrameColor("#0b0314");
                           setTextColor("#f97316");
                           setFontFamily("serif");
                           setCustomText("TRICK OR TREAT");
                           setSubtitleText("HALLOWEEN 2026 • RIELLYBOOTH ♡");
-                        } else if (item.id === "photomatics_news") {
-                          setLayout("strip_2x4");
-                          setFrameColor("#ffffff");
-                          setTextColor("#000000");
-                          setFontFamily("serif");
-                          setCustomText("PHOTOMATICS");
-                          setSubtitleText("Memory di sudut");
                         } else if (item.id === "hut_ri_81_3strip") {
                           setLayout("strip_3cut");
                           setFrameColor("#ffffff");

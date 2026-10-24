@@ -20,6 +20,8 @@ import {
   RefreshCcw,
 } from "lucide-react";
 
+import { generateLDRRoomCode } from "@/lib/ldrPeerManager";
+
 type LDRRemoteModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -38,9 +40,7 @@ export default function LDRRemoteModal({
 
   useEffect(() => {
     if (isOpen && !roomId) {
-      // Generate memorable 6-char room code
-      const code = "RLY-" + Math.floor(1000 + Math.random() * 9000);
-      setRoomId(code);
+      setRoomId(generateLDRRoomCode());
     }
   }, [isOpen, roomId]);
 
@@ -202,13 +202,13 @@ export default function LDRRemoteModal({
               </label>
               <input
                 type="text"
-                placeholder="Contoh: RLY-4819"
+                placeholder="Contoh: RLY-8X2N9K"
                 value={inputRoomId}
                 onChange={(e) => setInputRoomId(e.target.value)}
                 className="w-full bg-white px-4 py-2.5 rounded-xl border-2 border-pink-300 text-sm font-mono font-black text-slate-800 tracking-wider placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 outline-none uppercase focus:border-pink-500 transition"
               />
               <p className="text-[11px] text-slate-500">
-                Minta temanmu untuk klik "Mode Berdua Jarak Jauh" lalu salin kodenya.
+                Maksimal 2 orang (Host + 1 Tamu). Koneksi langsung WebRTC Peer-to-Peer terenkripsi.
               </p>
             </div>
 

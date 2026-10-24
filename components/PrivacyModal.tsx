@@ -42,10 +42,24 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
             </div>
             <div className="space-y-0.5">
               <h4 className="text-xs font-black text-emerald-950">
-                100% Pemrosesan Lokal (Zero Server Upload)
+                100% Pemrosesan Lokal di Browser Kamu
               </h4>
               <p className="text-[11px] text-emerald-900 leading-relaxed font-medium">
-                Semua foto, video live photo, dan stiker diproses <strong>hanya di dalam memori browser kamu</strong> menggunakan HTML5 Canvas & WebRTC. Foto kamu TIDAK PERNAH dikirim atau disimpan di server mana pun.
+                Semua foto strip, filter, efek, dan Live Photo diproses <strong>langsung di dalam memori browser kamu</strong> menggunakan HTML5 Canvas. Foto kamu TIDAK PERNAH diunggah atau disimpan di database/server kami.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-sky-50 border-2 border-sky-200 p-3.5 rounded-2xl flex items-start gap-3">
+            <div className="p-2 bg-sky-100 text-sky-700 rounded-xl shrink-0 mt-0.5">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div className="space-y-0.5">
+              <h4 className="text-xs font-black text-sky-950">
+                Mode LDR & Transfer HP: WebRTC P2P Terenkripsi
+              </h4>
+              <p className="text-[11px] text-sky-900 leading-relaxed font-medium">
+                Pada mode jarak jauh (LDR) dan transfer scan QR, video/gambar dikirim <strong>secara langsung antar dua perangkat</strong> (Peer-to-Peer terenkripsi E2EE). Sesi otomatis berakhir dalam 30 menit dan stream video TIDAK PERNAH direkam atau disimpan di server.
               </p>
             </div>
           </div>
@@ -59,21 +73,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 Akses Kamera Transparan & Aman
               </h4>
               <p className="text-[11px] text-pink-900 leading-relaxed font-medium">
-                Kamera hanya aktif saat kamu berada di layar capture photobooth. Begitu kamu pindah tab atau selesai berfoto, stream kamera hardware langsung dimatikan secara total.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-purple-50 border-2 border-purple-200 p-3.5 rounded-2xl flex items-start gap-3">
-            <div className="p-2 bg-purple-100 text-purple-700 rounded-xl shrink-0 mt-0.5">
-              <Lock className="w-4 h-4" />
-            </div>
-            <div className="space-y-0.5">
-              <h4 className="text-xs font-black text-purple-950">
-                Analytics Ramah Privasi (Tanpa Cookies Pelacak)
-              </h4>
-              <p className="text-[11px] text-purple-900 leading-relaxed font-medium">
-                Kami tidak melacak identitas pribadi atau menjual data ke pihak ketiga. Statistik web hanya berupa data agregat anonim (misal: jumlah photostrip yang dibuat & frame favorit) untuk pengembangan fitur baru.
+                Kamera hanya aktif saat kamu berada di layar capture photobooth. Begitu kamu pindah langkah atau keluar dari tab, stream kamera hardware langsung dimatikan secara total.
               </p>
             </div>
           </div>
@@ -84,10 +84,10 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
             </div>
             <div className="space-y-0.5">
               <h4 className="text-xs font-black text-slate-900">
-                Lisensi Musik & Aset Legal
+                Lisensi Aset & Layanan Pihak Ketiga
               </h4>
               <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                Audio BGM menggunakan musik Royalty-Free lisensi <strong>Creative Commons Zero (CC0) / Public Domain</strong>. Foto sampel inspirasi pose berasal dari <strong>Unsplash Free License</strong>.
+                Audio shutter disintesis langsung via Web Audio API (zero copyright). BGM berlisensi <strong>CC0 Public Domain</strong> dan foto sample dari <strong>Unsplash Free License</strong>. Pustaka font dimuat via Google Fonts dan AI Vision via Google CDN.
               </p>
             </div>
           </div>

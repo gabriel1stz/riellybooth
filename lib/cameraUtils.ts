@@ -69,7 +69,8 @@ export const captureCanvasSnapshot = (
   videoEl: HTMLVideoElement,
   mirror: boolean = false,
   arCanvasEl?: HTMLCanvasElement | null,
-  filters?: { brightness?: number; contrast?: number; beautyGlow?: number }
+  filters?: { brightness?: number; contrast?: number; beautyGlow?: number },
+  remoteVideoEl?: HTMLVideoElement | null
 ): string => {
   const canvas = document.createElement("canvas");
   const width = videoEl.videoWidth || 1280;
@@ -81,26 +82,62 @@ export const captureCanvasSnapshot = (
   const ctx = canvas.getContext("2d");
   if (!ctx) return "";
 
-  ctx.save();
-  if (mirror) {
-    ctx.translate(width, 0);
-    ctx.scale(-1, 1);
-  }
-
   if (filters) {
     const b = filters.brightness ?? 100;
     const c = filters.contrast ?? 100;
     ctx.filter = `brightness(${b}%) contrast(${c}%)`;
   }
 
-  ctx.drawImage(videoEl, 0, 0, width, height);
+  if (remoteVideoEl && remoteVideoEl.readyState >= 2) {
+    // LDR SPLIT-SCREEN COMPOSITE: Left Half = Local, Right Half = Remote
+    const halfW = width / 2;
+
+    // Draw Left (Local User)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, halfW, height);
+    ctx.clip();
+    if (mirror) {
+      ctx.translate(halfW, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(videoEl, 0, 0, halfW, height);
+    } else {
+      ctx.drawImage(videoEl, 0, 0, halfW, height);
+    }
+    ctx.restore();
+
+    // Draw Right (Remote Partner)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(halfW, 0, halfW, height);
+    ctx.clip();
+    ctx.drawImage(remoteVideoEl, halfW, 0, halfW, height);
+    ctx.restore();
+
+    // Subtle pink heart divider line
+    ctx.save();
+    ctx.strokeStyle = "rgba(244, 114, 182, 0.8)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(halfW, 0);
+    ctx.lineTo(halfW, height);
+    ctx.stroke();
+    ctx.restore();
+  } else {
+    // Standard Single Camera Stream
+    ctx.save();
+    if (mirror) {
+      ctx.translate(width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(videoEl, 0, 0, width, height);
+    ctx.restore();
+  }
 
   if (arCanvasEl) {
     ctx.filter = "none";
     ctx.drawImage(arCanvasEl, 0, 0, width, height);
   }
-
-  ctx.restore();
 
   // Compress snapshot as JPEG 85% to reduce RAM usage on mobile devices
   return canvas.toDataURL("image/jpeg", 0.85);

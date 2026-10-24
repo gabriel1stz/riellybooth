@@ -28,6 +28,10 @@ type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 type CaptureStepProps = {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   arCanvasRef?: React.RefObject<HTMLCanvasElement | null>;
+  remoteStream?: MediaStream | null;
+  remoteVideoRef?: React.RefObject<HTMLVideoElement | null>;
+  ldrStatusMessage?: string | null;
+  onDisconnectLDR?: () => void;
   isCapturing: boolean;
   countdown: number | null;
   currentShotIndex: number;
@@ -36,7 +40,8 @@ type CaptureStepProps = {
   cameraError: string | null;
   onTakeSingleShot: (
     timerDelay?: number,
-    filters?: { brightness?: number; contrast?: number; beautyGlow?: number }
+    filters?: { brightness?: number; contrast?: number; beautyGlow?: number },
+    remoteVideoEl?: HTMLVideoElement | null
   ) => void;
   onUploadPhotos: (files: FileList) => void;
   flashFx: boolean;
@@ -68,6 +73,10 @@ const AR_FILTER_OPTIONS: Array<{
 export default function CaptureStep({
   videoRef,
   arCanvasRef,
+  remoteStream,
+  remoteVideoRef,
+  ldrStatusMessage,
+  onDisconnectLDR,
   isCapturing,
   countdown,
   currentShotIndex,
@@ -88,6 +97,15 @@ export default function CaptureStep({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const localArCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const activeArCanvasRef = arCanvasRef || localArCanvasRef;
+
+  const fallbackRemoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const activeRemoteVideoRef = remoteVideoRef || fallbackRemoteVideoRef;
+
+  useEffect(() => {
+    if (activeRemoteVideoRef.current && remoteStream) {
+      activeRemoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream, activeRemoteVideoRef]);
 
   // Shutter & Timer Trigger Mode: "gesture" | "timer_3" | "timer_5" | "instant"
   const [triggerMode, setTriggerMode] = useState<"gesture" | "timer_3" | "timer_5" | "instant">("gesture");
@@ -115,6 +133,13 @@ export default function CaptureStep({
 
   const peaceStartTimeRef = useRef<number | null>(null);
   const isLockedRef = useRef(false);
+
+  useEffect(() => {
+    if (remoteVideoRef?.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().catch((e) => console.warn("Remote video play error:", e));
+    }
+  }, [remoteStream, remoteVideoRef]);
 
   // Real-time MediaPipe Hand Detection Loop (Peace Gesture ✌️)
   useEffect(() => {
@@ -164,11 +189,16 @@ export default function CaptureStep({
                 isLockedRef.current = true;
                 setPeaceProgress(100);
                 setGestureStatus("Jepret! 📸");
-                onTakeSingleShot(0, {
-                  brightness: cameraBrightness,
-                  contrast: cameraContrast,
-                  beautyGlow,
-                });
+                const remoteEl = remoteStream && remoteVideoRef?.current ? remoteVideoRef.current : null;
+                onTakeSingleShot(
+                  0,
+                  {
+                    brightness: cameraBrightness,
+                    contrast: cameraContrast,
+                    beautyGlow,
+                  },
+                  remoteEl
+                );
               }
             } else if (!isPeace) {
               peaceStartTimeRef.current = null;
@@ -298,13 +328,14 @@ export default function CaptureStep({
       contrast: cameraContrast,
       beautyGlow,
     };
+    const remoteEl = remoteStream && remoteVideoRef?.current ? remoteVideoRef.current : null;
 
     if (triggerMode === "instant") {
-      onTakeSingleShot(0, filters);
+      onTakeSingleShot(0, filters, remoteEl);
     } else if (triggerMode === "timer_5") {
-      onTakeSingleShot(5, filters);
+      onTakeSingleShot(5, filters, remoteEl);
     } else {
-      onTakeSingleShot(3, filters);
+      onTakeSingleShot(3, filters, remoteEl);
     }
   };
 
@@ -313,6 +344,30 @@ export default function CaptureStep({
       {/* Camera Snapshot Flash Screen FX */}
       {flashFx && (
         <div className="fixed inset-0 bg-white z-[100] animate-out fade-out duration-300 pointer-events-none" />
+      )}
+
+      {/* LDR Mode Active Status Banner */}
+      {(remoteStream || ldrStatusMessage) && (
+        <div className="w-full max-w-3xl bg-linear-to-r from-pink-600 to-rose-600 text-white px-4 py-2.5 rounded-2xl flex items-center justify-between shadow-md border-2 border-pink-300 animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
+            </span>
+            <span className="text-xs sm:text-sm font-black tracking-wide">
+              {ldrStatusMessage || "Mode Jarak Jauh (LDR) Aktif 💖 Dua Perangkat Terhubung!"}
+            </span>
+          </div>
+          {onDisconnectLDR && (
+            <button
+              type="button"
+              onClick={onDisconnectLDR}
+              className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-xl transition cursor-pointer border border-white/40"
+            >
+              Tutup Sesi
+            </button>
+          )}
+        </div>
       )}
 
       {/* Top Header Status Badge with Shot Counter Badge */}
@@ -682,21 +737,58 @@ export default function CaptureStep({
           </div>
         ) : (
           <>
-            {/* Live WebRTC Camera Stream with Tuned Filters */}
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              style={{
-                filter: `brightness(${cameraBrightness}%) contrast(${cameraContrast}%) ${
-                  beautyGlow > 0
-                    ? `drop-shadow(0 0 ${beautyGlow * 0.12}px rgba(255, 180, 210, 0.45))`
-                    : ""
-                }`,
-              }}
-              className={`w-full h-full object-cover ${facingMode === "user" ? "-scale-x-100" : ""}`}
-            />
+            {/* Live WebRTC Camera Stream (Side-by-Side if LDR Mode) */}
+            <div className="w-full h-full flex items-center justify-center relative">
+              <div
+                className={`${
+                  remoteStream ? "w-1/2" : "w-full"
+                } h-full relative overflow-hidden bg-black flex items-center justify-center`}
+              >
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  style={{
+                    filter: `brightness(${cameraBrightness}%) contrast(${cameraContrast}%) ${
+                      beautyGlow > 0
+                        ? `drop-shadow(0 0 ${beautyGlow * 0.12}px rgba(255, 180, 210, 0.45))`
+                        : ""
+                    }`,
+                  }}
+                  className={`w-full h-full object-cover ${facingMode === "user" ? "-scale-x-100" : ""}`}
+                />
+                {remoteStream && (
+                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-[10px] font-extrabold text-white rounded-md z-10">
+                    Kamu 👤
+                  </div>
+                )}
+              </div>
+
+              {remoteStream && (
+                <>
+                  {/* Pink Center Divider with Heart */}
+                  <div className="w-1 h-full bg-pink-400 z-10 relative flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-pink-500 border-2 border-white flex items-center justify-center shadow-md">
+                      <span className="text-[10px]">💖</span>
+                    </div>
+                  </div>
+
+                  <div className="w-1/2 h-full relative overflow-hidden bg-black flex items-center justify-center">
+                    <video
+                      ref={remoteVideoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover -scale-x-100"
+                    />
+                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-[10px] font-extrabold text-white rounded-md z-10">
+                      Partner Jarak Jauh 🌍
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Real-time AR Face Filter Overlay Canvas */}
             <canvas

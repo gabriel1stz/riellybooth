@@ -25,8 +25,10 @@ export type LayoutMode =
 
 export type FramePreset =
   | "clean"
-  | "halloween_spooky"
+  | "student_kalcer"
+  | "riellmatics_news"
   | "photomatics_news"
+  | "halloween_spooky"
   | "hut_ri_81_3strip"
   | "hut_ri_81_4strip"
   | "valorant_id"
@@ -656,6 +658,225 @@ function drawBobaPearl(ctx: CanvasRenderingContext2D, cx: number, cy: number, ra
   ctx.beginPath();
   ctx.arc(cx - radius * 0.35, cy - radius * 0.35, radius * 0.25, 0, Math.PI * 2);
   ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * Text Wrapping Helper for Newspaper Columns
+ */
+function drawWrappedText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines: number = 999
+): number {
+  const words = text.split(" ");
+  let line = "";
+  let currentY = y;
+  let lineCount = 0;
+
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + " ";
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && n > 0) {
+      ctx.fillText(line.trim(), x, currentY);
+      line = words[n] + " ";
+      currentY += lineHeight;
+      lineCount++;
+      if (lineCount >= maxLines) break;
+    } else {
+      line = testLine;
+    }
+  }
+  if (lineCount < maxLines && line.trim()) {
+    ctx.fillText(line.trim(), x, currentY);
+    currentY += lineHeight;
+  }
+  return currentY;
+}
+
+/**
+ * Scalloped Lace / Postage Stamp Outer Border for Student Kalcer Photo Frame
+ */
+function drawPostageStampLaceBorder(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  radius: number = 7,
+  spacing: number = 20
+) {
+  ctx.save();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(x, y, w, h);
+
+  // Outer scalloped bumps along 4 edges
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "#121212";
+  ctx.lineWidth = 1.2;
+
+  // Top edge
+  for (let px = x + spacing / 2; px <= x + w - spacing / 2; px += spacing) {
+    ctx.beginPath();
+    ctx.arc(px, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Bottom edge
+  for (let px = x + spacing / 2; px <= x + w - spacing / 2; px += spacing) {
+    ctx.beginPath();
+    ctx.arc(px, y + h, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Left edge
+  for (let py = y + spacing / 2; py <= y + h - spacing / 2; py += spacing) {
+    ctx.beginPath();
+    ctx.arc(x, py, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Right edge
+  for (let py = y + spacing / 2; py <= y + h - spacing / 2; py += spacing) {
+    ctx.beginPath();
+    ctx.arc(x + w, py, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Cover inner parts of scallops to blend seamlessly with main white rectangle
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+
+  // Draw inner frame line
+  ctx.strokeStyle = "#121212";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x + 6, y + 6, w - 12, h - 12);
+
+  ctx.restore();
+}
+
+/**
+ * Procedural Realistic Barcode Strip
+ */
+function drawBarcodeStrip(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  ctx.save();
+  ctx.fillStyle = "#121212";
+  let curX = x;
+  let toggle = false;
+  while (curX < x + w - 4) {
+    const barW = (toggle ? 1.5 : 3.5) * (1 + ((curX * 13) % 3) * 0.5);
+    ctx.fillRect(curX, y, Math.min(barW, x + w - curX), h);
+    curX += barW + (toggle ? 2 : 3);
+    toggle = !toggle;
+  }
+  ctx.restore();
+}
+
+/**
+ * Hand-drawn Vintage Academic Archive Engraving Sketch (Desk Lamp + Open Book + Ink Feather Pen)
+ */
+function drawVintageAcademicArchiveSketch(ctx: CanvasRenderingContext2D, cx: number, cy: number, w: number, h: number) {
+  ctx.save();
+  ctx.strokeStyle = "#121212";
+  ctx.lineWidth = 1.5;
+  ctx.fillStyle = "#fcfaf5";
+
+  // Desk surface line
+  ctx.beginPath();
+  ctx.moveTo(cx - w / 2, cy + 28);
+  ctx.lineTo(cx + w / 2, cy + 28);
+  ctx.stroke();
+
+  // Open Book
+  const bookW = 86;
+  const bookH = 40;
+  const bx = cx - 18;
+  const by = cy + 10;
+  // Left page
+  ctx.beginPath();
+  ctx.moveTo(bx, by);
+  ctx.quadraticCurveTo(bx - bookW * 0.25, by - 12, bx - bookW * 0.5, by - 6);
+  ctx.lineTo(bx - bookW * 0.5, by + bookH - 6);
+  ctx.quadraticCurveTo(bx - bookW * 0.25, by + bookH - 12, bx, by + bookH);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Right page
+  ctx.beginPath();
+  ctx.moveTo(bx, by);
+  ctx.quadraticCurveTo(bx + bookW * 0.25, by - 12, bx + bookW * 0.5, by - 6);
+  ctx.lineTo(bx + bookW * 0.5, by + bookH - 6);
+  ctx.quadraticCurveTo(bx + bookW * 0.25, by + bookH - 12, bx, by + bookH);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Text lines on book
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(bx - bookW * 0.42, by + 6 + i * 8);
+    ctx.lineTo(bx - bookW * 0.1, by + 4 + i * 8);
+    ctx.moveTo(bx + bookW * 0.1, by + 4 + i * 8);
+    ctx.lineTo(bx + bookW * 0.42, by + 6 + i * 8);
+    ctx.stroke();
+  }
+
+  // Antique Desk Lamp on the left
+  const lampX = cx - w * 0.38;
+  const lampY = cy - 24;
+  ctx.lineWidth = 2;
+  // Base
+  ctx.beginPath();
+  ctx.ellipse(lampX, cy + 28, 18, 5, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  // Stem
+  ctx.beginPath();
+  ctx.moveTo(lampX, cy + 28);
+  ctx.quadraticCurveTo(lampX - 10, cy, lampX + 10, lampY + 12);
+  ctx.stroke();
+  // Shade
+  ctx.beginPath();
+  ctx.arc(lampX + 16, lampY + 8, 16, Math.PI * 0.9, Math.PI * 2.1);
+  ctx.stroke();
+  // Light rays
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2, 3]);
+  ctx.beginPath();
+  ctx.moveTo(lampX + 26, lampY + 16);
+  ctx.lineTo(lampX + 50, lampY + 36);
+  ctx.moveTo(lampX + 18, lampY + 22);
+  ctx.lineTo(lampX + 34, lampY + 46);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Ink bottle and quill pen on the right
+  const inkX = cx + w * 0.36;
+  const inkY = cy + 16;
+  ctx.lineWidth = 1.5;
+  // Ink bottle
+  ctx.strokeRect(inkX - 12, inkY, 24, 18);
+  ctx.fillRect(inkX - 8, inkY - 5, 16, 5);
+  ctx.strokeRect(inkX - 8, inkY - 5, 16, 5);
+  // Slanted Quill Feather Pen
+  ctx.beginPath();
+  ctx.moveTo(inkX, inkY + 4);
+  ctx.quadraticCurveTo(inkX + 18, inkY - 24, inkX + 32, inkY - 48);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(inkX + 32, inkY - 48);
+  ctx.quadraticCurveTo(inkX + 24, inkY - 36, inkX + 18, inkY - 18);
+  ctx.stroke();
+
   ctx.restore();
 }
 
@@ -3198,7 +3419,8 @@ export const drawPhotoStrip = (
   if (!ctx || images.length === 0) return;
 
   const isNewspaper = preset === "newspaper" || layout === "newspaper_grid";
-  const isPhotomaticsNews = preset === "photomatics_news";
+  const isPhotomaticsNews = preset === "photomatics_news" || preset === "riellmatics_news";
+  const isStudentKalcer = preset === "student_kalcer";
 
   // Determine target canvas dimensions based on layout modes
   let photoCount = 4;
@@ -3237,7 +3459,7 @@ export const drawPhotoStrip = (
   }
 
   // Fixed special layout presets:
-  if (preset === "photomatics_news") {
+  if (preset === "photomatics_news" || preset === "riellmatics_news") {
     photoCount = 4;
     if (layout === "strip_1x4") {
       targetW = 600;
@@ -3246,6 +3468,10 @@ export const drawPhotoStrip = (
       targetW = 1200;
       targetH = 1800;
     }
+  } else if (preset === "student_kalcer") {
+    photoCount = 2;
+    targetW = 1080;
+    targetH = 1920;
   } else if (preset === "halloween_spooky") {
     photoCount = 4;
     if (layout === "strip_2x4") {
@@ -3291,7 +3517,7 @@ export const drawPhotoStrip = (
 
   const filterString = `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) grayscale(${filter.grayscale}%)`;
   const padding = preset === "film" || preset === "receipt" || preset === "struk_jaksel" || preset === "polaroid_vintage" ? 60 : 36;
-  const bottomFooterHeight = isNewspaper || isPhotomaticsNews || preset === "halloween_spooky" ? 0 : preset === "concert_ticket" || preset === "pestapora_pass" ? 240 : 220;
+  const bottomFooterHeight = isNewspaper || isPhotomaticsNews || isStudentKalcer || preset === "halloween_spooky" ? 0 : preset === "concert_ticket" || preset === "pestapora_pass" ? 240 : 220;
   const filterIntensity = filter.filterIntensity ?? 100;
 
   // STEP 1: BACKGROUND & FRAME PRESETS
@@ -3344,7 +3570,7 @@ export const drawPhotoStrip = (
     ctx.stroke();
 
   } else if (isPhotomaticsNews) {
-    // 📰 AUTHENTIC PHOTOMATICS NEWS FRAME ENGINE (DUAL 1200x1800 or SINGLE 600x1800)
+    // 📰 AUTHENTIC RIELLMATICS NEWS FRAME ENGINE (DUAL 1200x1800 or SINGLE 600x1800)
     ctx.fillStyle = frameColor || "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -3354,7 +3580,7 @@ export const drawPhotoStrip = (
     const innerPad = 42;
 
     // Determine custom text labels
-    let headlineText = "PHOTOMATICS";
+    let headlineText = "RIELLMATICS";
     if (customText && customText.trim() && customText !== "riellybooth ♡") {
       headlineText = customText.trim().toUpperCase();
     }
@@ -3364,9 +3590,9 @@ export const drawPhotoStrip = (
       cursiveSubtitle = subtitleText.trim();
     }
 
-    const mastheadText = "Photomatics News";
+    const mastheadText = "Riellmatics News";
 
-    let footerBrandText = "Photomatics";
+    let footerBrandText = "Riellmatics";
     if (customText && customText.trim() && customText !== "riellybooth ♡") {
       footerBrandText = customText.trim();
     }
@@ -3485,6 +3711,465 @@ export const drawPhotoStrip = (
       ctx.stroke();
       ctx.restore();
     }
+
+  } else if (isStudentKalcer) {
+    // 📰 STUDENT KALCER (SI PALING RAJIN) NEWSPAPER EDITORIAL FRAME
+    const paperBg = frameColor && frameColor !== "#ffffff" ? frameColor : "#fbf9f4";
+    ctx.fillStyle = paperBg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 1. Subtle Newsprint Paper Border (Double Framing Line)
+    ctx.save();
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 3.5;
+    ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(26, 26, canvas.width - 52, canvas.height - 52);
+    ctx.restore();
+
+    // 2. Top Masthead Running Banner Strip (y = 36 to y = 74)
+    ctx.save();
+    ctx.fillStyle = textColor || "#111111";
+    ctx.fillRect(36, 36, 1008, 38);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.textBaseline = "middle";
+
+    // Left: EDISI: HARDIKNAS
+    ctx.font = "bold 13px 'Plus Jakarta Sans', monospace, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("EDISI: HARDIKNAS", 52, 55);
+
+    // Moon / Crescent
+    ctx.font = "14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("◐", 310, 55);
+
+    // Center: VOL. MMXXVI • RIELLYBOOTH
+    ctx.font = "bold 14px 'Plus Jakarta Sans', monospace, sans-serif";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "2px";
+    ctx.fillText("VOL. MMXXVI • RIELLYBOOTH", 540, 55);
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+
+    // Moon / Crescent
+    ctx.font = "14px sans-serif";
+    ctx.fillText("◑", 770, 55);
+
+    // Right: STATUS: CERDAS & BERBUDI
+    ctx.font = "bold 13px 'Plus Jakarta Sans', monospace, sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText("STATUS: CERDAS & BERBUDI  ⚖️🎓", 1028, 55);
+    ctx.restore();
+
+    // 3. Main Masthead Headline ("STUDENT KALCER")
+    const headline = customText && customText.trim() && customText !== "riellybooth ♡"
+      ? customText.trim().toUpperCase()
+      : "STUDENT KALCER";
+
+    const subtitle = subtitleText && subtitleText.trim() && !subtitleText.includes("✨")
+      ? subtitleText.trim()
+      : "Si Paling Rajin";
+
+    ctx.save();
+    ctx.fillStyle = textColor || "#111111";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "900 86px 'Times New Roman', 'Playfair Display', 'Cinzel', serif";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "4px";
+    ctx.fillText(headline, 540, 142);
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+
+    // 4. Overlapping Cursive Script Subtitle ("Si Paling Rajin") with white outline
+    ctx.font = "italic bold 64px 'Alex Brush', 'Dancing Script', 'Brush Script MT', 'Playfair Display', cursive";
+    ctx.strokeStyle = paperBg;
+    ctx.lineWidth = 12;
+    ctx.lineJoin = "round";
+    ctx.strokeText(subtitle, 540, 186);
+
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 2;
+    ctx.strokeText(subtitle, 540, 186);
+
+    ctx.fillStyle = textColor || "#111111";
+    ctx.fillText(subtitle, 540, 186);
+    ctx.restore();
+
+    // Double hairline rule line under headline
+    ctx.save();
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(36, 226);
+    ctx.lineTo(1044, 226);
+    ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(36, 230);
+    ctx.lineTo(1044, 230);
+    ctx.stroke();
+    ctx.restore();
+
+    // 5. Scalloped Lace / Postage Stamp Border for Photo 1 (Upper Half)
+    const p1X = 48;
+    const p1Y = 244;
+    const p1W = 984;
+    const p1H = 650;
+    drawPostageStampLaceBorder(ctx, p1X - 8, p1Y - 8, p1W + 16, p1H + 16, 7, 20);
+
+    // 6. Horizontal Divider Rule Lines between Upper Photo and Lower Columns
+    ctx.save();
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(36, 914);
+    ctx.lineTo(1044, 914);
+    ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(36, 918);
+    ctx.lineTo(1044, 918);
+    ctx.stroke();
+
+    // Vertical Divider Rule Lines between 3 Columns (y = 920 to 1874)
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(360, 920);
+    ctx.lineTo(360, 1874);
+    ctx.moveTo(720, 920);
+    ctx.lineTo(720, 1874);
+    ctx.stroke();
+    ctx.restore();
+
+    // 7. COLUMN 1 (LEFT COLUMN, x = 44 to 350)
+    ctx.save();
+    ctx.fillStyle = textColor || "#111111";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+
+    // Lead paragraph bold italic
+    ctx.font = "bold italic 14px 'Times New Roman', 'Georgia', serif";
+    const nextY1 = drawWrappedText(
+      ctx,
+      "Menelisik fenomena pengejar nilai yang tetap menjaga estetika di tengah badai tugas dan ujian.",
+      44,
+      932,
+      304,
+      19,
+      4
+    );
+
+    // Thin separator
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(44, nextY1 + 4);
+    ctx.lineTo(350, nextY1 + 4);
+    ctx.stroke();
+
+    // Column article body
+    ctx.font = "12px 'Times New Roman', 'Georgia', serif";
+    drawWrappedText(
+      ctx,
+      "LAPORAN UTAMA — Di semangat yang tak padam, antara tumpukan buku dan aroma kopi yang tak pernah absen, lahirlah subkultur 'Student Kalcer' yang kini merambah ke seluruh jenjang pendidikan. Mereka bukan sekadar pelajar biasa; mereka adalah para pejuang nilai yang menolak terlihat berantakan meski dikejar tenggat waktu. Dengan tas penuh buku, catatan yang tersusun rapi, dan tekad baja mendulang prestasi tertinggi di kampus dan sekolah.",
+      44,
+      nextY1 + 10,
+      304,
+      16,
+      11
+    );
+
+    // Vintage Ad Box: "NILAI MELEDAK"
+    const adBoxX = 42;
+    const adBoxY = 1424;
+    const adBoxW = 308;
+    const adBoxH = 444;
+
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(adBoxX, adBoxY, adBoxW, adBoxH);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(adBoxX + 4, adBoxY + 4, adBoxW - 8, adBoxH - 8);
+
+    // Ad Header
+    ctx.fillStyle = textColor || "#111111";
+    ctx.fillRect(adBoxX + 6, adBoxY + 6, adBoxW - 12, 40);
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.font = "900 24px 'Impact', 'Arial Black', sans-serif";
+    ctx.fillText("NILAI MELEDAK", adBoxX + adBoxW / 2, adBoxY + 28);
+
+    ctx.fillStyle = textColor || "#111111";
+    ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("RAHASIA SI PALING RAJIN DI KELAS", adBoxX + adBoxW / 2, adBoxY + 62);
+
+    // Vintage Engraving Desk Sketch
+    drawVintageAcademicArchiveSketch(ctx, adBoxX + adBoxW / 2, adBoxY + 160, adBoxW - 40, 110);
+
+    // Ad Body
+    ctx.font = "11px 'Times New Roman', serif";
+    ctx.textAlign = "center";
+    drawWrappedText(
+      ctx,
+      "Bosan jadi mediocre? Upgrade standar belajarmu di sini. Susun aksi, make it to the point, raih sertifikasi. Daftar sekarang, jadi lebih keren utama prestasi besok.",
+      adBoxX + 16,
+      adBoxY + 276,
+      adBoxW - 32,
+      15,
+      6
+    );
+
+    // Ad Footer
+    ctx.font = "bold 10px monospace";
+    ctx.fillText("— THE ACADEMIC ARCHIVE : JOIN NOW • RIELLYBOOTH —", adBoxX + adBoxW / 2, adBoxY + 424);
+    ctx.restore();
+
+    // 8. COLUMN 2 (CENTER COLUMN, x = 370 to 710)
+    ctx.save();
+    // Header Pill: ✦ STUDENT ESSENTIALS ✦
+    ctx.fillStyle = textColor || "#111111";
+    ctx.beginPath();
+    ctx.roundRect(374, 932, 332, 34, 6);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "bold 14px 'Plus Jakarta Sans', monospace, sans-serif";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "2px";
+    ctx.fillText("✦ STUDENT ESSENTIALS ✦", 540, 949);
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+
+    // Frame border for Photo 2 Slot (376, 976, 328, 430)
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(376, 976, 328, 430);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(372, 972, 336, 438);
+
+    // Article below Photo 2
+    ctx.fillStyle = textColor || "#111111";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.font = "12.5px 'Times New Roman', 'Georgia', serif";
+
+    drawWrappedText(
+      ctx,
+      "setiap lembar dan target yang berhasil kamu capai sebagai bagian dari sejarah pribadimu. Menjadi rajin bukan hanya soal mengumpulkan tugas tepat waktu, tapi soal konsistensi dalam membangun masa depan yang lebih cerah. Artikel ini adalah apresiasi untuk kamu yang tetap memilih belajar saat yang lain memilih rebahan, yang tetap teliti meski mata sudah mengantuk, dan yang percaya bahwa investasi terbaik adalah pengetahuan.",
+      374,
+      1424,
+      332,
+      17,
+      12
+    );
+
+    drawWrappedText(
+      ctx,
+      "Kamu tidak hanya sedang mengejar gelar atau nilai, kamu sedang menulis narasi sejarahmu sendiri sebagai generasi yang berdaya, kreatif, dan tentu saja, tetap paling estetik di antara yang lain.",
+      374,
+      1650,
+      332,
+      17,
+      6
+    );
+
+    // Signature Stamp
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(374, 1800, 332, 68);
+    ctx.font = "italic bold 16px 'Playfair Display', cursive, serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Academic Excellence • riellybooth", 540, 1826);
+    ctx.font = "9px monospace";
+    ctx.fillText("OFFICIAL ARCHIVE COPY • 2026", 540, 1848);
+    ctx.restore();
+
+    // 9. COLUMN 3 (RIGHT COLUMN, x = 730 to 1034)
+    ctx.save();
+    // Top Archive Box
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(730, 932, 306, 52);
+    ctx.fillStyle = textColor || "#111111";
+    ctx.textAlign = "center";
+    ctx.font = "900 14px 'Times New Roman', serif";
+    ctx.fillText("THE STUDENT KALCER ARCHIVE", 883, 948);
+    ctx.font = "italic 9.5px 'Times New Roman', serif";
+    ctx.fillText("Education is the most powerful weapon to change the world.", 883, 968);
+
+    // UPGRADE YOUR ACADEMIC VIBE Box
+    ctx.fillStyle = textColor || "#111111";
+    ctx.fillRect(730, 994, 306, 80);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.font = "bold 15px 'Plus Jakarta Sans', sans-serif";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "3px";
+    ctx.fillText("UPGRADE YOUR", 883, 1018);
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+
+    ctx.font = "900 32px 'Impact', 'Arial Black', sans-serif";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "2px";
+    ctx.fillText("ACADEMIC VIBE", 883, 1052);
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+
+    // 2 Tips & Amunisi Box (730, 1084, 306, 368)
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(730, 1084, 306, 368);
+
+    ctx.fillStyle = textColor || "#111111";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+
+    // Header 1
+    ctx.font = "900 13px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("1. AMUNISI SI PALING RAJIN", 742, 1096);
+    ctx.font = "11.5px 'Times New Roman', serif";
+    drawWrappedText(
+      ctx,
+      "• Starter Pack: Alat tulis lengkap, buku catatan aesthetic, & semangat yang selalu full power.",
+      742,
+      1118,
+      282,
+      15.5,
+      3
+    );
+    drawWrappedText(
+      ctx,
+      "• Habit: Selalu fokus di baris depan & punya pertanyaan kritis untuk setiap materi kuliah/sekolah.",
+      742,
+      1168,
+      282,
+      15.5,
+      3
+    );
+
+    // Divider inside box
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(742, 1222);
+    ctx.lineTo(1024, 1222);
+    ctx.stroke();
+
+    // Header 2
+    ctx.font = "900 13px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("2. TIPS ANTI-REMAHAN TUGAS", 742, 1234);
+    ctx.font = "11.5px 'Times New Roman', serif";
+    drawWrappedText(
+      ctx,
+      "• Konsistensi: Cicil materi setiap hari agar beban tugas tidak menumpuk di pekan ujian.",
+      742,
+      1256,
+      282,
+      15.5,
+      3
+    );
+    drawWrappedText(
+      ctx,
+      "• Self-Reward: Esspreso hangat saat lelah, foto di riellybooth sebagai selebrasi setelah ujian selesai.",
+      742,
+      1306,
+      282,
+      15.5,
+      3
+    );
+
+    // Verified Quality Stamp Box
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(730, 1462, 306, 42);
+    ctx.fillStyle = textColor || "#111111";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "bold 10px monospace";
+    ctx.fillText("[ TERVERIFIKASI - SIPALING RAJIN / AMBIS QUALITY / 2026 ]", 883, 1483);
+
+    // Amunisi Belajar Gacor Box (Left half)
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(730, 1516, 148, 180);
+
+    ctx.fillStyle = textColor || "#111111";
+    ctx.textAlign = "center";
+    ctx.font = "900 12px sans-serif";
+    ctx.fillText("AMUNISI BELAJAR", 804, 1534);
+    ctx.fillText("GACOR", 804, 1550);
+
+    ctx.font = "10px 'Times New Roman', serif";
+    drawWrappedText(
+      ctx,
+      "Otak kebanyakan teori, langsung sikat materinya. Bawa pulang nilai terbaikmu!",
+      736,
+      1568,
+      136,
+      14,
+      4
+    );
+    ctx.font = "8px monospace";
+    ctx.fillText("— PUSAT STUDI GACOR —", 804, 1680);
+
+    // Barcode & riellybooth Stamp Box (Right half)
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(888, 1516, 148, 180);
+
+    drawBarcodeStrip(ctx, 898, 1528, 128, 44);
+
+    ctx.font = "9px 'Times New Roman', serif";
+    ctx.textAlign = "center";
+    drawWrappedText(
+      ctx,
+      "Feeling the daily dose of joy? Frame your happiness at the RIELLYBOOTH photobox.",
+      894,
+      1582,
+      136,
+      12.5,
+      4
+    );
+
+    ctx.font = "bold 9px monospace";
+    ctx.fillText("RIELLYBOOTH PHOTOBOX", 962, 1678);
+
+    // Bottom Directorate Stamp
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(730, 1708, 306, 160);
+    ctx.fillStyle = textColor || "#111111";
+    ctx.textAlign = "center";
+    ctx.font = "900 18px 'Times New Roman', serif";
+    ctx.fillText("ACADEMIC EXCELLENCE", 883, 1738);
+
+    ctx.font = "bold 12px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillText("DIREKTORAT SI PALING RAJIN", 883, 1762);
+
+    // Circular Stamp
+    ctx.beginPath();
+    ctx.arc(883, 1814, 34, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(883, 1814, 30, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.font = "bold 8px monospace";
+    ctx.fillText("RIELLYBOOTH", 883, 1810);
+    ctx.fillText("★ 2026 ★", 883, 1822);
+    ctx.restore();
+
+    // 10. Bottom Running Footer
+    ctx.save();
+    ctx.strokeStyle = textColor || "#111111";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(36, 1886);
+    ctx.lineTo(1044, 1886);
+    ctx.stroke();
+
+    ctx.fillStyle = textColor || "#111111";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "bold 11px monospace";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "1.5px";
+    ctx.fillText("RIELLYBOOTH GAZETTE  •  EDISI KHUSUS MAHASISWA & SISWA AMBIS INDONESIA  •  WWW.RIELLYBOOTH.MY.ID", 540, 1902);
+    ctx.restore();
 
   } else if (preset === "halloween_spooky") {
     // 🎃 HALLOWEEN SPOOKY NIGHT SPECIAL FRAME ENGINE
@@ -3790,7 +4475,7 @@ export const drawPhotoStrip = (
     ctx.font = "900 28px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("⚡ PESTAPORA 2026 • ALL ACCESS ⚡", canvas.width / 2, 112);
+    ctx.fillText("⚡ MUSIKFEST 2026 • ALL ACCESS ⚡", canvas.width / 2, 112);
 
     // Side Ticket Notches (Perforated Semicircle Cutouts on Left & Right)
     ctx.fillStyle = "#09090b";
@@ -4364,12 +5049,12 @@ export const drawPhotoStrip = (
     // Official Red Valorant Logo on Header Left
     drawValorantLogo(ctx, cardX + 72, cardY + 16 + headerH / 2, 44, "#ff4655");
 
-    // Center Red VALORANT Title & White PLAYER IDENTIFICATION Subtitle
+    // Center Red TACTICAL AGENT Title & White PLAYER IDENTIFICATION Subtitle
     ctx.fillStyle = "#ff4655";
-    ctx.font = "900 48px 'Plus Jakarta Sans', system-ui, sans-serif";
+    ctx.font = "900 44px 'Plus Jakarta Sans', system-ui, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("VALORANT", 0, cardY + 62);
+    ctx.fillText("TACTICAL AGENT", 0, cardY + 62);
 
     ctx.fillStyle = "#94a3b8";
     ctx.font = "bold 13px monospace";
@@ -5478,6 +6163,44 @@ export const drawPhotoStrip = (
       }
     }
 
+  } else if (isStudentKalcer) {
+    // 🎓 STUDENT KALCER (SI PALING RAJIN) 2-PHOTO SLOTS
+    // Slot 1: Large Upper Photo (48, 244, 984, 650)
+    const photo1X = 48;
+    const photo1Y = 244;
+    const photo1W = 984;
+    const photo1H = 650;
+
+    const img1 = images[0];
+    if (img1) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(photo1X, photo1Y, photo1W, photo1H);
+      ctx.clip();
+      ctx.filter = filterString;
+      drawImageCover(ctx, img1, photo1X, photo1Y, photo1W, photo1H, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, photo1X, photo1Y, photo1W, photo1H, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      ctx.restore();
+    }
+
+    // Slot 2: Center Column Portrait Photo (376, 976, 328, 430)
+    const photo2X = 376;
+    const photo2Y = 976;
+    const photo2W = 328;
+    const photo2H = 430;
+
+    const img2 = images[1] || images[0];
+    if (img2) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(photo2X, photo2Y, photo2W, photo2H);
+      ctx.clip();
+      ctx.filter = filterString;
+      drawImageCover(ctx, img2, photo2X, photo2Y, photo2W, photo2H, 0, isFlipped);
+      applyCuteFilterOverlay(ctx, photo2X, photo2Y, photo2W, photo2H, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      ctx.restore();
+    }
+
   } else if (preset === "halloween_spooky") {
     // 🎃 HALLOWEEN SPOOKY PHOTO SLOTS (4 PHOTOS WITH NEON PURPLE/ORANGE BORDERS & EMBELLISHMENTS)
     const isDouble = canvas.width >= 1200;
@@ -5914,6 +6637,7 @@ export const drawPhotoStrip = (
   if (
     !isNewspaper &&
     !isPhotomaticsNews &&
+    !isStudentKalcer &&
     preset !== "halloween_spooky" &&
     preset !== "passport" &&
     preset !== "cupids_letter" &&

@@ -17,6 +17,11 @@ import { createGifFromCanvas } from "@/lib/gifUtils";
 import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet, revokeBlobUrl } from "@/lib/cameraUtils";
 import { drawPhotoStrip, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
 import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
+import QRCode from "qrcode";
+import { LDRPeerManager, LDRSessionState, LDRMessage } from "@/lib/ldrPeerManager";
+import { P2PStripSender, P2PStripReceiver } from "@/lib/p2pStripTransfer";
+import LDRAmissionModal from "@/components/LDRAmissionModal";
+import P2PTransferReceiverModal from "@/components/P2PTransferReceiverModal";
 
 type Step = "landing" | "capture" | "review" | "editor";
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
@@ -99,6 +104,25 @@ export default function RiellyBooth() {
   const [showLDRModal, setShowLDRModal] = useState(false);
   const [ldrRoomId, setLdrRoomId] = useState<string | null>(null);
   const [isLDRHost, setIsLDRHost] = useState(true);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [ldrStatusMessage, setLdrStatusMessage] = useState<string | null>(null);
+  const [pendingGuestRequest, setPendingGuestRequest] = useState<{
+    guestName: string;
+    roomCode: string;
+    accept: () => void;
+    reject: () => void;
+  } | null>(null);
+  const ldrManagerRef = useRef<LDRPeerManager | null>(null);
+
+  // Desktop-to-Mobile P2P Strip Transfer State (Zero server storage)
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+  const [transferStatus, setTransferStatus] = useState<string>("");
+  const p2pSenderRef = useRef<P2PStripSender | null>(null);
+  const [showReceiverModal, setShowReceiverModal] = useState(false);
+  const [receiverStatus, setReceiverStatus] = useState("");
+  const [receivedStripUrl, setReceivedStripUrl] = useState<string | null>(null);
+  const [receivedFilename, setReceivedFilename] = useState("riellybooth-strip.png");
 
   // Custom Full Frame Overlay (User PNG Transparency)
   const [customFrameOverlayUrl, setCustomFrameOverlayUrl] = useState<string | null>(null);
@@ -206,25 +230,154 @@ export default function RiellyBooth() {
     setCustomFrameOverlayImg(null);
   };
 
-  // Remote LDR Photobooth Session Trigger
-  const handleStartLDRSession = (roomId: string, isHost: boolean) => {
+  // Remote LDR Photobooth Session Trigger with real WebRTC P2P
+  const handleStartLDRSession = async (roomId: string, isHost: boolean) => {
     setLdrRoomId(roomId);
     setIsLDRHost(isHost);
     handleStartCapture();
+
+    // Pastikan camera stream siap
+    let stream = mediaStreamRef.current;
+    if (!stream) {
+      try {
+        stream = await startCameraStream(facingMode);
+        mediaStreamRef.current = stream;
+        if (videoRef.current) videoRef.current.srcObject = stream;
+      } catch (err) {
+        console.warn("LDR Camera start error:", err);
+      }
+    }
+
+    if (!stream) return;
+
+    if (ldrManagerRef.current) {
+      ldrManagerRef.current.cleanup();
+    }
+
+    const manager = new LDRPeerManager(
+      (state: Partial<LDRSessionState>) => {
+        if (state.remoteStream !== undefined) setRemoteStream(state.remoteStream);
+        if (state.statusMessage) setLdrStatusMessage(state.statusMessage);
+        if (state.guestRequest !== undefined) {
+          if (state.guestRequest) {
+            setPendingGuestRequest({
+              guestName: state.guestRequest.guestName,
+              roomCode: roomId,
+              accept: state.guestRequest.accept,
+              reject: state.guestRequest.reject,
+            });
+          } else {
+            setPendingGuestRequest(null);
+          }
+        }
+      },
+      (msg: LDRMessage) => {
+        if (msg.type === "START_COUNTDOWN") {
+          runCountdown(msg.seconds).then(() => {
+            triggerSnapshotFx();
+          });
+        } else if (msg.type === "SESSION_ENDED") {
+          setLdrStatusMessage("Sesi LDR telah berakhir.");
+          setRemoteStream(null);
+        }
+      }
+    );
+
+    ldrManagerRef.current = manager;
+
+    if (isHost) {
+      await manager.initHostRoom(roomId, stream);
+    } else {
+      await manager.joinRoom(roomId, stream);
+    }
   };
 
-  // Check URL query parameters for LDR room link (?ldr=RLY-1234 or ?room=...)
+  const handleDisconnectLDR = () => {
+    if (ldrManagerRef.current) {
+      ldrManagerRef.current.cleanup();
+      ldrManagerRef.current = null;
+    }
+    setRemoteStream(null);
+    setLdrRoomId(null);
+    setLdrStatusMessage(null);
+    setPendingGuestRequest(null);
+  };
+
+  // Check URL query parameters for LDR room link (?ldr=...) OR P2P Strip Transfer link (?transfer=...)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
+      const transferParam = urlParams.get("transfer");
       const ldrParam = urlParams.get("ldr") || urlParams.get("room");
-      if (ldrParam) {
+
+      if (transferParam) {
+        // P2P Strip Transfer Receiver mode on mobile phone
+        setShowReceiverModal(true);
+        setReceiverStatus("Menghubungkan ke laptop via WebRTC P2P...");
+
+        const receiver = new P2PStripReceiver();
+        receiver.receiveStrip(
+          transferParam,
+          (dataUrl, filename) => {
+            setReceivedStripUrl(dataUrl);
+            setReceivedFilename(filename);
+            setReceiverStatus("Photo Strip berhasil diterima! 🎉");
+          },
+          (status) => {
+            setReceiverStatus(status);
+          }
+        );
+      } else if (ldrParam) {
         setLdrRoomId(ldrParam);
         setIsLDRHost(false);
         handleStartCapture();
+        setTimeout(() => {
+          handleStartLDRSession(ldrParam, false);
+        }, 800);
       }
     }
   }, []);
+
+  // Client-side QR Code Generation for Desktop-to-Mobile Transfer
+  useEffect(() => {
+    if (showShareModal && downloadedDataUrl) {
+      if (p2pSenderRef.current) {
+        p2pSenderRef.current.cleanup();
+      }
+
+      const sender = new P2PStripSender(downloadedDataUrl, (status) => {
+        setTransferStatus(status);
+      });
+      p2pSenderRef.current = sender;
+
+      sender.startSender().then((code) => {
+        const origin = typeof window !== "undefined" ? window.location.origin : "https://riellybooth.my.id";
+        const transferUrl = `${origin}/?transfer=${code}`;
+
+        QRCode.toDataURL(transferUrl, {
+          width: 240,
+          margin: 1,
+          color: {
+            dark: "#3c2a2a",
+            light: "#ffffff",
+          },
+        })
+          .then((qrUrl) => {
+            setQrCodeDataUrl(qrUrl);
+          })
+          .catch((err) => {
+            console.warn("Client-side QR generation error:", err);
+          });
+      });
+    }
+
+    return () => {
+      if (!showShareModal && p2pSenderRef.current) {
+        p2pSenderRef.current.cleanup();
+        p2pSenderRef.current = null;
+      }
+    };
+  }, [showShareModal, downloadedDataUrl]);
 
   // Toggle Camera Facing Mode (Front / Back)
   const handleToggleFacingMode = () => {
@@ -370,29 +523,48 @@ export default function RiellyBooth() {
     } catch (e) {}
   }, []);
 
-  // Single Shot Capture Trigger with flexible timer (0s for instant/peace, 3s, 5s) & camera tuning filters
+  // Single Shot Capture Trigger with flexible timer & camera tuning filters & LDR sync
   const handleTakeSingleShot = async (
     customTimer?: number,
-    filters?: { brightness?: number; contrast?: number; beautyGlow?: number }
+    filters?: { brightness?: number; contrast?: number; beautyGlow?: number },
+    remoteVideoEl?: HTMLVideoElement | null
   ) => {
     if (isCapturing) return;
     setIsCapturing(true);
 
     const countdownSec = customTimer !== undefined ? customTimer : 3;
+
+    // Broadcast synchronized countdown to LDR remote partner via WebRTC data channel
+    if (ldrManagerRef.current && remoteStream) {
+      ldrManagerRef.current.triggerCountdown(countdownSec);
+    }
+
     if (countdownSec > 0) {
       await runCountdown(countdownSec);
     }
 
     if (videoRef.current) {
       triggerSnapshotFx();
-      const dataUrl = captureCanvasSnapshot(videoRef.current, false, arCanvasRef.current, filters);
+      const activeRemoteEl =
+        remoteVideoEl ||
+        (remoteStream && remoteVideoRef.current && remoteVideoRef.current.readyState >= 2
+          ? remoteVideoRef.current
+          : null);
+
+      const dataUrl = captureCanvasSnapshot(
+        videoRef.current,
+        false,
+        arCanvasRef.current,
+        filters,
+        activeRemoteEl
+      );
       const shotId = Date.now() + Math.random();
       const streamToRecord = mediaStreamRef.current;
       const maxShots = sessionMode === "korean_6" ? 6 : 4;
 
-      // Composite canvas stream source for recording Live Photos with AR Face Filters
+      // Composite canvas stream source for recording Live Photos with AR Face Filters & Split LDR
       let livePhotoSource: MediaStream | HTMLCanvasElement = streamToRecord!;
-      if (videoRef.current && arCanvasRef.current) {
+      if (videoRef.current) {
         const compCanvas = document.createElement("canvas");
         compCanvas.width = videoRef.current.videoWidth || 1280;
         compCanvas.height = videoRef.current.videoHeight || 720;
@@ -401,14 +573,22 @@ export default function RiellyBooth() {
           let recActive = true;
           const drawFrame = () => {
             if (!recActive || !videoRef.current) return;
-            compCtx.drawImage(videoRef.current, 0, 0, compCanvas.width, compCanvas.height);
+            if (activeRemoteEl) {
+              const halfW = compCanvas.width / 2;
+              compCtx.drawImage(videoRef.current, 0, 0, halfW, compCanvas.height);
+              compCtx.drawImage(activeRemoteEl, halfW, 0, halfW, compCanvas.height);
+            } else {
+              compCtx.drawImage(videoRef.current, 0, 0, compCanvas.width, compCanvas.height);
+            }
             if (arCanvasRef.current) {
               compCtx.drawImage(arCanvasRef.current, 0, 0, compCanvas.width, compCanvas.height);
             }
             requestAnimationFrame(drawFrame);
           };
           drawFrame();
-          setTimeout(() => { recActive = false; }, 2000);
+          setTimeout(() => {
+            recActive = false;
+          }, 2000);
           livePhotoSource = compCanvas;
         }
       }
@@ -913,6 +1093,10 @@ export default function RiellyBooth() {
           <CaptureStep
             videoRef={videoRef}
             arCanvasRef={arCanvasRef}
+            remoteStream={remoteStream}
+            remoteVideoRef={remoteVideoRef}
+            ldrStatusMessage={ldrStatusMessage}
+            onDisconnectLDR={handleDisconnectLDR}
             isCapturing={isCapturing}
             countdown={countdown}
             currentShotIndex={currentShotIndex}
@@ -1129,20 +1313,26 @@ export default function RiellyBooth() {
               <Share2 className="w-5 h-5" /> Bagikan Langsung + Foto 📲
             </button>
 
-            {/* QR CODE FOR DESKTOP TO MOBILE TRANSFER */}
+            {/* QR CODE FOR DESKTOP TO MOBILE P2P TRANSFER (Zero Server Storage) */}
             <div className="bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-pink-200 p-3.5 rounded-2xl flex flex-col items-center gap-2">
               <span className="text-xs font-black text-[#3C2A2A] flex items-center gap-1.5">
-                <span>📱 Buka & Simpan di HP (Scan QR)</span>
+                <span>📱 Buka & Simpan di HP (P2P WebRTC)</span>
               </span>
               <div className="p-2 bg-white rounded-xl shadow-xs border border-pink-200">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "https://riellybooth.my.id")}`}
-                  alt="QR Code riellybooth"
-                  className="w-28 h-28 object-contain"
-                />
+                {qrCodeDataUrl ? (
+                  <img
+                    src={qrCodeDataUrl}
+                    alt="QR Code Transfer riellybooth"
+                    className="w-28 h-28 object-contain"
+                  />
+                ) : (
+                  <div className="w-28 h-28 flex flex-col items-center justify-center bg-pink-50 rounded-lg text-[10px] text-pink-600 font-bold animate-pulse p-2 text-center">
+                    <span>Membuat QR Client-side... 🎀</span>
+                  </div>
+                )}
               </div>
               <p className="text-[10px] text-slate-500 font-medium">
-                Scan pakai kamera smartphone kamu untuk langsung buka web di HP!
+                {transferStatus || "Scan pakai kamera smartphone kamu untuk kirim strip langsung ke HP via WebRTC terenkripsi!"}
               </p>
             </div>
 
@@ -1294,6 +1484,28 @@ export default function RiellyBooth() {
         isOpen={showLDRModal}
         onClose={() => setShowLDRModal(false)}
         onStartLDRSession={handleStartLDRSession}
+      />
+
+      <LDRAmissionModal
+        isOpen={!!pendingGuestRequest}
+        guestName={pendingGuestRequest?.guestName || "Ayang / Bestie"}
+        roomCode={pendingGuestRequest?.roomCode || ""}
+        onApprove={() => {
+          pendingGuestRequest?.accept();
+          setPendingGuestRequest(null);
+        }}
+        onReject={() => {
+          pendingGuestRequest?.reject();
+          setPendingGuestRequest(null);
+        }}
+      />
+
+      <P2PTransferReceiverModal
+        isOpen={showReceiverModal}
+        status={receiverStatus}
+        receivedDataUrl={receivedStripUrl}
+        filename={receivedFilename}
+        onClose={() => setShowReceiverModal(false)}
       />
 
       <PrivacyModal

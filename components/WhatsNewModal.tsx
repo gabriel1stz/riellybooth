@@ -54,6 +54,14 @@ export default function WhatsNewModal({ isOpen, onClose, onStartSession }: Whats
       tag: "Event",
     },
     {
+      icon: <Flame className="w-5 h-5 text-amber-700" />,
+      bg: "bg-amber-100",
+      border: "border-amber-300",
+      title: "Frame Viral: Student Kalcer 🎓 & Riellmatics 📰",
+      desc: "Koran editorial vintage ala majalah 'Si Paling Rajin' lengkap dengan kolom berita ambis berstempel resmi riellybooth, plus bingkai Riellmatics News!",
+      tag: "Viral TikTok",
+    },
+    {
       icon: <Flame className="w-5 h-5 text-orange-600" />,
       bg: "bg-orange-100",
       border: "border-orange-200",
