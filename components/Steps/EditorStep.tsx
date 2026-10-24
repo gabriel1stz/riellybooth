@@ -131,6 +131,7 @@ export default function EditorStep({
   const frameOverlayInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"layout" | "frame" | "filter" | "stickers">("layout");
   const [selectedStickerPack, setSelectedStickerPack] = useState<string>("all");
+  const [presetCategory, setPresetCategory] = useState<"all" | "editorial" | "coquette" | "retro" | "pop">("all");
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [isUpdatingCanvas, setIsUpdatingCanvas] = useState(false);
@@ -637,99 +638,168 @@ export default function EditorStep({
           )}
 
           {/* TAB 2: FIXED NEWSPAPER & EXPANDED GEN Z FRAME PRESETS */}
+          {/* TAB 2: FIXED NEWSPAPER & EXPANDED GEN Z FRAME PRESETS */}
           {activeTab === "frame" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z & Spesial Kemerdekaan:</label>
-                <div className="max-h-48 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-slate-700">Pilihan Bingkai & Koleksi Editorial:</label>
+                  <span className="text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-200">
+                    Koleksi: Editorial Archive 🗞️
+                  </span>
+                </div>
+
+                {/* Preset Category Pills Filter */}
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                   {[
-                    { id: "student_kalcer", label: "🎓 Student Kalcer (Si Paling Rajin) 📰" },
-                    { id: "riellmatics_news", label: "📰 Riellmatics News" },
-                    { id: "halloween_spooky", label: "🎃 Halloween Spooky 🕸️" },
-                    { id: "hut_ri_81_3strip", label: "🇮🇩 HUT RI 81 (3-Strip)" },
-                    { id: "hut_ri_81_4strip", label: "🇮🇩 HUT RI 81 (4-Strip)" },
-                    { id: "student_id", label: "🪪 Student ID Card" },
-                    { id: "school_4cut", label: "🏫 Manner High (4-Cut)" },
-                    { id: "supermarket_crate", label: "🥦 Fruit Market Crate" },
-                    { id: "valorant_id", label: "🎯 Tactical Agent ID" },
-                    { id: "cupids_letter", label: "💌 Cupid's Letter" },
-                    { id: "passport", label: "✈️ Passport Memories" },
-                    { id: "toy_story", label: "🤠 Space Cowboy" },
-                    { id: "spongebob", label: "🧽 Yellow Sponge" },
-                    { id: "among_us", label: "📮 Space Impostor" },
-                    { id: "happy_birthday", label: "🎂 Happy Birthday" },
-                    { id: "skena_coquette", label: "🎀 Skena Coquette" },
-                    { id: "galau_club", label: "💅 Gen Z Galau Club" },
-                    { id: "pestapora_pass", label: "🎫 Musikfest VIP Pass" },
-                    { id: "struk_jaksel", label: "🧾 Struk Cafe Jaksel" },
-                    { id: "photocard_bias", label: "📸 Photocard Idol Bias" },
-                    { id: "coquette", label: "Coquette Ribbon 🎀" },
-                    { id: "coquette_black", label: "Coquette Black 🖤" },
-                    { id: "cyber_y2k_pink", label: "Cyber Pink Y2K 💖" },
-                    { id: "y2k", label: "Y2K Cyber ✨" },
-                    { id: "y2k_bubbles", label: "Y2K Bubbles 🫧" },
-                    { id: "vintage_newspaper_dark", label: "Dark Newspaper 🗞️" },
-                    { id: "retro_cassette", label: "Retro Cassette 📼" },
-                    { id: "kawaii_boba", label: "Kawaii Boba 🧋" },
-                    { id: "heart_washi_tape", label: "Heart Washi Tape 💌" },
-                    { id: "cute_cat_paw", label: "Cute Cat Paw 🐾" },
-                    { id: "pastel_floral", label: "Pastel Floral 🌸" },
-                    { id: "goth_grunge", label: "Goth Grunge 🖤" },
-                    { id: "polaroid_vintage", label: "Polaroid Vintage 📸" },
-                    { id: "newspaper", label: "Newspaper 📰" },
-                    { id: "receipt", label: "Struk Belanja 🧾" },
-                    { id: "photocard", label: "K-Pop Photocard 💖" },
-                    { id: "concert_ticket", label: "Tiket Konser 🎟️" },
-                    { id: "galau_quote", label: "Quote Galau ☕" },
-                    { id: "polkadot", label: "Polkadot Cute 💖" },
-                    { id: "retro_manga", label: "Komik Strip 💥" },
-                    { id: "film", label: "35mm Film 🎞️" },
-                    { id: "clean", label: "Classic Clean 🤍" },
-                  ].map((item) => (
+                    { id: "all", label: "✨ Semua" },
+                    { id: "editorial", label: "🗞️ Editorial Archive" },
+                    { id: "coquette", label: "🎀 Coquette" },
+                    { id: "retro", label: "👾 Y2K & Retro" },
+                    { id: "pop", label: "🎫 Event & Pop" },
+                  ].map((cat) => (
                     <button
-                      key={item.id}
+                      key={cat.id}
                       type="button"
-                      onClick={() => {
-                        setPreset(item.id as FramePreset);
-                        if (item.id === "student_kalcer") {
-                          setFrameColor("#fbf9f4");
-                          setTextColor("#111111");
-                          setFontFamily("serif");
-                          setCustomText("STUDENT KALCER");
-                          setSubtitleText("Si Paling Rajin");
-                        } else if (item.id === "riellmatics_news" || item.id === "photomatics_news") {
-                          setLayout("strip_2x4");
-                          setFrameColor("#ffffff");
-                          setTextColor("#000000");
-                          setFontFamily("serif");
-                          setCustomText("RIELLMATICS");
-                          setSubtitleText("Memory di sudut");
-                        } else if (item.id === "halloween_spooky") {
-                          setLayout("strip_1x4");
-                          setFrameColor("#0b0314");
-                          setTextColor("#f97316");
-                          setFontFamily("serif");
-                          setCustomText("TRICK OR TREAT");
-                          setSubtitleText("HALLOWEEN 2026 • RIELLYBOOTH ♡");
-                        } else if (item.id === "hut_ri_81_3strip") {
-                          setLayout("strip_3cut");
-                          setFrameColor("#ffffff");
-                          setTextColor("#dc2626");
-                        } else if (item.id === "hut_ri_81_4strip") {
-                          setLayout("strip_1x4");
-                          setFrameColor("#ffffff");
-                          setTextColor("#dc2626");
-                        }
-                      }}
-                      className={`py-2 px-2.5 rounded-xl text-xs font-bold border-2 transition ${
-                        preset === item.id
-                          ? "bg-pink-400 text-white border-pink-500 shadow-xs"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                      onClick={() => setPresetCategory(cat.id as any)}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                        presetCategory === cat.id
+                          ? "bg-slate-900 text-white shadow-xs"
+                          : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
                       }`}
                     >
-                      {item.label}
+                      {cat.label}
                     </button>
                   ))}
+                </div>
+
+                <div className="max-h-56 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
+                  {[
+                    // Editorial Archive Collection (5 Premium Newspaper & Magazine Presets)
+                    { id: "daily_rielly", label: "🗞️ The Daily Rielly", category: "editorial" },
+                    { id: "rielly_archive", label: "🖤 The Rielly Archive", category: "editorial" },
+                    { id: "after_hours", label: "🌙 After Hours (Night Flash)", category: "editorial" },
+                    { id: "sunday_edition", label: "☕ Sunday Edition", category: "editorial" },
+                    { id: "contact_sheet", label: "🎞️ Contact Sheet No. 01", category: "editorial" },
+                    { id: "riellmatics_news", label: "📰 Riellmatics News", category: "editorial" },
+                    { id: "student_kalcer", label: "🎓 Student Kalcer (Archive)", category: "editorial" },
+
+                    // Coquette Collection
+                    { id: "coquette", label: "Coquette Ribbon 🎀", category: "coquette" },
+                    { id: "coquette_black", label: "Coquette Black 🖤", category: "coquette" },
+                    { id: "skena_coquette", label: "🎀 Skena Coquette", category: "coquette" },
+                    { id: "cupids_letter", label: "💌 Cupid's Letter", category: "coquette" },
+                    { id: "heart_washi_tape", label: "Heart Washi Tape 💌", category: "coquette" },
+                    { id: "cute_cat_paw", label: "Cute Cat Paw 🐾", category: "coquette" },
+                    { id: "pastel_floral", label: "Pastel Floral 🌸", category: "coquette" },
+                    { id: "kawaii_boba", label: "Kawaii Boba 🧋", category: "coquette" },
+                    { id: "polkadot", label: "Polkadot Cute 💖", category: "coquette" },
+
+                    // Y2K & Retro Collection
+                    { id: "y2k", label: "Y2K Cyber ✨", category: "retro" },
+                    { id: "y2k_bubbles", label: "Y2K Bubbles 🫧", category: "retro" },
+                    { id: "cyber_y2k_pink", label: "Cyber Pink Y2K 💖", category: "retro" },
+                    { id: "retro_manga", label: "Komik Strip 💥", category: "retro" },
+                    { id: "retro_cassette", label: "Retro Cassette 📼", category: "retro" },
+                    { id: "film", label: "35mm Film 🎞️", category: "retro" },
+                    { id: "polaroid_vintage", label: "Polaroid Vintage 📸", category: "retro" },
+                    { id: "goth_grunge", label: "Goth Grunge 🖤", category: "retro" },
+                    { id: "vintage_newspaper_dark", label: "Dark Newspaper 🗞️", category: "retro" },
+                    { id: "newspaper", label: "Newspaper 📰", category: "retro" },
+
+                    // Event & Pop Culture Collection
+                    { id: "halloween_spooky", label: "🎃 Halloween Spooky 🕸️", category: "pop" },
+                    { id: "hut_ri_81_3strip", label: "🇮🇩 HUT RI 81 (3-Strip)", category: "pop" },
+                    { id: "hut_ri_81_4strip", label: "🇮🇩 HUT RI 81 (4-Strip)", category: "pop" },
+                    { id: "student_id", label: "🪪 Student ID Card", category: "pop" },
+                    { id: "school_4cut", label: "🏫 Manner High (4-Cut)", category: "pop" },
+                    { id: "supermarket_crate", label: "🥦 Fruit Market Crate", category: "pop" },
+                    { id: "valorant_id", label: "🎯 Tactical Agent ID", category: "pop" },
+                    { id: "pestapora_pass", label: "🎫 Musikfest VIP Pass", category: "pop" },
+                    { id: "struk_jaksel", label: "🧾 Struk Cafe Jaksel", category: "pop" },
+                    { id: "photocard_bias", label: "📸 Photocard Idol Bias", category: "pop" },
+                    { id: "passport", label: "✈️ Passport Memories", category: "pop" },
+                    { id: "toy_story", label: "🤠 Space Cowboy", category: "pop" },
+                    { id: "spongebob", label: "🧽 Yellow Sponge", category: "pop" },
+                    { id: "among_us", label: "📮 Space Impostor", category: "pop" },
+                    { id: "happy_birthday", label: "🎂 Happy Birthday", category: "pop" },
+                    { id: "galau_club", label: "💅 Gen Z Galau Club", category: "pop" },
+                    { id: "receipt", label: "Struk Belanja 🧾", category: "pop" },
+                    { id: "photocard", label: "K-Pop Photocard 💖", category: "pop" },
+                    { id: "concert_ticket", label: "Tiket Konser 🎟️", category: "pop" },
+                    { id: "galau_quote", label: "Quote Galau ☕", category: "pop" },
+                    { id: "clean", label: "Classic Clean 🤍", category: "pop" },
+                  ]
+                    .filter((item) => presetCategory === "all" || item.category === presetCategory)
+                    .map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          setPreset(item.id as FramePreset);
+                          if (item.id === "daily_rielly" || item.id === "student_kalcer") {
+                            setFrameColor("#FAF7F0");
+                            setTextColor("#111111");
+                            setFontFamily("serif");
+                            setCustomText("RIELLYBOOTH");
+                            setSubtitleText("A Moment Worth Keeping");
+                          } else if (item.id === "rielly_archive") {
+                            setFrameColor("#FDFBF7");
+                            setTextColor("#111111");
+                            setFontFamily("serif");
+                            setCustomText("THE RIELLY ARCHIVE");
+                            setSubtitleText("A Moment Worth Keeping");
+                          } else if (item.id === "after_hours") {
+                            setFrameColor("#0A0A0C");
+                            setTextColor("#FFFFFF");
+                            setFontFamily("serif");
+                            setCustomText("AFTER HOURS");
+                            setSubtitleText("BY RIELLYBOOTH • CANDID ARCHIVE");
+                          } else if (item.id === "sunday_edition") {
+                            setFrameColor("#F6F2E8");
+                            setTextColor("#221E1F");
+                            setFontFamily("serif");
+                            setCustomText("THE SUNDAY EDITION");
+                            setSubtitleText("A Gentle Record of Ordinary Days");
+                          } else if (item.id === "contact_sheet") {
+                            setFrameColor("#141416");
+                            setTextColor("#FFFFFF");
+                            setFontFamily("mono");
+                            setCustomText("CONTACT SHEET NO. 01");
+                            setSubtitleText("35MM INDIE FILM LAB");
+                          } else if (item.id === "riellmatics_news" || item.id === "photomatics_news") {
+                            setLayout("strip_2x4");
+                            setFrameColor("#ffffff");
+                            setTextColor("#000000");
+                            setFontFamily("serif");
+                            setCustomText("RIELLMATICS");
+                            setSubtitleText("Memory di sudut");
+                          } else if (item.id === "halloween_spooky") {
+                            setLayout("strip_1x4");
+                            setFrameColor("#0b0314");
+                            setTextColor("#f97316");
+                            setFontFamily("serif");
+                            setCustomText("TRICK OR TREAT");
+                            setSubtitleText("HALLOWEEN 2026 • RIELLYBOOTH ♡");
+                          } else if (item.id === "hut_ri_81_3strip") {
+                            setLayout("strip_3cut");
+                            setFrameColor("#ffffff");
+                            setTextColor("#dc2626");
+                          } else if (item.id === "hut_ri_81_4strip") {
+                            setLayout("strip_1x4");
+                            setFrameColor("#ffffff");
+                            setTextColor("#dc2626");
+                          }
+                        }}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-bold border-2 transition ${
+                          preset === item.id
+                            ? "bg-pink-400 text-white border-pink-500 shadow-xs"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
                 </div>
               </div>
 
