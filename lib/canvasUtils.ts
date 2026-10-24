@@ -10,6 +10,7 @@
 
 export type LayoutMode =
   | "strip_1x4"
+  | "strip_2x4"
   | "strip_3cut"
   | "grid_2x2"
   | "purikura_4cut"
@@ -24,6 +25,8 @@ export type LayoutMode =
 
 export type FramePreset =
   | "clean"
+  | "halloween_spooky"
+  | "photomatics_news"
   | "hut_ri_81_3strip"
   | "hut_ri_81_4strip"
   | "valorant_id"
@@ -326,6 +329,187 @@ function drawY2kStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, size
   ctx.quadraticCurveTo(cx, cy, cx - size, cy);
   ctx.quadraticCurveTo(cx, cy, cx, cy - size);
   ctx.fill();
+  ctx.restore();
+}
+
+function drawSparkleStar4(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string = "#000000") {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - size);
+  ctx.quadraticCurveTo(cx, cy, cx + size, cy);
+  ctx.quadraticCurveTo(cx, cy, cx, cy + size);
+  ctx.quadraticCurveTo(cx, cy, cx - size, cy);
+  ctx.quadraticCurveTo(cx, cy, cx, cy - size);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawFlyingBat(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string = "#f97316") {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  // Head & ears
+  ctx.arc(0, 0, size * 0.35, 0, Math.PI * 2);
+  ctx.fill();
+  // Ears
+  ctx.beginPath();
+  ctx.moveTo(-size * 0.25, -size * 0.2);
+  ctx.lineTo(-size * 0.35, -size * 0.6);
+  ctx.lineTo(-size * 0.1, -size * 0.3);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(size * 0.25, -size * 0.2);
+  ctx.lineTo(size * 0.35, -size * 0.6);
+  ctx.lineTo(size * 0.1, -size * 0.3);
+  ctx.fill();
+  // Wings
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(-size * 0.6, -size * 0.7, -size, -size * 0.2);
+  ctx.quadraticCurveTo(-size * 0.7, size * 0.2, -size * 0.45, size * 0.1);
+  ctx.quadraticCurveTo(-size * 0.3, size * 0.4, 0, size * 0.15);
+  ctx.quadraticCurveTo(size * 0.3, size * 0.4, size * 0.45, size * 0.1);
+  ctx.quadraticCurveTo(size * 0.7, size * 0.2, size, -size * 0.2);
+  ctx.quadraticCurveTo(size * 0.6, -size * 0.7, 0, 0);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawPumpkin(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  // Stem
+  ctx.fillStyle = "#15803d";
+  ctx.fillRect(-size * 0.1, -size * 0.9, size * 0.2, size * 0.35);
+
+  // Pumpkin Body (3 overlapping segments)
+  ctx.fillStyle = "#ea580c";
+  ctx.beginPath();
+  ctx.ellipse(-size * 0.45, 0, size * 0.38, size * 0.65, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(size * 0.45, 0, size * 0.38, size * 0.65, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#f97316";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, size * 0.55, size * 0.7, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Carved Face (glowing yellow)
+  ctx.fillStyle = "#fef08a";
+  // Left Eye
+  ctx.beginPath();
+  ctx.moveTo(-size * 0.35, -size * 0.15);
+  ctx.lineTo(-size * 0.15, -size * 0.15);
+  ctx.lineTo(-size * 0.25, -size * 0.35);
+  ctx.closePath();
+  ctx.fill();
+  // Right Eye
+  ctx.beginPath();
+  ctx.moveTo(size * 0.15, -size * 0.15);
+  ctx.lineTo(size * 0.35, -size * 0.15);
+  ctx.lineTo(size * 0.25, -size * 0.35);
+  ctx.closePath();
+  ctx.fill();
+  // Jagged Mouth
+  ctx.beginPath();
+  ctx.moveTo(-size * 0.35, size * 0.2);
+  ctx.lineTo(-size * 0.2, size * 0.35);
+  ctx.lineTo(-size * 0.1, size * 0.2);
+  ctx.lineTo(0, size * 0.35);
+  ctx.lineTo(size * 0.1, size * 0.2);
+  ctx.lineTo(size * 0.2, size * 0.35);
+  ctx.lineTo(size * 0.35, size * 0.2);
+  ctx.lineTo(size * 0.2, size * 0.45);
+  ctx.lineTo(-size * 0.2, size * 0.45);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawCuteGhost(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // White Ghost Body
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(0, -size * 0.2, size * 0.6, Math.PI, 0, false);
+  ctx.lineTo(size * 0.6, size * 0.5);
+  // Wavy bottom skirt
+  ctx.quadraticCurveTo(size * 0.4, size * 0.8, size * 0.2, size * 0.5);
+  ctx.quadraticCurveTo(0, size * 0.8, -size * 0.2, size * 0.5);
+  ctx.quadraticCurveTo(-size * 0.4, size * 0.8, -size * 0.6, size * 0.5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Cute Black Eyes
+  ctx.fillStyle = "#0f172a";
+  ctx.beginPath();
+  ctx.arc(-size * 0.2, -size * 0.2, size * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(size * 0.2, -size * 0.2, size * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Pink Blushing Cheeks
+  ctx.fillStyle = "#f472b6";
+  ctx.globalAlpha = 0.6;
+  ctx.beginPath();
+  ctx.arc(-size * 0.32, -size * 0.08, size * 0.08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(size * 0.32, -size * 0.08, size * 0.08, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawSpiderWeb(ctx: CanvasRenderingContext2D, ox: number, oy: number, radius: number, color: string = "rgba(255,255,255,0.4)", flip: boolean = false) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.2;
+
+  const dir = flip ? -1 : 1;
+  const numRays = 5;
+  const rayAngles = [0, Math.PI / 8, Math.PI / 4, (3 * Math.PI) / 8, Math.PI / 2];
+
+  // Radial Rays
+  for (let a of rayAngles) {
+    const ex = ox + Math.cos(a) * radius * dir;
+    const ey = oy + Math.sin(a) * radius;
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+  }
+
+  // Connecting Rings
+  const numRings = 4;
+  for (let r = 1; r <= numRings; r++) {
+    const curR = (radius / numRings) * r;
+    ctx.beginPath();
+    for (let i = 0; i < rayAngles.length; i++) {
+      const a = rayAngles[i];
+      const px = ox + Math.cos(a) * curR * dir;
+      const py = oy + Math.sin(a) * curR;
+      if (i === 0) {
+        ctx.moveTo(px, py);
+      } else {
+        const prevA = rayAngles[i - 1];
+        const midA = (prevA + a) / 2;
+        const midR = curR * 0.88; // inward sag of web
+        const cx = ox + Math.cos(midA) * midR * dir;
+        const cy = oy + Math.sin(midA) * midR;
+        ctx.quadraticCurveTo(cx, cy, px, py);
+      }
+    }
+    ctx.stroke();
+  }
+
   ctx.restore();
 }
 
@@ -2850,7 +3034,7 @@ function drawPosterWavingRibbonHeader(ctx: CanvasRenderingContext2D, width: numb
   ctx.fillStyle = "#dc2626";
   ctx.font = "900 20px 'Plus Jakarta Sans', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("rielllybooth ♡", width / 2, 72);
+  ctx.fillText("riellybooth ♡", width / 2, 72);
 
   ctx.fillStyle = "#64748b";
   ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
@@ -2942,7 +3126,7 @@ function drawPoster81Footer(
   ctx.font = "900 24px 'Plus Jakarta Sans', sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const mainTitle = customText && customText !== "rielllybooth ♡" ? customText : "DIRGAHAYU";
+  const mainTitle = customText && customText !== "riellybooth ♡" ? customText : "DIRGAHAYU";
   ctx.fillText(mainTitle, width / 2, bannerY + 22);
 
   ctx.fillStyle = "#dc2626";
@@ -3002,7 +3186,7 @@ export const drawPhotoStrip = (
   filter: FilterState,
   preset: FramePreset = "clean",
   cuteFilter: CuteFilter = "none",
-  customText: string = "rielllybooth ♡",
+  customText: string = "riellybooth ♡",
   fontFamily: FontFamily = "sans",
   subtitleText?: string,
   stickers: PlacedSticker[] = [],
@@ -3013,6 +3197,7 @@ export const drawPhotoStrip = (
   if (!ctx || images.length === 0) return;
 
   const isNewspaper = preset === "newspaper" || layout === "newspaper_grid";
+  const isPhotomaticsNews = preset === "photomatics_news";
 
   // Determine target canvas dimensions based on layout modes
   let photoCount = 4;
@@ -3026,6 +3211,10 @@ export const drawPhotoStrip = (
   } else if (layout === "strip_1x4" || layout === "strip_4" || layout === "y2k_checker") {
     photoCount = 4;
     targetW = 600;
+    targetH = 1800;
+  } else if (layout === "strip_2x4") {
+    photoCount = 4;
+    targetW = 1200;
     targetH = 1800;
   } else if (layout === "grid_2x2" || layout === "purikura_4cut" || layout === "scrapbook") {
     photoCount = 4;
@@ -3047,7 +3236,25 @@ export const drawPhotoStrip = (
   }
 
   // Fixed special layout presets:
-  if (preset === "hut_ri_81_3strip") {
+  if (preset === "photomatics_news") {
+    photoCount = 4;
+    if (layout === "strip_1x4") {
+      targetW = 600;
+      targetH = 1800;
+    } else {
+      targetW = 1200;
+      targetH = 1800;
+    }
+  } else if (preset === "halloween_spooky") {
+    photoCount = 4;
+    if (layout === "strip_2x4") {
+      targetW = 1200;
+      targetH = 1800;
+    } else {
+      targetW = 600;
+      targetH = 1800;
+    }
+  } else if (preset === "hut_ri_81_3strip") {
     photoCount = 3;
     targetW = 600;
     targetH = 1500;
@@ -3083,7 +3290,7 @@ export const drawPhotoStrip = (
 
   const filterString = `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) grayscale(${filter.grayscale}%)`;
   const padding = preset === "film" || preset === "receipt" || preset === "struk_jaksel" || preset === "polaroid_vintage" ? 60 : 36;
-  const bottomFooterHeight = isNewspaper ? 0 : preset === "concert_ticket" || preset === "pestapora_pass" ? 240 : 220;
+  const bottomFooterHeight = isNewspaper || isPhotomaticsNews || preset === "halloween_spooky" ? 0 : preset === "concert_ticket" || preset === "pestapora_pass" ? 240 : 220;
   const filterIntensity = filter.filterIntensity ?? 100;
 
   // STEP 1: BACKGROUND & FRAME PRESETS
@@ -3115,9 +3322,9 @@ export const drawPhotoStrip = (
     ctx.lineTo(1155, 87);
     ctx.stroke();
 
-    // Main Header Title: "RIELLLYBOOTH" (Y = 160px, 72px BOLD SERIF)
+    // Main Header Title: "RIELLYBOOTH" (Y = 160px, 72px BOLD SERIF)
     ctx.font = "bold 72px 'Georgia', 'Times New Roman', serif";
-    ctx.fillText("RIELLLYBOOTH", canvas.width / 2, 155);
+    ctx.fillText("RIELLYBOOTH", canvas.width / 2, 155);
 
     // Divider Rule Line (Y = 195px)
     ctx.beginPath();
@@ -3127,13 +3334,251 @@ export const drawPhotoStrip = (
 
     // Tagline (Y = 220px, 20px ITALIC SERIF)
     ctx.font = "italic 20px 'Georgia', 'Times New Roman', serif";
-    ctx.fillText('"Today wasn\'t just an ordinary day — it was our timeless scene at rielllybooth."', canvas.width / 2, 222);
+    ctx.fillText('"Today wasn\'t just an ordinary day — it was our timeless scene at riellybooth."', canvas.width / 2, 222);
 
     // Middle Divider Rule Line (Y = 245px)
     ctx.beginPath();
     ctx.moveTo(45, 245);
     ctx.lineTo(1155, 245);
     ctx.stroke();
+
+  } else if (isPhotomaticsNews) {
+    // 📰 AUTHENTIC PHOTOMATICS NEWS FRAME ENGINE (DUAL 1200x1800 or SINGLE 600x1800)
+    ctx.fillStyle = frameColor || "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const isDouble = canvas.width >= 1200;
+    const numStrips = isDouble ? 2 : 1;
+    const stripWidth = 600;
+    const innerPad = 42;
+
+    // Determine custom text labels
+    let headlineText = "PHOTOMATICS";
+    if (customText && customText.trim() && customText !== "riellybooth ♡") {
+      headlineText = customText.trim().toUpperCase();
+    }
+
+    let cursiveSubtitle = "Memory di sudut";
+    if (subtitleText && subtitleText.trim() && !subtitleText.includes("✨")) {
+      cursiveSubtitle = subtitleText.trim();
+    }
+
+    const mastheadText = "Photomatics News";
+
+    let footerBrandText = "Photomatics";
+    if (customText && customText.trim() && customText !== "riellybooth ♡") {
+      footerBrandText = customText.trim();
+    }
+
+    for (let s = 0; s < numStrips; s++) {
+      const xOffset = s * stripWidth;
+      const centerX = xOffset + stripWidth / 2;
+      const leftLineX = xOffset + innerPad;
+      const rightLineX = xOffset + stripWidth - innerPad;
+
+      // 1. Top Masthead Gothic Text (Y = 52px)
+      ctx.save();
+      ctx.fillStyle = textColor || "#000000";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "bold 28px 'UnifrakturMaguntia', 'Old English Text MT', 'Cloister Black', 'Cinzel Decorative', 'Georgia', serif";
+      ctx.fillText(mastheadText, centerX, 52);
+      ctx.restore();
+
+      // 2. Horizontal Divider Rule Line 1 (Y = 74px)
+      ctx.save();
+      ctx.strokeStyle = textColor || "#000000";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(leftLineX, 74);
+      ctx.lineTo(rightLineX, 74);
+      ctx.stroke();
+      ctx.restore();
+
+      // 3. Cursive Calligraphy Subtitle (Y = 112px, "Memory di sudut")
+      ctx.save();
+      ctx.fillStyle = textColor || "#000000";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "italic 38px 'Alex Brush', 'Dancing Script', 'Playfair Display', 'Brush Script MT', 'Pinyon Script', cursive, serif";
+      ctx.fillText(cursiveSubtitle, centerX, 112);
+      ctx.restore();
+
+      // 4. Bold Serif Headline (Y = 158px, "PHOTOMATICS")
+      ctx.save();
+      ctx.fillStyle = textColor || "#000000";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "900 46px 'Cinzel', 'Playfair Display', 'Times New Roman', 'Georgia', serif";
+      if ("letterSpacing" in ctx) {
+        ctx.letterSpacing = "2px";
+      }
+      ctx.fillText(headlineText, centerX, 158);
+      if ("letterSpacing" in ctx) {
+        ctx.letterSpacing = "0px";
+      }
+      ctx.restore();
+
+      // 5. Double Rule Divider Lines below headline (Y = 182px and Y = 186px)
+      ctx.save();
+      ctx.strokeStyle = textColor || "#000000";
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      ctx.moveTo(leftLineX, 182);
+      ctx.lineTo(rightLineX, 182);
+      ctx.moveTo(leftLineX, 186);
+      ctx.lineTo(rightLineX, 186);
+      ctx.stroke();
+      ctx.restore();
+
+      // 6. Footer Line with ✧ Photomatics ✧ Logo (Y = 1742px)
+      const footerY = 1742;
+      if (customLogoImg) {
+        const maxLogoW = 200;
+        const maxLogoH = 60;
+        const logoRatio = customLogoImg.width / customLogoImg.height;
+        let dW = maxLogoW;
+        let dH = maxLogoW / logoRatio;
+        if (dH > maxLogoH) {
+          dH = maxLogoH;
+          dW = maxLogoH * logoRatio;
+        }
+        ctx.drawImage(customLogoImg, centerX - dW / 2, footerY - dH / 2, dW, dH);
+      } else {
+        ctx.save();
+        ctx.fillStyle = textColor || "#000000";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "italic bold 24px 'Alex Brush', 'Dancing Script', 'Playfair Display', 'Brush Script MT', cursive";
+
+        const metrics = ctx.measureText(footerBrandText);
+        const halfTextW = Math.max(metrics.width / 2, 45);
+        const starOffset = 18;
+        const lineGap = 34;
+
+        ctx.fillText(footerBrandText, centerX, footerY);
+
+        drawSparkleStar4(ctx, centerX - halfTextW - starOffset, footerY, 7, textColor || "#000000");
+        drawSparkleStar4(ctx, centerX + halfTextW + starOffset, footerY, 7, textColor || "#000000");
+
+        ctx.strokeStyle = textColor || "#000000";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(leftLineX, footerY);
+        ctx.lineTo(centerX - halfTextW - lineGap, footerY);
+        ctx.moveTo(centerX + halfTextW + lineGap, footerY);
+        ctx.lineTo(rightLineX, footerY);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    if (isDouble) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.08)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(600, 20);
+      ctx.lineTo(600, canvas.height - 20);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+  } else if (preset === "halloween_spooky") {
+    // 🎃 HALLOWEEN SPOOKY NIGHT SPECIAL FRAME ENGINE
+    const isDouble = canvas.width >= 1200;
+    const numStrips = isDouble ? 2 : 1;
+    const stripWidth = 600;
+    const innerPad = 42;
+
+    for (let s = 0; s < numStrips; s++) {
+      const xOffset = s * stripWidth;
+      const centerX = xOffset + stripWidth / 2;
+
+      // Dark Midnight Spooky Violet Gradient Background
+      const grad = ctx.createLinearGradient(xOffset, 0, xOffset, canvas.height);
+      grad.addColorStop(0, "#0b0314");
+      grad.addColorStop(0.2, "#1a0833");
+      grad.addColorStop(0.5, "#10041d");
+      grad.addColorStop(0.8, "#1a0833");
+      grad.addColorStop(1, "#0b0314");
+      ctx.fillStyle = grad;
+      ctx.fillRect(xOffset, 0, stripWidth, canvas.height);
+
+      // Corner Spiderwebs
+      drawSpiderWeb(ctx, xOffset + 10, 10, 85, "rgba(216, 180, 254, 0.45)");
+      drawSpiderWeb(ctx, xOffset + stripWidth - 10, 10, 85, "rgba(216, 180, 254, 0.45)", true);
+
+      // Flying Bats in Header
+      drawFlyingBat(ctx, centerX - 180, 50, 18, "#f97316");
+      drawFlyingBat(ctx, centerX + 180, 50, 18, "#c084fc");
+      drawFlyingBat(ctx, centerX - 130, 88, 13, "#fbbf24");
+      drawFlyingBat(ctx, centerX + 130, 88, 13, "#fbbf24");
+
+      // Header Spooky Text
+      ctx.save();
+      ctx.fillStyle = "#f97316";
+      ctx.font = "900 30px 'Cinzel', 'Playfair Display', serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.shadowColor = "#ea580c";
+      ctx.shadowBlur = 12;
+      ctx.fillText("🎃 SPOOKY HALLOWEEN 👻", centerX, 52);
+
+      ctx.shadowBlur = 0;
+      ctx.font = "italic bold 20px 'Alex Brush', cursive";
+      ctx.fillStyle = "#d8b4fe";
+      ctx.fillText("Trick or Treat • Spooky Night Memories", centerX, 90);
+
+      // Header Neon Orange & Violet Double Divider
+      ctx.strokeStyle = "#f97316";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(xOffset + innerPad, 115);
+      ctx.lineTo(xOffset + stripWidth - innerPad, 115);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#a855f7";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(xOffset + innerPad, 119);
+      ctx.lineTo(xOffset + stripWidth - innerPad, 119);
+      ctx.stroke();
+      ctx.restore();
+
+      // Footer Area (Y = 1735px)
+      const footerY = 1735;
+      drawPumpkin(ctx, centerX - 170, footerY, 26);
+      drawCuteGhost(ctx, centerX + 170, footerY - 4, 24);
+
+      ctx.save();
+      ctx.fillStyle = "#f97316";
+      ctx.font = "900 24px 'Cinzel', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.shadowColor = "#f97316";
+      ctx.shadowBlur = 8;
+      ctx.fillText(customText && customText !== "riellybooth ♡" ? customText.toUpperCase() : "TRICK OR TREAT", centerX, footerY - 12);
+
+      ctx.shadowBlur = 0;
+      ctx.font = "bold 13px monospace";
+      ctx.fillStyle = "#e9d5ff";
+      ctx.fillText(subtitleText && !subtitleText.includes("✨") ? subtitleText : "HALLOWEEN 2026 • RIELLYBOOTH ♡", centerX, footerY + 16);
+      ctx.restore();
+    }
+
+    if (isDouble) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(249, 115, 22, 0.25)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(600, 20);
+      ctx.lineTo(600, canvas.height - 20);
+      ctx.stroke();
+      ctx.restore();
+    }
 
   } else if (preset === "hut_ri_81_3strip" || preset === "hut_ri_81_4strip") {
     // 🇮🇩 DIRGAHAYU 81 PHOTOBOX STRIP (OFFICIAL POSTER REPLICA)
@@ -3243,7 +3688,7 @@ export const drawPhotoStrip = (
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 16px 'Georgia', serif";
     ctx.textAlign = "center";
-    ctx.fillText("★ RIELLLYBOOTH DARK EDITION ★   •   VOL. IV NO. 104", canvas.width / 2, 60);
+    ctx.fillText("★ RIELLYBOOTH DARK EDITION ★   •   VOL. IV NO. 104", canvas.width / 2, 60);
   } else if (preset === "retro_cassette") {
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
     grad.addColorStop(0, "#fff7ed");
@@ -3404,7 +3849,7 @@ export const drawPhotoStrip = (
     ctx.fillStyle = "#1c1917";
     ctx.font = "900 28px monospace";
     ctx.textAlign = "center";
-    ctx.fillText("CAFE JAKSEL #9901 • RIELLLYBOOTH", canvas.width / 2, 50);
+    ctx.fillText("CAFE JAKSEL #9901 • RIELLYBOOTH", canvas.width / 2, 50);
   } else if (preset === "photocard_bias") {
     const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     grad.addColorStop(0, "#fce7f3");
@@ -3440,7 +3885,7 @@ export const drawPhotoStrip = (
     ctx.fillText("🤠 YOU'VE GOT A FRIEND IN ME", canvas.width / 2, 70);
     ctx.font = "bold 16px sans-serif";
     ctx.fillStyle = "#fde047";
-    ctx.fillText("TOY STORY EDITION • RIELLLYBOOTH", canvas.width / 2, 105);
+    ctx.fillText("TOY STORY EDITION • RIELLYBOOTH", canvas.width / 2, 105);
   } else if (preset === "spongebob") {
     // Iconic SpongeBob Yellow Background
     ctx.fillStyle = frameColor || "#fee12b";
@@ -3534,7 +3979,7 @@ export const drawPhotoStrip = (
     ctx.fillStyle = "#1c1917";
     ctx.font = "900 30px monospace";
     ctx.textAlign = "center";
-    ctx.fillText("RECEIPT #88219 • RIELLLYBOOTH", canvas.width / 2, 50);
+    ctx.fillText("RECEIPT #88219 • RIELLYBOOTH", canvas.width / 2, 50);
   } else if (preset === "photocard") {
     // 💖 K-POP PHOTOCARD BINDER SLEEVE
     const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -3991,7 +4436,7 @@ export const drawPhotoStrip = (
     let valoRank = "Ascendant";
     let valoLine = "Kaget anjg, game sialan";
 
-    if (customText && customText !== "rielllybooth ♡") {
+    if (customText && customText !== "riellybooth ♡") {
       if (customText.includes("|")) {
         const parts = customText.split("|");
         if (parts[0]) valoIgn = parts[0];
@@ -4112,7 +4557,7 @@ export const drawPhotoStrip = (
     ctx.font = "italic bold 22px 'Georgia', cursive, serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("✦ rielllybooth market ✦", canvas.width / 2 + 10, 52);
+    ctx.fillText("✦ riellybooth market ✦", canvas.width / 2 + 10, 52);
 
     // 2. Three Dynamic Zigzag Plastic Grocery Crates
     const crateConfigs = [
@@ -4130,7 +4575,7 @@ export const drawPhotoStrip = (
     });
 
     // 3. Footer Branding
-    const footerTitle = customText && customText !== "rielllybooth ♡" ? customText.toUpperCase() : "RIELLLY";
+    const footerTitle = customText && customText !== "riellybooth ♡" ? customText.toUpperCase() : "RIELLY";
     const footerSubtitle = subtitleText && subtitleText.trim() && !subtitleText.includes("✨") ? subtitleText.trim() : "Market";
 
     // Big Bold Red Collegiate Typography
@@ -4244,7 +4689,7 @@ export const drawPhotoStrip = (
     let studentMajor = "VISUAL ARTS & MUSIC";
     let studentDob = "16 AUG 2006";
 
-    if (customText && customText !== "rielllybooth ♡") {
+    if (customText && customText !== "riellybooth ♡") {
       if (customText.includes("|")) {
         const parts = customText.split("|");
         if (parts[0]) studentName = parts[0];
@@ -4400,7 +4845,7 @@ export const drawPhotoStrip = (
 
     // 5. Footer School Crest, Clean Title & Academic Accents
     let footerTitle = "MANNER HIGH";
-    if (customText && customText !== "rielllybooth ♡") {
+    if (customText && customText !== "riellybooth ♡") {
       if (customText.includes("|")) {
         const first = customText.split("|")[0].trim();
         footerTitle = first ? first.toUpperCase() : "MANNER HIGH";
@@ -4847,7 +5292,7 @@ export const drawPhotoStrip = (
     ctx.textBaseline = "middle";
     ctx.fillText("VALID STAMP", 0, -26);
     ctx.fillText("★ APPROVED ★", 0, 0);
-    ctx.fillText("RIELLLYBOOTH", 0, 25);
+    ctx.fillText("RIELLYBOOTH", 0, 25);
     ctx.restore();
 
     // Extra tiny paper label partially tucked behind Photo #4.
@@ -4889,7 +5334,7 @@ export const drawPhotoStrip = (
       ctx.font = "italic 16px 'Georgia', 'Times New Roman', serif";
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
-      ctx.fillText("▲ FIG 1.0 — Live capture recorded in high definition at rielllybooth studio booth.", mainX, 880);
+      ctx.fillText("▲ FIG 1.0 — Live capture recorded in high definition at riellybooth studio booth.", mainX, 880);
       ctx.restore();
     }
 
@@ -4991,8 +5436,109 @@ export const drawPhotoStrip = (
     ctx.font = "bold 15px 'Georgia', 'Times New Roman', serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("RIELLLYBOOTH GAZETTE  •  ALL RIGHTS RESERVED 2026  •  OFFICIAL EDITION  •  WWW.RIELLLYBOOTH.MY.ID", canvas.width / 2, 1715);
+    ctx.fillText("RIELLYBOOTH GAZETTE  •  ALL RIGHTS RESERVED 2026  •  OFFICIAL EDITION  •  WWW.RIELLYBOOTH.MY.ID", canvas.width / 2, 1715);
     ctx.restore();
+
+  } else if (isPhotomaticsNews) {
+    // 📰 PHOTOMATICS NEWS PHOTO DRAWING (4 PHOTOS PER STRIP, SHARP RECTANGLES)
+    const isDouble = canvas.width >= 1200;
+    const numStrips = isDouble ? 2 : 1;
+    const stripWidth = 600;
+    const innerPad = 42;
+    const photoWidth = stripWidth - innerPad * 2; // 516px
+    const photoHeight = 360;
+    const photoGap = 16;
+    const topMargin = 202;
+
+    const yOffsets = [
+      topMargin,
+      topMargin + photoHeight + photoGap,
+      topMargin + (photoHeight + photoGap) * 2,
+      topMargin + (photoHeight + photoGap) * 3,
+    ];
+
+    for (let s = 0; s < numStrips; s++) {
+      const xOffset = s * stripWidth;
+      const photoX = xOffset + innerPad;
+
+      for (let i = 0; i < 4; i++) {
+        const img = images[i];
+        if (!img) continue;
+        const photoY = yOffsets[i];
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(photoX, photoY, photoWidth, photoHeight);
+        ctx.clip();
+        ctx.filter = filterString;
+        drawImageCover(ctx, img, photoX, photoY, photoWidth, photoHeight, 0, isFlipped);
+        applyCuteFilterOverlay(ctx, photoX, photoY, photoWidth, photoHeight, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+        ctx.restore();
+      }
+    }
+
+  } else if (preset === "halloween_spooky") {
+    // 🎃 HALLOWEEN SPOOKY PHOTO SLOTS (4 PHOTOS WITH NEON PURPLE/ORANGE BORDERS & EMBELLISHMENTS)
+    const isDouble = canvas.width >= 1200;
+    const numStrips = isDouble ? 2 : 1;
+    const stripWidth = 600;
+    const innerPad = 42;
+    const photoWidth = stripWidth - innerPad * 2; // 516px
+    const photoHeight = 356;
+    const photoGap = 16;
+    const topMargin = 142;
+
+    const yOffsets = [
+      topMargin,
+      topMargin + photoHeight + photoGap,
+      topMargin + (photoHeight + photoGap) * 2,
+      topMargin + (photoHeight + photoGap) * 3,
+    ];
+
+    for (let s = 0; s < numStrips; s++) {
+      const xOffset = s * stripWidth;
+      const photoX = xOffset + innerPad;
+
+      for (let i = 0; i < 4; i++) {
+        const img = images[i];
+        if (!img) continue;
+        const photoY = yOffsets[i];
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(photoX, photoY, photoWidth, photoHeight, 14);
+        ctx.clip();
+        ctx.filter = filterString;
+        drawImageCover(ctx, img, photoX, photoY, photoWidth, photoHeight, 14, isFlipped);
+        applyCuteFilterOverlay(ctx, photoX, photoY, photoWidth, photoHeight, cuteFilter, filter.beautyGlow, 14, filterIntensity);
+        ctx.restore();
+
+        // Neon Glowing Border
+        ctx.save();
+        ctx.strokeStyle = i % 2 === 0 ? "#f97316" : "#a855f7";
+        ctx.lineWidth = 3.5;
+        ctx.shadowColor = i % 2 === 0 ? "#f97316" : "#a855f7";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.roundRect(photoX, photoY, photoWidth, photoHeight, 14);
+        ctx.stroke();
+        ctx.restore();
+
+        // Decorative elements between photos
+        if (i < 3) {
+          const divY = photoY + photoHeight + photoGap / 2;
+          if (i === 0) {
+            drawPumpkin(ctx, photoX + 28, divY, 13);
+            drawCuteGhost(ctx, photoX + photoWidth - 28, divY, 13);
+          } else if (i === 1) {
+            drawFlyingBat(ctx, photoX + photoWidth / 2, divY, 15, "#f97316");
+          } else if (i === 2) {
+            drawCuteGhost(ctx, photoX + 28, divY, 13);
+            drawPumpkin(ctx, photoX + photoWidth - 28, divY, 13);
+          }
+        }
+      }
+    }
 
   } else if (layout === "spotlight") {
     // Spotlight Layout: 1 Large Top Main Photo + 3 Bottom Thumbnails
@@ -5277,7 +5823,7 @@ export const drawPhotoStrip = (
     ctx.font = "italic bold 18px 'Georgia', serif";
     ctx.textAlign = "center";
     const quoteText =
-      customText && customText !== "rielllybooth ♡"
+      customText && customText !== "riellybooth ♡"
         ? `"${customText}"`
         : '"Karna yang benar benar menginginkan mu, akan mencari beribu cara agar kamu tidak pergi dalam hidupnya"';
     drawWrappedCanvasText(ctx, quoteText, canvas.width / 2, canvas.height - bottomFooterHeight + 25, canvas.width - padding * 2, 24);
@@ -5366,6 +5912,8 @@ export const drawPhotoStrip = (
   // STEP 6: CUSTOM BRAND/EVENT LOGO & TYPOGRAPHY FOOTER (Non-newspaper & non-custom-story presets)
   if (
     !isNewspaper &&
+    !isPhotomaticsNews &&
+    preset !== "halloween_spooky" &&
     preset !== "passport" &&
     preset !== "cupids_letter" &&
     preset !== "valorant_id" &&
@@ -5460,7 +6008,7 @@ export const drawPhotoStrip = (
         ctx.fillStyle = textColor || "#ffffff";
         ctx.font = `bold 24px ${fontCss}`;
         ctx.textAlign = "center";
-        ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 85);
+        ctx.fillText(customText || "riellybooth ♡", canvas.width / 2, canvas.height - 85);
         ctx.font = `500 16px ${fontCss}`;
         ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 45);
       } else if (preset === "hut_ri_81_3strip") {
@@ -5474,7 +6022,7 @@ export const drawPhotoStrip = (
 
         ctx.font = `800 32px ${fontCss}`;
         ctx.textAlign = "center";
-        ctx.fillText(customText || "rielllybooth ♡", canvas.width / 2, canvas.height - 120);
+        ctx.fillText(customText || "riellybooth ♡", canvas.width / 2, canvas.height - 120);
 
         ctx.font = `500 18px ${fontCss}`;
         ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 70);

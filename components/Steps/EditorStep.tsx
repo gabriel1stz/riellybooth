@@ -8,10 +8,13 @@ import Slider from "../UI/Slider";
 
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
-const STICKER_LIBRARY = [
-  "🇮🇩", "🦅", "🎗️", "🎀", "💖", "🍒", "🧸", "✨", "👑", "✌️", "🐱",
-  "🐰", "🌸", "🍭", "🕶️", "👻", "⭐", "🍓", "🦋",
-  "🍩", "🐾", "🍦", "🎈"
+const STICKER_PACKS = [
+  { id: "all", name: "Semua", stickers: ["🎃", "👻", "🦇", "🕷️", "🕸️", "🎀", "💖", "🍒", "🌸", "🧸", "✨", "⭐", "💫", "🕶️", "🦋", "☕", "🥐", "🍩", "🧁", "🇮🇩", "🦅", "🎗️", "✌️", "👑"] },
+  { id: "spooky", name: "🎃 Spooky", stickers: ["🎃", "👻", "🦇", "🕷️", "🕸️", "🍬", "🧙‍♀️", "💀", "🕯️", "🧛", "🖤", "🔮"] },
+  { id: "coquette", name: "🎀 Cute", stickers: ["🎀", "💖", "🍒", "🌸", "🧸", "🍰", "🍓", "🧁", "💌", "🐰", "🐱", "🐾"] },
+  { id: "y2k", name: "✨ Y2K", stickers: ["✨", "⭐", "💫", "🕶️", "🦋", "💿", "⚡", "🔮", "💅", "🔥", "👑", "✌️"] },
+  { id: "cafe", name: "☕ Cafe", stickers: ["☕", "🥐", "🍩", "🍦", "🎈", "🍭", "🥑", "🥦", "🍕", "🍔", "🥤", "🛹"] },
+  { id: "indo", name: "🇮🇩 Merah Putih", stickers: ["🇮🇩", "🦅", "🎗️", "🛵", "🎸", "🎵", "🏆", "🌟", "🎉", "🔥", "👏", "🤍"] },
 ];
 
 type HistoryState = {
@@ -116,6 +119,7 @@ export default function EditorStep({
   const containerRef = useRef<HTMLDivElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"layout" | "frame" | "filter" | "stickers">("layout");
+  const [selectedStickerPack, setSelectedStickerPack] = useState<string>("all");
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [isUpdatingCanvas, setIsUpdatingCanvas] = useState(false);
@@ -255,7 +259,7 @@ export default function EditorStep({
     let rank = "Ascendant";
     let line = "Kaget anjg, game sialan";
 
-    if (customText && customText !== "rielllybooth ♡") {
+    if (customText && customText !== "riellybooth ♡") {
       if (customText.includes("|")) {
         const parts = customText.split("|");
         if (parts[0]) ign = parts[0];
@@ -286,7 +290,7 @@ export default function EditorStep({
     let major = "VISUAL ARTS & MUSIC";
     let dob = "16 AUG 2006";
 
-    if (customText && customText !== "rielllybooth ♡") {
+    if (customText && customText !== "riellybooth ♡") {
       if (customText.includes("|")) {
         const parts = customText.split("|");
         if (parts[0]) name = parts[0];
@@ -553,9 +557,10 @@ export default function EditorStep({
           {activeTab === "layout" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Pilih Layout Potongan Foto (9 Options):</label>
+                <label className="text-xs font-bold text-slate-700">Pilih Layout Potongan Foto (10 Options):</label>
                 <div className="max-h-44 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
                   {[
+                    { id: "strip_2x4", label: "Double Strip 2x4 👯" },
                     { id: "newspaper_grid", label: "Newspaper Grid 📰" },
                     { id: "strip_1x4", label: "Strip 1x4 🎞️" },
                     { id: "strip_3cut", label: "Strip 3-Cut ✂️" },
@@ -621,6 +626,8 @@ export default function EditorStep({
                 <label className="text-xs font-bold text-slate-700">Preset Bingkai Viral Gen Z & Spesial Kemerdekaan:</label>
                 <div className="max-h-48 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
                   {[
+                    { id: "halloween_spooky", label: "🎃 Halloween Spooky 🕸️" },
+                    { id: "photomatics_news", label: "📰 Photomatics News" },
                     { id: "hut_ri_81_3strip", label: "🇮🇩 HUT RI 81 (3-Strip)" },
                     { id: "hut_ri_81_4strip", label: "🇮🇩 HUT RI 81 (4-Strip)" },
                     { id: "student_id", label: "🪪 Student ID Card" },
@@ -666,7 +673,21 @@ export default function EditorStep({
                       type="button"
                       onClick={() => {
                         setPreset(item.id as FramePreset);
-                        if (item.id === "hut_ri_81_3strip") {
+                        if (item.id === "halloween_spooky") {
+                          setLayout("strip_1x4");
+                          setFrameColor("#0b0314");
+                          setTextColor("#f97316");
+                          setFontFamily("serif");
+                          setCustomText("TRICK OR TREAT");
+                          setSubtitleText("HALLOWEEN 2026 • RIELLYBOOTH ♡");
+                        } else if (item.id === "photomatics_news") {
+                          setLayout("strip_2x4");
+                          setFrameColor("#ffffff");
+                          setTextColor("#000000");
+                          setFontFamily("serif");
+                          setCustomText("PHOTOMATICS");
+                          setSubtitleText("Memory di sudut");
+                        } else if (item.id === "hut_ri_81_3strip") {
                           setLayout("strip_3cut");
                           setFrameColor("#ffffff");
                           setTextColor("#dc2626");
@@ -868,13 +889,31 @@ export default function EditorStep({
                   )}
                 </div>
 
-                <div className="grid grid-cols-5 gap-2.5 bg-rose-50/70 border-2 border-pink-200 p-3 rounded-2xl max-h-48 overflow-y-auto">
-                  {STICKER_LIBRARY.map((emoji) => (
+                {/* Themed Sticker Pack Selector Tabs */}
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                  {STICKER_PACKS.map((pack) => (
+                    <button
+                      key={pack.id}
+                      type="button"
+                      onClick={() => setSelectedStickerPack(pack.id)}
+                      className={`px-3 py-1 rounded-full text-xs font-black whitespace-nowrap transition border ${
+                        selectedStickerPack === pack.id
+                          ? "bg-pink-400 text-white border-pink-500 shadow-xs"
+                          : "bg-white text-slate-700 border-pink-200 hover:bg-pink-50"
+                      }`}
+                    >
+                      {pack.name}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 bg-rose-50/70 border-2 border-pink-200 p-3 rounded-2xl max-h-48 overflow-y-auto">
+                  {(STICKER_PACKS.find((p) => p.id === selectedStickerPack) || STICKER_PACKS[0]).stickers.map((emoji) => (
                     <button
                       key={emoji}
                       type="button"
                       onClick={() => onAddSticker(emoji)}
-                      className="p-2.5 text-2xl bg-white border-2 border-pink-200 rounded-xl hover:bg-pink-100 hover:scale-110 active:scale-90 transition duration-150 shadow-xs flex items-center justify-center"
+                      className="p-2.5 text-2xl bg-white border-2 border-pink-200 rounded-xl hover:bg-pink-100 hover:scale-110 active:scale-90 transition duration-150 shadow-xs flex items-center justify-center cursor-pointer"
                       title={`Tambah Stiker ${emoji}`}
                     >
                       {emoji}
@@ -1047,7 +1086,7 @@ export default function EditorStep({
                         type="text"
                         value={customText}
                         onChange={(e) => setCustomText(e.target.value)}
-                        placeholder="Contoh: rielllybooth ♡"
+                        placeholder="Contoh: riellybooth ♡"
                         className="w-full px-3.5 py-2 rounded-xl border-2 border-pink-200 text-xs font-bold focus:border-pink-500 outline-none transition"
                       />
                     </div>

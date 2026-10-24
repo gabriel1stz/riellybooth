@@ -29,10 +29,11 @@ function TikTokIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
   );
 }
 
-const VIRAL_CAPTION = `Baru aja foto estetik di rielllybooth ♡ Cobain bikin photo strip & Live Photo gratis tanpa watermark di sini 👉 https://riellybooth.my.id ✨`;
+const VIRAL_CAPTION = `Baru aja foto estetik di riellybooth ♡ Cobain bikin photo strip & Live Photo gratis tanpa watermark di sini 👉 https://riellybooth.my.id ✨`;
 
-export default function RielllyBooth() {
+export default function RiellyBooth() {
   const [step, setStep] = useState<Step>("landing");
+  const [lang, setLang] = useState<"id" | "en">("id");
 
   // Camera & Facing Mode State
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -66,7 +67,7 @@ export default function RielllyBooth() {
   const [layout, setLayout] = useState<LayoutMode>("strip_1x4");
   const [preset, setPreset] = useState<FramePreset>("polkadot");
   const [cuteFilter, setCuteFilter] = useState<CuteFilter>("none");
-  const [customText, setCustomText] = useState("rielllybooth ♡");
+  const [customText, setCustomText] = useState("riellybooth ♡");
   const [fontFamily, setFontFamily] = useState<FontFamily>("sans");
   const [subtitleText, setSubtitleText] = useState("");
   const [placedStickers, setPlacedStickers] = useState<PlacedSticker[]>([]);
@@ -306,12 +307,15 @@ export default function RielllyBooth() {
     } catch (e) {}
   }, []);
 
-  // Single Shot Capture Trigger
-  const handleTakeSingleShot = async () => {
+  // Single Shot Capture Trigger with flexible timer (0s for instant/peace, 3s, 5s)
+  const handleTakeSingleShot = async (customTimer?: number) => {
     if (isCapturing) return;
     setIsCapturing(true);
 
-    await runCountdown(3);
+    const countdownSec = customTimer !== undefined ? customTimer : 3;
+    if (countdownSec > 0) {
+      await runCountdown(countdownSec);
+    }
 
     if (videoRef.current) {
       triggerSnapshotFx();
@@ -527,6 +531,15 @@ export default function RielllyBooth() {
     [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped, customLogoImg]
   );
 
+  // Trigger re-render when Google Web Fonts finish loading
+  useEffect(() => {
+    if (typeof document !== "undefined" && document.fonts) {
+      document.fonts.ready.then(() => {
+        renderCanvas();
+      });
+    }
+  }, [renderCanvas]);
+
   // Video Animation Loop for Live Photo Canvas Rendering
   useEffect(() => {
     let animId: number;
@@ -573,7 +586,7 @@ export default function RielllyBooth() {
   const handleDownloadPng = async () => {
     if (!canvasRef.current) return;
     const randomHash = Math.random().toString(36).substring(2, 8);
-    const filename = `rielllybooth-${randomHash}.png`;
+    const filename = `riellybooth-${randomHash}.png`;
 
     const dataUrl = canvasRef.current.toDataURL("image/png");
     setDownloadedDataUrl(dataUrl);
@@ -588,8 +601,8 @@ export default function RielllyBooth() {
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
-            title: "rielllybooth ♡ Virtual Photobooth",
-            text: "Baru aja foto estetik di rielllybooth ♡ Bikin photo strip & Live Photo gratis di sini! ✨",
+            title: "riellybooth ♡ Virtual Photobooth",
+            text: "Baru aja foto estetik di riellybooth ♡ Bikin photo strip & Live Photo gratis di sini! ✨",
             url: "https://riellybooth.my.id",
           });
 
@@ -601,6 +614,7 @@ export default function RielllyBooth() {
               colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
             });
           } catch (e) {}
+          setTimeout(() => setShowShareModal(true), 400);
           return;
         }
       } catch (shareErr) {
@@ -622,6 +636,8 @@ export default function RielllyBooth() {
         colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
       });
     } catch (e) {}
+
+    setTimeout(() => setShowShareModal(true), 400);
   };
 
   // Live Photo Video Export (MP4 preferred, WebM fallback)
@@ -659,7 +675,7 @@ export default function RielllyBooth() {
         setDownloadedVideoUrl(url);
 
         const randomHash = Math.random().toString(36).substring(2, 8);
-        const filename = `rielllybooth-live-${randomHash}.${extension}`;
+        const filename = `riellybooth-live-${randomHash}.${extension}`;
 
         if (isMobileDevice() && navigator.share) {
           try {
@@ -667,10 +683,11 @@ export default function RielllyBooth() {
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
               await navigator.share({
                 files: [file],
-                title: "rielllybooth live photo",
-                text: "Live photo boomerang video created with rielllybooth ♡ ✨",
+                title: "riellybooth live photo",
+                text: "Live photo boomerang video created with riellybooth ♡ ✨",
               });
               setIsExportingVideo(false);
+              setTimeout(() => setShowShareModal(true), 400);
               return;
             }
           } catch (shareErr) {
@@ -687,6 +704,8 @@ export default function RielllyBooth() {
         try {
           confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         } catch (e) {}
+
+        setTimeout(() => setShowShareModal(true), 400);
       };
 
       recorder.start();
@@ -710,13 +729,13 @@ export default function RielllyBooth() {
       const res = await fetch(dataUrl);
       const blob = await res.blob();
       const randomHash = Math.random().toString(36).substring(2, 8);
-      const file = new File([blob], `rielllybooth-${randomHash}.png`, { type: "image/png" });
+      const file = new File([blob], `riellybooth-${randomHash}.png`, { type: "image/png" });
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: "rielllybooth ♡ Virtual Photobooth",
-          text: "Baru aja foto estetik di rielllybooth ♡ Bikin photo strip & Live Photo gratis di sini! ✨",
+          title: "riellybooth ♡ Virtual Photobooth",
+          text: "Baru aja foto estetik di riellybooth ♡ Bikin photo strip & Live Photo gratis di sini! ✨",
           url: "https://riellybooth.my.id",
         });
       } else {
@@ -751,11 +770,17 @@ export default function RielllyBooth() {
         onGoHome={() => setStep("landing")}
         onOpenAbout={() => setShowAboutModal(true)}
         onOpenSupport={() => setShowSupportModal(true)}
+        lang={lang}
+        onToggleLang={() => setLang((l) => (l === "id" ? "en" : "id"))}
       />
 
       <div className="flex-1 flex flex-col justify-center items-center py-8">
         {step === "landing" && (
-          <LandingStep onStart={handleStartCapture} />
+          <LandingStep
+            onStart={handleStartCapture}
+            onUploadPhotos={handleUploadPhotos}
+            lang={lang}
+          />
         )}
 
         {step === "capture" && (
@@ -847,11 +872,11 @@ export default function RielllyBooth() {
 
             <div className="flex items-center gap-2 text-pink-500">
               <Sparkles className="w-5 h-5 animate-pulse" />
-              <h3 className="text-2xl font-black">Tentang rielllybooth</h3>
+              <h3 className="text-2xl font-black">Tentang riellybooth</h3>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              <strong className="text-pink-600">rielllybooth</strong> adalah aplikasi Virtual Photobooth gratis bergaya Korea & Y2K Aesthetic yang dirancang untuk mengabadikan momen serumu di mana saja tanpa watermark.
+              <strong className="text-pink-600">riellybooth</strong> adalah aplikasi Virtual Photobooth gratis bergaya Korea & Y2K Aesthetic yang dirancang untuk mengabadikan momen serumu di mana saja tanpa watermark.
             </p>
 
             <div className="space-y-2 bg-rose-50 border-2 border-pink-200 p-3 rounded-2xl text-xs font-bold text-slate-700">
@@ -898,7 +923,7 @@ export default function RielllyBooth() {
               </div>
               <h3 className="text-2xl font-black text-slate-800">Support / Traktir Kopi 💖</h3>
               <p className="text-xs text-slate-600 font-medium">
-                Dukung server rielllybooth tetap gratis!
+                Dukung server riellybooth tetap gratis!
               </p>
             </div>
 
@@ -941,19 +966,36 @@ export default function RielllyBooth() {
               <Share2 className="w-6 h-6 animate-bounce" />
             </div>
 
-            <h3 className="text-2xl font-black text-slate-800">Bagikan ke Media Sosial 📲</h3>
+            <h3 className="text-2xl font-black text-slate-800">Photo Strip Selesai! 🎉</h3>
             <p className="text-xs text-slate-600 font-medium">
-              Share photo strip kamu ke Instagram Story, WhatsApp, TikTok & Twitter!
+              Bagikan photo strip kamu ke Instagram Story, WhatsApp, TikTok & Twitter!
             </p>
 
             {/* Native Multi-App File Share Action */}
             <button
               type="button"
               onClick={handleNativeMultiAppShare}
-              className="w-full py-3.5 px-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-sm rounded-2xl border-2 border-pink-500 shadow-md flex items-center justify-center gap-2 transition hover:scale-102 active:scale-95"
+              className="w-full py-3.5 px-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-sm rounded-2xl border-2 border-pink-500 shadow-md flex items-center justify-center gap-2 transition hover:scale-102 active:scale-95 cursor-pointer"
             >
               <Share2 className="w-5 h-5" /> Bagikan Langsung + Foto 📲
             </button>
+
+            {/* QR CODE FOR DESKTOP TO MOBILE TRANSFER */}
+            <div className="bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-pink-200 p-3.5 rounded-2xl flex flex-col items-center gap-2">
+              <span className="text-xs font-black text-[#3C2A2A] flex items-center gap-1.5">
+                <span>📱 Buka & Simpan di HP (Scan QR)</span>
+              </span>
+              <div className="p-2 bg-white rounded-xl shadow-xs border border-pink-200">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "https://riellybooth.my.id")}`}
+                  alt="QR Code riellybooth"
+                  className="w-28 h-28 object-contain"
+                />
+              </div>
+              <p className="text-[10px] text-slate-500 font-medium">
+                Scan pakai kamera smartphone kamu untuk langsung buka web di HP!
+              </p>
+            </div>
 
             {/* VIRAL CAPTION BOX */}
             <div className="bg-rose-50 border-2 border-pink-200 p-3.5 rounded-2xl text-left space-y-2">
@@ -962,7 +1004,7 @@ export default function RielllyBooth() {
                 <button
                   type="button"
                   onClick={handleCopyCaption}
-                  className="px-2.5 py-1 bg-white hover:bg-pink-100 text-pink-700 text-[11px] font-bold rounded-lg border border-pink-300 flex items-center gap-1 transition shadow-xs"
+                  className="px-2.5 py-1 bg-white hover:bg-pink-100 text-pink-700 text-[11px] font-bold rounded-lg border border-pink-300 flex items-center gap-1 transition shadow-xs cursor-pointer"
                 >
                   {copiedCaption ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-pink-500" />}
                   <span>{copiedCaption ? "Tersalin!" : "Salin Caption"}</span>
@@ -994,9 +1036,28 @@ export default function RielllyBooth() {
               </a>
             </div>
 
+            {/* TRAKTIR KOPI DEVELOPER CALL-TO-ACTION */}
+            <div className="bg-amber-50 border-2 border-amber-300 p-3.5 rounded-2xl flex flex-col items-center gap-2 text-center">
+              <div className="flex items-center gap-1.5 text-amber-900 font-black text-xs">
+                <Coffee className="w-4 h-4 text-amber-600" />
+                <span>Suka hasilnya? Traktir Kopi Developer ☕💖</span>
+              </div>
+              <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
+                Dukungan seikhlasnya dari kamu ngebantu bayar server dan update frame musiman (Halloween, Natal, Imlek)!
+              </p>
+              <a
+                href="https://teer.id/eveexyz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition cursor-pointer"
+              >
+                <Coffee className="w-4 h-4" /> Traktir Kopi di Trakteer ☕
+              </a>
+            </div>
+
             {/* 9:16 Aspect Story Preview Card */}
-            <div className="space-y-1.5 pt-2">
-              <span className="text-xs font-bold text-slate-700">Pratinjau Story (9:16):</span>
+            <div className="space-y-1.5 pt-1">
+              <span className="text-xs font-bold text-slate-700">Pratinjau Hasil:</span>
               <div className="w-full aspect-[9/16] max-h-56 bg-slate-900 rounded-2xl overflow-hidden border-2 border-pink-300 shadow-md flex items-center justify-center p-2 mx-auto">
                 {downloadedDataUrl ? (
                   <img src={downloadedDataUrl} alt="Story Preview" className="h-full w-auto object-contain rounded-lg" />
@@ -1013,7 +1074,7 @@ export default function RielllyBooth() {
               <button
                 type="button"
                 onClick={handleCopyShareLink}
-                className="flex-1 py-2.5 bg-rose-50 hover:bg-rose-100 text-pink-700 font-bold text-xs rounded-xl border border-pink-200 transition flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 bg-rose-50 hover:bg-rose-100 text-pink-700 font-bold text-xs rounded-xl border border-pink-200 transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 {copiedLink ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-pink-500" />}
                 <span>{copiedLink ? "Link Tersalin!" : "Salin Link Web"}</span>
@@ -1022,7 +1083,7 @@ export default function RielllyBooth() {
               <button
                 type="button"
                 onClick={() => setShowShareModal(false)}
-                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition"
+                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition cursor-pointer"
               >
                 Tutup
               </button>
@@ -1035,26 +1096,26 @@ export default function RielllyBooth() {
       {step !== "landing" && (
         <footer className="w-full border-t border-pink-200 py-6 text-center text-xs text-slate-600 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center gap-2.5 px-4 shadow-sm">
           <div className="font-bold text-[#3C2A2A]">
-            © 2026 rielllybooth 🎀 · &ldquo;buat momen yang pengen kamu simpan&rdquo;
+            © 2026 riellybooth 🎀 · &ldquo;buat momen yang pengen kamu simpan&rdquo;
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-bold">
             <a
-              href="mailto:rielllybooth@gmail.com"
+              href="mailto:riellybooth@gmail.com"
               className="hover:text-pink-600 transition inline-flex items-center gap-1.5"
             >
               <Mail className="w-3.5 h-3.5 text-pink-500" />
-              <span>rielllybooth@gmail.com</span>
+              <span>riellybooth@gmail.com</span>
             </a>
             <span className="text-pink-300">·</span>
             <a
-              href="https://instagram.com/rielllybooth"
+              href="https://instagram.com/riellybooth"
               target="_blank"
               rel="noopener noreferrer"
               className="text-pink-600 hover:underline transition inline-flex items-center gap-1.5"
             >
               <Instagram className="w-3.5 h-3.5 text-pink-500" />
-              <span>@rielllybooth</span>
+              <span>@riellybooth</span>
             </a>
             <span className="text-pink-300">·</span>
             <a

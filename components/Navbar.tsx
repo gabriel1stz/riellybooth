@@ -8,6 +8,8 @@ type NavbarProps = {
   onGoHome?: () => void;
   onOpenAbout?: () => void;
   onOpenSupport?: () => void;
+  lang?: "id" | "en";
+  onToggleLang?: () => void;
 };
 
 export default function Navbar({
@@ -16,6 +18,8 @@ export default function Navbar({
   onGoHome,
   onOpenAbout,
   onOpenSupport,
+  lang = "id",
+  onToggleLang,
 }: NavbarProps) {
   const [logoFailed, setLogoFailed] = useState(false);
 
@@ -30,7 +34,7 @@ export default function Navbar({
           {!logoFailed ? (
             <Image
               src="/logo.png"
-              alt="rielllybooth logo"
+              alt="riellybooth logo"
               width={160}
               height={48}
               priority
@@ -43,14 +47,26 @@ export default function Navbar({
         </div>
         <div className="flex items-center gap-1.5">
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-pink-500">
-            rielllybooth
+            riellybooth
           </h1>
           <Sparkles className="w-4 h-4 text-pink-400 animate-[spin_6s_linear_infinite]" />
         </div>
       </div>
 
       {/* Navigation & Action Links */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-2.5">
+        {/* Language Toggle (ID / EN) */}
+        {onToggleLang && (
+          <button
+            type="button"
+            onClick={onToggleLang}
+            className="px-2.5 py-1.5 rounded-full border border-pink-200 bg-rose-50 hover:bg-pink-100 text-[#3C2A2A] text-xs font-black transition flex items-center gap-1 shadow-xs"
+            title="Ganti Bahasa / Change Language"
+          >
+            <span>{lang === "id" ? "🇮🇩 ID" : "🇬🇧 EN"}</span>
+          </button>
+        )}
+
         {/* Home Link */}
         {onGoHome && (
           <button
@@ -70,7 +86,7 @@ export default function Navbar({
             type="button"
             onClick={onOpenAbout}
             className="p-2 sm:px-3 py-1.5 rounded-full border border-pink-200 bg-rose-50 hover:bg-pink-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
-            title="Tentang rielllybooth"
+            title="Tentang riellybooth"
           >
             <Info className="w-4 h-4 text-pink-500" />
             <span className="hidden sm:inline">About</span>
@@ -105,7 +121,7 @@ export default function Navbar({
             {isAudioOn ? (
               <>
                 <Volume2 className="w-4 h-4 text-pink-500" />
-                <span className="hidden md:inline">BGM 🎵 ON</span>
+                <span className="hidden md:inline">BGM ON</span>
               </>
             ) : (
               <>

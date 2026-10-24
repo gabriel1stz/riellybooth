@@ -1,5 +1,5 @@
 /**
- * Real-time MediaPipe 3D Face Mesh AR Filter Engine for rielllybooth ♡
+ * Real-time MediaPipe 3D Face Mesh AR Filter Engine for riellybooth ♡
  * Preloads all 8 transparent PNG filter images from /public/filters/ with error logging and immediate fallback drawing.
  */
 

@@ -16,7 +16,7 @@ type CaptureStepProps = {
   shotsCount: number;
   shots: Shot[];
   cameraError: string | null;
-  onTakeSingleShot: () => void;
+  onTakeSingleShot: (timerDelay?: number) => void;
   onUploadPhotos: (files: FileList) => void;
   flashFx: boolean;
   isAudioOn: boolean;
@@ -48,6 +48,9 @@ export default function CaptureStep({
   const localArCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const activeArCanvasRef = arCanvasRef || localArCanvasRef;
 
+  // Shutter & Timer Trigger Mode: "gesture" | "timer_3" | "timer_5" | "instant"
+  const [triggerMode, setTriggerMode] = useState<"gesture" | "timer_3" | "timer_5" | "instant">("gesture");
+
   // AR Face Filter State
   const [arFilterPreset, setArFilterPreset] = useState<ARFaceFilterPreset>("none");
 
@@ -64,7 +67,7 @@ export default function CaptureStep({
     let animFrameId: number;
     let active = true;
 
-    if (!gestureEnabled || isCapturing || countdown !== null || cameraError) {
+    if (triggerMode !== "gesture" || !gestureEnabled || isCapturing || countdown !== null || cameraError) {
       setGestureStatus(null);
       setPeaceProgress(0);
       peaceStartTimeRef.current = null;
@@ -100,7 +103,7 @@ export default function CaptureStep({
                 isLockedRef.current = true;
                 setPeaceProgress(100);
                 setGestureStatus("Jepret! 📸");
-                onTakeSingleShot();
+                onTakeSingleShot(0);
               }
             } else if (!isPeace) {
               peaceStartTimeRef.current = null;
@@ -130,7 +133,7 @@ export default function CaptureStep({
       active = false;
       if (animFrameId) cancelAnimationFrame(animFrameId);
     };
-  }, [gestureEnabled, isCapturing, countdown, cameraError, onTakeSingleShot, videoRef]);
+  }, [triggerMode, gestureEnabled, isCapturing, countdown, cameraError, onTakeSingleShot, videoRef]);
 
   // AR Filter loop disabled for 100% lightweight camera performance
   useEffect(() => {
@@ -150,16 +153,28 @@ export default function CaptureStep({
   const getButtonLabel = () => {
     if (countdown !== null) return `Capturing... (${countdown}s)`;
     if (isCapturing) return "Cooldown...";
-    return `Jepret Manual (3s) 📸`;
+    if (triggerMode === "gesture") return "Jepret Manual (3s) 📸";
+    if (triggerMode === "timer_3") return "Mulai Timer 3s ⏱️";
+    if (triggerMode === "timer_5") return "Mulai Timer 5s ⏱️";
+    return "Jepret Instan ⚡";
+  };
+
+  const handleShutterClick = () => {
+    if (triggerMode === "instant") {
+      onTakeSingleShot(0);
+    } else if (triggerMode === "timer_5") {
+      onTakeSingleShot(5);
+    } else {
+      onTakeSingleShot(3);
+    }
   };
 
   return (
-    <div className="w-full max-w-4xl px-2 sm:px-4 py-2 sm:py-4 flex flex-col items-center gap-4 sm:gap-6 animate-in fade-in duration-300">
+    <div className="w-full max-w-4xl px-2 sm:px-4 py-2 sm:py-4 flex flex-col items-center gap-3 sm:gap-5 animate-in fade-in duration-300">
       {/* Camera Snapshot Flash Screen FX */}
       {flashFx && (
         <div className="fixed inset-0 bg-white z-[100] animate-out fade-out duration-300 pointer-events-none" />
       )}
-
 
       {/* Top Header Status Badge with Shot Counter Badge */}
       <div className="w-full flex flex-wrap justify-between items-center gap-3 bg-white border-2 border-pink-200 p-3 sm:p-4 rounded-2xl shadow-sm">
@@ -201,19 +216,79 @@ export default function CaptureStep({
             </button>
           )}
 
-          {/* Peace Gesture Toggle */}
+          {/* Peace Gesture Quick Toggle */}
           <button
             type="button"
-            onClick={() => setGestureEnabled((v) => !v)}
+            onClick={() => {
+              if (triggerMode === "gesture") {
+                setGestureEnabled((v) => !v);
+              } else {
+                setTriggerMode("gesture");
+                setGestureEnabled(true);
+              }
+            }}
             disabled={isCapturing}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border-2 shadow-xs ${
-              gestureEnabled
+              triggerMode === "gesture" && gestureEnabled
                 ? "bg-pink-400 text-white border-pink-500"
                 : "bg-slate-100 text-slate-500 border-slate-300"
             }`}
           >
             <Hand className="w-4 h-4" />
-            <span>Gesture ✌️ {gestureEnabled ? "ON" : "OFF"}</span>
+            <span>Gesture ✌️ {triggerMode === "gesture" && gestureEnabled ? "ON" : "OFF"}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* MODE SHUTTER SELECTOR TABS: Peace Auto vs Timer 3s vs Timer 5s vs Instant */}
+      <div className="w-full flex justify-center">
+        <div className="inline-flex bg-white/95 backdrop-blur-xs p-1 rounded-2xl border-2 border-pink-200 shadow-xs gap-1 max-w-full overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => {
+              setTriggerMode("gesture");
+              setGestureEnabled(true);
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              triggerMode === "gesture"
+                ? "bg-pink-500 text-white shadow-xs"
+                : "text-slate-600 hover:bg-pink-50"
+            }`}
+          >
+            <span>✌️ Auto Peace</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTriggerMode("timer_3")}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              triggerMode === "timer_3"
+                ? "bg-pink-500 text-white shadow-xs"
+                : "text-slate-600 hover:bg-pink-50"
+            }`}
+          >
+            <span>⏱️ Timer 3s</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTriggerMode("timer_5")}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              triggerMode === "timer_5"
+                ? "bg-pink-500 text-white shadow-xs"
+                : "text-slate-600 hover:bg-pink-50"
+            }`}
+          >
+            <span>⏱️ Timer 5s</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTriggerMode("instant")}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              triggerMode === "instant"
+                ? "bg-pink-500 text-white shadow-xs"
+                : "text-slate-600 hover:bg-pink-50"
+            }`}
+          >
+            <span>⚡ Instan</span>
           </button>
         </div>
       </div>
@@ -318,9 +393,9 @@ export default function CaptureStep({
         {/* Main Camera Shutter Trigger Button */}
         <button
           type="button"
-          onClick={onTakeSingleShot}
+          onClick={handleShutterClick}
           disabled={isCapturing || countdown !== null || !!cameraError}
-          className="w-full py-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-base sm:text-lg rounded-2xl border-4 border-pink-500 shadow-xl transition-all duration-150 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-base sm:text-lg rounded-2xl border-4 border-pink-500 shadow-xl transition-all duration-150 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
         >
           <Camera className="w-6 h-6 animate-pulse" />
           <span>{getButtonLabel()}</span>
@@ -338,7 +413,7 @@ export default function CaptureStep({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="w-full sm:w-auto px-4 py-3 bg-white hover:bg-rose-50 text-slate-700 font-bold text-xs rounded-2xl border-2 border-pink-200 shadow-sm transition flex items-center justify-center gap-2 shrink-0"
+          className="w-full sm:w-auto px-4 py-3 bg-white hover:bg-rose-50 text-slate-700 font-bold text-xs rounded-2xl border-2 border-pink-200 shadow-sm transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
         >
           <ImageIcon className="w-4 h-4 text-pink-500" />
           <span>Upload Galeri 🖼️</span>
@@ -347,7 +422,14 @@ export default function CaptureStep({
 
       {/* User Helper Directive Badge */}
       <p className="text-xs text-slate-500 font-medium text-center max-w-md">
-        💡 <strong className="text-pink-600">Tips:</strong> Tunjukkan pose Peace (✌️) selama 1 detik di depan kamera untuk otomatis jepret!
+        💡 <strong className="text-pink-600">Tips:</strong>{" "}
+        {triggerMode === "gesture"
+          ? "Tunjukkan pose Peace (✌️) selama 1 detik di depan kamera untuk otomatis jepret!"
+          : triggerMode === "timer_3"
+          ? "Timer 3 detik siap! Tekan tombol jepret lalu bersiap pose estetik."
+          : triggerMode === "timer_5"
+          ? "Timer 5 detik memberikan waktu ekstra buat atur posisi bareng bestie!"
+          : "Mode instan akan langsung mengambil foto tanpa countdown."}
       </p>
     </div>
   );
