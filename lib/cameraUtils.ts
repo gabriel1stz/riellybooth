@@ -68,7 +68,8 @@ export const revokeBlobUrl = (url?: string): void => {
 export const captureCanvasSnapshot = (
   videoEl: HTMLVideoElement,
   mirror: boolean = false,
-  arCanvasEl?: HTMLCanvasElement | null
+  arCanvasEl?: HTMLCanvasElement | null,
+  filters?: { brightness?: number; contrast?: number; beautyGlow?: number }
 ): string => {
   const canvas = document.createElement("canvas");
   const width = videoEl.videoWidth || 1280;
@@ -86,9 +87,16 @@ export const captureCanvasSnapshot = (
     ctx.scale(-1, 1);
   }
 
+  if (filters) {
+    const b = filters.brightness ?? 100;
+    const c = filters.contrast ?? 100;
+    ctx.filter = `brightness(${b}%) contrast(${c}%)`;
+  }
+
   ctx.drawImage(videoEl, 0, 0, width, height);
 
   if (arCanvasEl) {
+    ctx.filter = "none";
     ctx.drawImage(arCanvasEl, 0, 0, width, height);
   }
 
@@ -108,23 +116,50 @@ export const recordLiveVideoSnippet = (
 ): Promise<string> => {
   return new Promise((resolve) => {
     try {
-      const mediaStream =
-        stream instanceof HTMLCanvasElement
-          ? stream.captureStream(30)
-          : stream;
-
-      let mimeType = "video/mp4;codecs=avc1";
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = "video/mp4";
-      }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = "video/webm;codecs=vp9";
-      }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = "video/webm";
+      if (typeof window === "undefined" || typeof MediaRecorder === "undefined") {
+        return resolve("");
       }
 
-      const recorder = new MediaRecorder(mediaStream, { mimeType });
+      let mediaStream: MediaStream;
+      if (stream instanceof HTMLCanvasElement) {
+        const captureFn =
+          stream.captureStream ||
+          (stream as unknown as { webkitCaptureStream?: (fps?: number) => MediaStream }).webkitCaptureStream;
+        if (!captureFn) {
+          return resolve("");
+        }
+        mediaStream = captureFn.call(stream, 30);
+      } else {
+        mediaStream = stream;
+      }
+
+      let options: MediaRecorderOptions | undefined = undefined;
+      let effectiveMime = "video/mp4";
+
+      if (typeof MediaRecorder.isTypeSupported === "function") {
+        if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
+          options = { mimeType: "video/mp4;codecs=avc1" };
+          effectiveMime = "video/mp4";
+        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+          options = { mimeType: "video/mp4" };
+          effectiveMime = "video/mp4";
+        } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
+          options = { mimeType: "video/webm;codecs=vp9" };
+          effectiveMime = "video/webm";
+        } else if (MediaRecorder.isTypeSupported("video/webm")) {
+          options = { mimeType: "video/webm" };
+          effectiveMime = "video/webm";
+        }
+      }
+
+      let recorder: MediaRecorder;
+      try {
+        recorder = options ? new MediaRecorder(mediaStream, options) : new MediaRecorder(mediaStream);
+      } catch (optErr) {
+        // iOS Safari fallback: initialize without mimeType option
+        recorder = new MediaRecorder(mediaStream);
+      }
+
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
@@ -132,15 +167,25 @@ export const recordLiveVideoSnippet = (
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mimeType });
-        const videoUrl = URL.createObjectURL(blob);
-        resolve(videoUrl);
+        try {
+          const blobType = recorder.mimeType || effectiveMime;
+          const blob = new Blob(chunks, { type: blobType });
+          const videoUrl = URL.createObjectURL(blob);
+          resolve(videoUrl);
+        } catch (blobErr) {
+          console.warn("Failed to create live video blob:", blobErr);
+          resolve("");
+        }
       };
 
       recorder.start();
       setTimeout(() => {
-        if (recorder.state !== "inactive") {
-          recorder.stop();
+        try {
+          if (recorder.state !== "inactive") {
+            recorder.stop();
+          }
+        } catch (stopErr) {
+          resolve("");
         }
       }, durationMs);
     } catch (err) {

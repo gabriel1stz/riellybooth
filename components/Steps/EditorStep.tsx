@@ -57,6 +57,9 @@ type EditorStepProps = {
   customLogoUrl: string | null;
   onUploadCustomLogo: (file: File) => void;
   onClearCustomLogo: () => void;
+  customFrameOverlayUrl?: string | null;
+  onUploadCustomFrameOverlay?: (file: File) => void;
+  onClearCustomFrameOverlay?: () => void;
   selectedForSwap: number | null;
   onSwapPhotos: (index: number) => void;
   frameColor: string;
@@ -70,8 +73,10 @@ type EditorStepProps = {
   onBack: () => void;
   onDownloadPng: () => void;
   onDownloadVideo: () => void;
+  onDownloadGif?: () => void;
   onOpenShareModal: () => void;
   isExportingVideo: boolean;
+  isExportingGif?: boolean;
 };
 
 export default function EditorStep({
@@ -100,6 +105,9 @@ export default function EditorStep({
   customLogoUrl,
   onUploadCustomLogo,
   onClearCustomLogo,
+  customFrameOverlayUrl,
+  onUploadCustomFrameOverlay,
+  onClearCustomFrameOverlay,
   selectedForSwap,
   onSwapPhotos,
   frameColor,
@@ -113,11 +121,14 @@ export default function EditorStep({
   onBack,
   onDownloadPng,
   onDownloadVideo,
+  onDownloadGif,
   onOpenShareModal,
   isExportingVideo,
+  isExportingGif = false,
 }: EditorStepProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const frameOverlayInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"layout" | "frame" | "filter" | "stickers">("layout");
   const [selectedStickerPack, setSelectedStickerPack] = useState<string>("all");
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -353,6 +364,12 @@ export default function EditorStep({
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       onUploadCustomLogo(e.target.files[0]);
+    }
+  };
+
+  const handleFrameOverlayFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0] && onUploadCustomFrameOverlay) {
+      onUploadCustomFrameOverlay(e.target.files[0]);
     }
   };
 
@@ -838,6 +855,52 @@ export default function EditorStep({
                 </div>
               )}
 
+              {/* UPLOAD CUSTOM FULL-FRAME PNG OVERLAY SECTION */}
+              <div className="space-y-2 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 p-3.5 rounded-2xl">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-purple-600" /> Bingkai Custom Sendiri (PNG Transparan):
+                  </label>
+                  {customFrameOverlayUrl && (
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded-full border border-emerald-300">
+                      Aktif ✨
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Upload file PNG transparan desain sendiri (cocok buat acara ulang tahun, nikahan, wisuda, atau event komunitas)!
+                </p>
+
+                <input
+                  ref={frameOverlayInputRef}
+                  type="file"
+                  accept="image/png"
+                  onChange={handleFrameOverlayFileChange}
+                  className="hidden"
+                />
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => frameOverlayInputRef.current?.click()}
+                    className="flex-1 py-2 px-3 bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs rounded-xl border border-purple-600 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{customFrameOverlayUrl ? "Ganti Bingkai PNG" : "Upload Bingkai Sendiri (PNG)"}</span>
+                  </button>
+
+                  {customFrameOverlayUrl && (
+                    <button
+                      type="button"
+                      onClick={onClearCustomFrameOverlay}
+                      className="py-2 px-3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs rounded-xl border border-rose-300 transition cursor-pointer"
+                    >
+                      Hapus
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* UPLOAD CUSTOM BRAND LOGO SECTION */}
               <div className="space-y-2 bg-rose-50 border-2 border-pink-200 p-3.5 rounded-2xl">
                 <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
@@ -1117,41 +1180,60 @@ export default function EditorStep({
 
       {/* 3. BOTTOM SECTION: DOWNLOAD CARDS, SHARE & RE-TAKE BUTTONS */}
       <div className="space-y-4 pt-4 border-t-2 border-pink-200">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           {/* Card 1: PNG HD Photo Strip */}
-          <div className="bg-white border-2 border-pink-300 p-3.5 sm:p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3">
+          <div className="bg-white border-2 border-pink-300 p-3.5 sm:p-4 rounded-2xl shadow-sm flex flex-col justify-between gap-3">
             <div className="space-y-1">
               <span className="text-xs font-black text-pink-600 uppercase tracking-wider flex items-center gap-1">
                 <Download className="w-3.5 h-3.5" /> Foto Statis
               </span>
-              <h4 className="text-xs sm:text-sm font-black text-slate-800">Simpan Foto Statis (PNG HD)</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Format gambar resolusi tinggi tanpa watermark.</p>
+              <h4 className="text-xs sm:text-sm font-black text-slate-800">Simpan Foto (PNG HD)</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Resolusi tinggi tajam tanpa watermark, siap cetak 4R.</p>
             </div>
             <button
               type="button"
               onClick={onDownloadPng}
-              className="px-4 sm:px-5 py-2.5 sm:py-3 bg-pink-400 hover:bg-pink-500 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-pink-500 shadow-md transition hover:scale-105 active:scale-95 shrink-0"
+              className="w-full py-2.5 bg-pink-400 hover:bg-pink-500 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-pink-500 shadow-md transition hover:scale-102 active:scale-95 text-center"
             >
               Simpan PNG ⬇️
             </button>
           </div>
 
           {/* Card 2: Live Video (MP4 / REELS 🎥) */}
-          <div className="bg-white border-2 border-purple-300 p-3.5 sm:p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3">
+          <div className="bg-white border-2 border-purple-300 p-3.5 sm:p-4 rounded-2xl shadow-sm flex flex-col justify-between gap-3">
             <div className="space-y-1">
               <span className="text-xs font-black text-purple-600 uppercase tracking-wider flex items-center gap-1">
                 <Video className="w-3.5 h-3.5" /> Moving Video
               </span>
-              <h4 className="text-xs sm:text-sm font-black text-slate-800">Simpan Live Video (MP4 / REELS 🎥)</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Video gerak klip pendek siap unggah ke Story & Reels.</p>
+              <h4 className="text-xs sm:text-sm font-black text-slate-800">Live Video (MP4 / REELS 🎥)</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Video gerak klip pendek boomerang siap share ke Story.</p>
             </div>
             <button
               type="button"
               onClick={onDownloadVideo}
               disabled={isExportingVideo || !isLivePhotoOn}
-              className="px-4 py-2.5 sm:py-3 bg-purple-500 hover:bg-purple-600 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-purple-600 shadow-md transition disabled:opacity-50 hover:scale-105 active:scale-95 shrink-0"
+              className="w-full py-2.5 bg-purple-500 hover:bg-purple-600 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-purple-600 shadow-md transition disabled:opacity-50 hover:scale-102 active:scale-95 text-center"
             >
-              {isExportingVideo ? "Exporting..." : "Simpan MP4 🎥"}
+              {isExportingVideo ? "Exporting MP4..." : "Simpan MP4 🎥"}
+            </button>
+          </div>
+
+          {/* Card 3: Animated GIF (GIF Animasi 🎞️) */}
+          <div className="bg-white border-2 border-emerald-300 p-3.5 sm:p-4 rounded-2xl shadow-sm flex flex-col justify-between gap-3">
+            <div className="space-y-1">
+              <span className="text-xs font-black text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" /> Loop Animasi
+              </span>
+              <h4 className="text-xs sm:text-sm font-black text-slate-800">Simpan GIF Animasi 🎞️</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Format GIF gerak looping tanpa henti, cocok buat WhatsApp & Telegram.</p>
+            </div>
+            <button
+              type="button"
+              onClick={onDownloadGif}
+              disabled={isExportingGif || !isLivePhotoOn}
+              className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-emerald-600 shadow-md transition disabled:opacity-50 hover:scale-102 active:scale-95 text-center"
+            >
+              {isExportingGif ? "Membuat GIF..." : "Simpan GIF 🎞️"}
             </button>
           </div>
         </div>

@@ -3191,7 +3191,8 @@ export const drawPhotoStrip = (
   subtitleText?: string,
   stickers: PlacedSticker[] = [],
   isFlipped: boolean = false,
-  customLogoImg?: HTMLImageElement | null
+  customLogoImg?: HTMLImageElement | null,
+  customFrameOverlayImg?: HTMLImageElement | null
 ): void => {
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length === 0) return;
@@ -6028,7 +6029,37 @@ export const drawPhotoStrip = (
         ctx.fillText(displaySubtitle, canvas.width / 2, canvas.height - 70);
       }
     }
+    ctx.restore();
+  }
 
+  // 1. Draw Custom Uploaded Full-Frame Overlay (PNG Transparency)
+  if (customFrameOverlayImg) {
+    try {
+      ctx.drawImage(customFrameOverlayImg, 0, 0, canvas.width, canvas.height);
+    } catch (e) {
+      console.warn("Failed to draw custom frame overlay:", e);
+    }
+  }
+
+  // 2. Draw 4R Print Dashed Cut Line (✂ POTONG DI SINI) for Double Strip 2x4
+  if (layout === "strip_2x4") {
+    ctx.save();
+    ctx.strokeStyle = "rgba(100, 116, 139, 0.45)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 8]);
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2, 25);
+    ctx.lineTo(canvas.width / 2, canvas.height - 25);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Scissors & Cut Guidance
+    ctx.font = "bold 15px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "rgba(100, 116, 139, 0.75)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("✂  GARIS POTONG 4R  ✂", canvas.width / 2, 45);
+    ctx.fillText("✂  GARIS POTONG 4R  ✂", canvas.width / 2, canvas.height - 45);
     ctx.restore();
   }
 };

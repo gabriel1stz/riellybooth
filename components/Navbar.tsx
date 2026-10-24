@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
-import { Sparkles, Camera, Volume2, VolumeX, Home, Info, Heart } from "lucide-react";
+import { Sparkles, Camera, Volume2, VolumeX, Home, Info, Heart, ShieldCheck } from "lucide-react";
 
 type NavbarProps = {
   isAudioOn?: boolean;
@@ -8,6 +8,7 @@ type NavbarProps = {
   onGoHome?: () => void;
   onOpenAbout?: () => void;
   onOpenSupport?: () => void;
+  onOpenPrivacy?: () => void;
   lang?: "id" | "en";
   onToggleLang?: () => void;
 };
@@ -18,6 +19,7 @@ export default function Navbar({
   onGoHome,
   onOpenAbout,
   onOpenSupport,
+  onOpenPrivacy,
   lang = "id",
   onToggleLang,
 }: NavbarProps) {
@@ -85,11 +87,24 @@ export default function Navbar({
           <button
             type="button"
             onClick={onOpenAbout}
-            className="p-2 sm:px-3 py-1.5 rounded-full border border-pink-200 bg-rose-50 hover:bg-pink-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+            className="p-2 sm:px-3 py-1.5 rounded-full border border-pink-200 bg-rose-50 hover:bg-pink-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
             title="Tentang riellybooth"
           >
             <Info className="w-4 h-4 text-pink-500" />
             <span className="hidden sm:inline">About</span>
+          </button>
+        )}
+
+        {/* Privacy Link */}
+        {onOpenPrivacy && (
+          <button
+            type="button"
+            onClick={onOpenPrivacy}
+            className="p-2 sm:px-3 py-1.5 rounded-full border border-pink-200 bg-rose-50 hover:bg-pink-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+            title="Kebijakan Privasi & Keamanan Kamera"
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <span className="hidden sm:inline">Privasi</span>
           </button>
         )}
 

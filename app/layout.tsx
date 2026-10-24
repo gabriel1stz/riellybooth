@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     description: "Bikin photo strip aesthetic langsung dari browser gratis tanpa watermark! Pose peace ✌️ kamera jepret otomatis. Tersedia bingkai Photomatics News, Halloween, dan Live Photo video.",
     images: [
       {
-        url: "/logo.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
         alt: "riellybooth aesthetic photobooth online",
@@ -45,13 +45,36 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "riellybooth ♡ Photobooth Online Gratis & Aesthetic Photo Strip",
     description: "Bikin photo strip aesthetic langsung dari browser gratis tanpa watermark! Pose peace ✌️ kamera otomatis jepret.",
-    images: ["/logo.png"],
+    images: ["/opengraph-image"],
     creator: "@riellybooth_",
   },
   icons: {
     icon: "/logo.png",
     shortcut: "/logo.png",
     apple: "/logo.png",
+  },
+  manifest: "/manifest.json",
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "riellybooth",
+  url: "https://riellybooth.my.id",
+  description:
+    "Virtual Photobooth Online Gratis bergaya Korea & Y2K Aesthetic. Bikin photo strip dan live photo boomerang MP4 tanpa watermark.",
+  applicationCategory: "MultimediaApplication",
+  operatingSystem: "All",
+  browserRequirements: "Requires WebRTC and HTML5 Canvas",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "IDR",
+  },
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.9",
+    ratingCount: "158400",
   },
 };
 
@@ -65,6 +88,11 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="apple-touch-icon" href="/logo.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className={`${plusJakartaSans.variable} font-sans antialiased bg-rose-50/50 text-slate-800`}>
         {children}

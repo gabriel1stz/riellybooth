@@ -23,6 +23,7 @@ import {
   QrCode,
   Tag,
   Coffee,
+  Users,
 } from "lucide-react";
 
 function TikTokIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
@@ -268,12 +269,18 @@ function PhotostripTrioShowcase() {
 type LandingStepProps = {
   onStart: () => void;
   onUploadPhotos?: (files: FileList) => void;
+  onOpenLDR?: () => void;
+  onOpenPrivacy?: () => void;
+  onOpenWhatsNew?: () => void;
   lang?: "id" | "en";
 };
 
 export default function LandingStep({
   onStart,
   onUploadPhotos,
+  onOpenLDR,
+  onOpenPrivacy,
+  onOpenWhatsNew,
   lang = "id",
 }: LandingStepProps) {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
@@ -315,10 +322,24 @@ export default function LandingStep({
 
       {/* 1. HERO SECTION WITH HIGH-IMPACT HEADLINE & DUAL CTA */}
       <section className="w-full flex flex-col items-center text-center gap-5 pt-2">
-        {/* Brand Badge */}
-        <div className="inline-flex items-center gap-1 px-4 py-1.5 bg-white border border-pink-300 text-[#3C2A2A] rounded-full text-xs font-extrabold shadow-xs">
-          <Sparkles className="w-3.5 h-3.5 text-pink-500 animate-pulse" />
-          <span>riellybooth ♡ photobooth online gratis</span>
+        {/* Brand Badge & What's New Banner */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <div className="inline-flex items-center gap-1 px-4 py-1.5 bg-white border border-pink-300 text-[#3C2A2A] rounded-full text-xs font-extrabold shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-pink-500 animate-pulse" />
+            <span>riellybooth ♡ photobooth online gratis</span>
+          </div>
+
+          {onOpenWhatsNew && (
+            <button
+              type="button"
+              onClick={onOpenWhatsNew}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-pink-50 to-rose-50 hover:from-pink-100 hover:to-rose-100 border border-pink-300 text-pink-700 rounded-full text-xs font-black shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer group"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-pink-500 animate-bounce" />
+              <span>Apa yang baru di v2.0? 🔥</span>
+              <ArrowRight className="w-3 h-3 text-pink-600 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          )}
         </div>
 
         {/* Mixed Color Headline */}
@@ -334,17 +355,31 @@ export default function LandingStep({
           </p>
         </div>
 
-        {/* Primary CTA Row: Camera Start + Direct Gallery Upload */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1 w-full max-w-md">
+        {/* Primary CTA Row: Camera Start + LDR Remote + Gallery Upload */}
+        <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 pt-1 w-full max-w-xl">
           <button
             type="button"
             onClick={onStart}
-            className="w-full sm:w-auto flex-1 bg-pink-400 hover:bg-pink-500 border-2 border-pink-500 text-white rounded-full px-7 py-3.5 text-sm sm:text-base font-extrabold shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group cursor-pointer"
+            className="w-full sm:w-auto bg-pink-400 hover:bg-pink-500 border-2 border-pink-500 text-white rounded-full px-6 py-3.5 text-sm sm:text-base font-extrabold shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group cursor-pointer"
           >
             <Camera className="w-5 h-5 animate-pulse" />
             <span>Mulai Photobooth 📸</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </button>
+
+          {onOpenLDR && (
+            <button
+              type="button"
+              onClick={onOpenLDR}
+              className="w-full sm:w-auto px-5 py-3.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-full text-xs sm:text-sm font-extrabold shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer relative"
+            >
+              <Users className="w-4 h-4" />
+              <span>Foto Jarak Jauh (LDR) 👯‍♀️</span>
+              <span className="px-1.5 py-0.2 bg-amber-400 text-slate-900 text-[9px] font-black rounded-full uppercase tracking-wider">
+                BARU
+              </span>
+            </button>
+          )}
 
           {/* Hidden File Input for Gallery Upload */}
           <input
@@ -359,16 +394,18 @@ export default function LandingStep({
           <button
             type="button"
             onClick={() => heroFileInputRef.current?.click()}
-            className="w-full sm:w-auto px-6 py-3.5 bg-white hover:bg-rose-50 border-2 border-pink-300 text-slate-700 rounded-full text-sm font-extrabold shadow-xs hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full sm:w-auto px-5 py-3.5 bg-white hover:bg-rose-50 border-2 border-pink-300 text-slate-700 rounded-full text-xs sm:text-sm font-extrabold shadow-xs hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Upload className="w-4 h-4 text-pink-500" />
-            <span>Upload Foto Galeri 🖼️</span>
+            <span>Upload Galeri 🖼️</span>
           </button>
         </div>
 
-        <span className="text-xs font-bold text-pink-600">
-          100% Gratis · HD Quality · Live Photo Boomerang · Tanpa Watermark
-        </span>
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-rose-100/90 border border-pink-300 rounded-full shadow-xs">
+          <span className="text-xs sm:text-sm font-black text-[#8B2E4E] tracking-wide">
+            ✨ 100% Gratis · HD Quality · Live Photo Boomerang · Tanpa Watermark ✨
+          </span>
+        </div>
 
         {/* Visual Showcase: 3D Stacked Photostrip Trio Showcase */}
         <PhotostripTrioShowcase />
@@ -752,6 +789,19 @@ export default function LandingStep({
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-bold">
+          {onOpenPrivacy && (
+            <>
+              <button
+                type="button"
+                onClick={onOpenPrivacy}
+                className="hover:text-pink-600 transition inline-flex items-center gap-1.5 text-pink-700 underline cursor-pointer"
+              >
+                <span>Kebijakan Privasi 🔒</span>
+              </button>
+              <span className="text-pink-300">·</span>
+            </>
+          )}
+
           <a
             href="mailto:riellybooth@gmail.com"
             className="hover:text-pink-600 transition inline-flex items-center gap-1.5"
@@ -789,6 +839,10 @@ export default function LandingStep({
             <Instagram className="w-3.5 h-3.5 text-[#8B4A5A]" />
             <span>Dev: @dhikasatriaaa</span>
           </a>
+        </div>
+
+        <div className="text-[10px] text-slate-400 font-medium">
+          Audio BGM: CC0 / Royalty-Free Public Domain Beats · Foto Sampel: Unsplash Commercial Free License
         </div>
       </footer>
     </div>

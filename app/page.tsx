@@ -9,6 +9,11 @@ import LandingStep from "@/components/Steps/LandingStep";
 import CaptureStep from "@/components/Steps/CaptureStep";
 import ReviewStep from "@/components/Steps/ReviewStep";
 import EditorStep from "@/components/Steps/EditorStep";
+import InAppBrowserBanner from "@/components/InAppBrowserBanner";
+import LDRRemoteModal from "@/components/LDRRemoteModal";
+import PrivacyModal from "@/components/PrivacyModal";
+import WhatsNewModal from "@/components/WhatsNewModal";
+import { createGifFromCanvas } from "@/lib/gifUtils";
 import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet, revokeBlobUrl } from "@/lib/cameraUtils";
 import { drawPhotoStrip, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
 import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
@@ -53,6 +58,8 @@ export default function RiellyBooth() {
   // Modals State
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showWhatsNewModal, setShowWhatsNewModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [downloadedDataUrl, setDownloadedDataUrl] = useState<string | null>(null);
   const [downloadedVideoUrl, setDownloadedVideoUrl] = useState<string | null>(null);
@@ -83,6 +90,19 @@ export default function RiellyBooth() {
     beautyGlow: 0,
   });
   const [isExportingVideo, setIsExportingVideo] = useState(false);
+  const [isExportingGif, setIsExportingGif] = useState(false);
+
+  // Session Mode: Standard 4 Shots vs Korean Haru Film (Ambil 6, Pilih 4)
+  const [sessionMode, setSessionMode] = useState<"standard_4" | "korean_6">("standard_4");
+
+  // Remote LDR Photobooth Mode State
+  const [showLDRModal, setShowLDRModal] = useState(false);
+  const [ldrRoomId, setLdrRoomId] = useState<string | null>(null);
+  const [isLDRHost, setIsLDRHost] = useState(true);
+
+  // Custom Full Frame Overlay (User PNG Transparency)
+  const [customFrameOverlayUrl, setCustomFrameOverlayUrl] = useState<string | null>(null);
+  const [customFrameOverlayImg, setCustomFrameOverlayImg] = useState<HTMLImageElement | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const arCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -162,6 +182,49 @@ export default function RiellyBooth() {
     setCustomLogoUrl(null);
     setCustomLogoImg(null);
   };
+
+  // Custom Frame Overlay (PNG Transparency) Handlers
+  const handleUploadCustomFrameOverlay = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        const url = e.target.result as string;
+        setCustomFrameOverlayUrl(url);
+
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+          setCustomFrameOverlayImg(img);
+        };
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClearCustomFrameOverlay = () => {
+    setCustomFrameOverlayUrl(null);
+    setCustomFrameOverlayImg(null);
+  };
+
+  // Remote LDR Photobooth Session Trigger
+  const handleStartLDRSession = (roomId: string, isHost: boolean) => {
+    setLdrRoomId(roomId);
+    setIsLDRHost(isHost);
+    handleStartCapture();
+  };
+
+  // Check URL query parameters for LDR room link (?ldr=RLY-1234 or ?room=...)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const ldrParam = urlParams.get("ldr") || urlParams.get("room");
+      if (ldrParam) {
+        setLdrRoomId(ldrParam);
+        setIsLDRHost(false);
+        handleStartCapture();
+      }
+    }
+  }, []);
 
   // Toggle Camera Facing Mode (Front / Back)
   const handleToggleFacingMode = () => {
@@ -307,8 +370,11 @@ export default function RiellyBooth() {
     } catch (e) {}
   }, []);
 
-  // Single Shot Capture Trigger with flexible timer (0s for instant/peace, 3s, 5s)
-  const handleTakeSingleShot = async (customTimer?: number) => {
+  // Single Shot Capture Trigger with flexible timer (0s for instant/peace, 3s, 5s) & camera tuning filters
+  const handleTakeSingleShot = async (
+    customTimer?: number,
+    filters?: { brightness?: number; contrast?: number; beautyGlow?: number }
+  ) => {
     if (isCapturing) return;
     setIsCapturing(true);
 
@@ -319,9 +385,10 @@ export default function RiellyBooth() {
 
     if (videoRef.current) {
       triggerSnapshotFx();
-      const dataUrl = captureCanvasSnapshot(videoRef.current, false, arCanvasRef.current);
+      const dataUrl = captureCanvasSnapshot(videoRef.current, false, arCanvasRef.current, filters);
       const shotId = Date.now() + Math.random();
       const streamToRecord = mediaStreamRef.current;
+      const maxShots = sessionMode === "korean_6" ? 6 : 4;
 
       // Composite canvas stream source for recording Live Photos with AR Face Filters
       let livePhotoSource: MediaStream | HTMLCanvasElement = streamToRecord!;
@@ -364,7 +431,7 @@ export default function RiellyBooth() {
             revokeBlobUrl(nextShots[targetIdx].videoBlobUrl);
           }
           nextShots[targetIdx] = newShot; // Replace ONLY the targeted index cleanly
-          const sliced = nextShots.slice(0, 4);
+          const sliced = nextShots.slice(0, maxShots);
           syncShots(sliced);
           return sliced;
         });
@@ -394,7 +461,7 @@ export default function RiellyBooth() {
         setShots((prevShots) => {
           const updatedShots = [...prevShots, newShot];
           syncShots(updatedShots);
-          if (updatedShots.length < 4) {
+          if (updatedShots.length < maxShots) {
             setCurrentShotIndex(updatedShots.length + 1);
           } else {
             setStep("review");
@@ -499,7 +566,8 @@ export default function RiellyBooth() {
           subtitleText,
           placedStickers,
           isFlipped,
-          customLogoImg
+          customLogoImg,
+          customFrameOverlayImg
         );
         return;
       }
@@ -524,11 +592,12 @@ export default function RiellyBooth() {
           subtitleText,
           placedStickers,
           isFlipped,
-          customLogoImg
+          customLogoImg,
+          customFrameOverlayImg
         );
       });
     },
-    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped, customLogoImg]
+    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped, customLogoImg, customFrameOverlayImg]
   );
 
   // Trigger re-render when Google Web Fonts finish loading
@@ -720,6 +789,57 @@ export default function RiellyBooth() {
     }
   };
 
+  // Animated GIF Export (GIF Animasi 🎞️)
+  const handleDownloadGif = async () => {
+    if (!canvasRef.current || isExportingGif) return;
+    setIsExportingGif(true);
+
+    try {
+      const gifBlob = await createGifFromCanvas(canvasRef.current, {
+        frameCount: 8,
+        delay: 200,
+        maxWidth: 380,
+      });
+
+      const randomHash = Math.random().toString(36).substring(2, 8);
+      const filename = `riellybooth-animated-${randomHash}.gif`;
+      const url = URL.createObjectURL(gifBlob);
+
+      if (isMobileDevice() && navigator.share) {
+        try {
+          const file = new File([gifBlob], filename, { type: "image/gif" });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: "riellybooth Animated GIF",
+              text: "Animated GIF photostrip created with riellybooth ♡ ✨",
+            });
+            setIsExportingGif(false);
+            setTimeout(() => setShowShareModal(true), 400);
+            return;
+          }
+        } catch (shareErr) {
+          console.warn("Web Share API gif cancelled:", shareErr);
+        }
+      }
+
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = url;
+      link.click();
+      setIsExportingGif(false);
+
+      try {
+        confetti({ particleCount: 110, spread: 75, origin: { y: 0.6 } });
+      } catch (e) {}
+
+      setTimeout(() => setShowShareModal(true), 400);
+    } catch (err) {
+      console.warn("GIF export failed:", err);
+      setIsExportingGif(false);
+    }
+  };
+
   // NATIVE MULTI-APP SHARE HANDLER
   const handleNativeMultiAppShare = async () => {
     if (!canvasRef.current) return;
@@ -764,12 +884,15 @@ export default function RiellyBooth() {
 
   return (
     <main className="min-h-screen bg-[#FAF7F2] text-[#3C2A2A] flex flex-col justify-between font-sans selection:bg-[#FF85A1] selection:text-white overflow-x-hidden">
+      <InAppBrowserBanner />
+
       <Navbar
         isAudioOn={isAudioOn}
         onToggleAudio={() => setIsAudioOn((v) => !v)}
         onGoHome={() => setStep("landing")}
         onOpenAbout={() => setShowAboutModal(true)}
         onOpenSupport={() => setShowSupportModal(true)}
+        onOpenPrivacy={() => setShowPrivacyModal(true)}
         lang={lang}
         onToggleLang={() => setLang((l) => (l === "id" ? "en" : "id"))}
       />
@@ -779,6 +902,9 @@ export default function RiellyBooth() {
           <LandingStep
             onStart={handleStartCapture}
             onUploadPhotos={handleUploadPhotos}
+            onOpenLDR={() => setShowLDRModal(true)}
+            onOpenPrivacy={() => setShowPrivacyModal(true)}
+            onOpenWhatsNew={() => setShowWhatsNewModal(true)}
             lang={lang}
           />
         )}
@@ -801,6 +927,8 @@ export default function RiellyBooth() {
             facingMode={facingMode}
             onToggleFacingMode={handleToggleFacingMode}
             retakeIndex={retakeIndex}
+            maxShots={sessionMode === "korean_6" ? 6 : 4}
+            onToggleSessionMode={(mode) => setSessionMode(mode)}
           />
         )}
 
@@ -811,7 +939,12 @@ export default function RiellyBooth() {
             retakeIndex={retakeIndex}
             onRetakeSingle={handleRetakeSingle}
             onRetakeAll={handleRetakeAll}
-            onNextToEditor={() => setStep("editor")}
+            onNextToEditor={(chosen) => {
+              if (chosen && chosen.length > 0) {
+                setShots(chosen);
+              }
+              setStep("editor");
+            }}
           />
         )}
 
@@ -840,6 +973,9 @@ export default function RiellyBooth() {
             customLogoUrl={customLogoUrl}
             onUploadCustomLogo={handleUploadCustomLogo}
             onClearCustomLogo={handleClearCustomLogo}
+            customFrameOverlayUrl={customFrameOverlayUrl}
+            onUploadCustomFrameOverlay={handleUploadCustomFrameOverlay}
+            onClearCustomFrameOverlay={handleClearCustomFrameOverlay}
             selectedForSwap={selectedForSwap}
             onSwapPhotos={handleSwapPhotos}
             frameColor={frameColor}
@@ -853,8 +989,10 @@ export default function RiellyBooth() {
             onBack={() => setStep("review")}
             onDownloadPng={handleDownloadPng}
             onDownloadVideo={handleDownloadVideo}
+            onDownloadGif={handleDownloadGif}
             onOpenShareModal={() => setShowShareModal(true)}
             isExportingVideo={isExportingVideo}
+            isExportingGif={isExportingGif}
           />
         )}
       </div>
@@ -879,6 +1017,17 @@ export default function RiellyBooth() {
               <strong className="text-pink-600">riellybooth</strong> adalah aplikasi Virtual Photobooth gratis bergaya Korea & Y2K Aesthetic yang dirancang untuk mengabadikan momen serumu di mana saja tanpa watermark.
             </p>
 
+            {/* Creator Backstory */}
+            <div className="bg-gradient-to-r from-pink-50 to-rose-50 border-2 border-pink-200 p-3.5 rounded-2xl space-y-1.5 text-left text-xs">
+              <span className="font-black text-pink-700 flex items-center gap-1.5">
+                <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
+                <span>Kenapa riellybooth dibuat?</span>
+              </span>
+              <p className="text-slate-600 leading-relaxed font-medium">
+                Berawal dari sering pengen foto photobooth bareng temen & ayang, tapi studio mall antrenya panjang banget dan mahal (40-50rb sekali foto). Akhirnya gue (<a href="https://instagram.com/dhikasatriaaa" target="_blank" rel="noopener noreferrer" className="text-pink-600 font-bold underline">@dhikasatriaaa</a>) mutusin bikin web photobooth gratis ini dari kamar! Tujuannya simpel: biar siapa pun, di mana pun, bisa dapet hasil foto strip estetik tanpa bayar dan tanpa watermark! ♡
+              </p>
+            </div>
+
             <div className="space-y-2 bg-rose-50 border-2 border-pink-200 p-3 rounded-2xl text-xs font-bold text-slate-700">
               <div className="flex items-center gap-2">
                 <Camera className="w-4 h-4 text-pink-500" /> Auto-take gesture V-sign (✌️)
@@ -890,7 +1039,7 @@ export default function RiellyBooth() {
                 <Wand2 className="w-4 h-4 text-sky-500" /> Retro & Webcam Toy Filters
               </div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" /> 100% Bebas Watermark
+                <ShieldCheck className="w-4 h-4 text-emerald-500" /> 100% Bebas Watermark & Aman
               </div>
             </div>
 
@@ -1140,6 +1289,23 @@ export default function RiellyBooth() {
           </div>
         </footer>
       )}
+
+      <LDRRemoteModal
+        isOpen={showLDRModal}
+        onClose={() => setShowLDRModal(false)}
+        onStartLDRSession={handleStartLDRSession}
+      />
+
+      <PrivacyModal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+      />
+
+      <WhatsNewModal
+        isOpen={showWhatsNewModal}
+        onClose={() => setShowWhatsNewModal(false)}
+        onStartSession={handleStartCapture}
+      />
     </main>
   );
 }
