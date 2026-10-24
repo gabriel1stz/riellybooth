@@ -174,7 +174,10 @@ export default function RiellyBooth() {
   }, [step, isAudioOn]);
 
   // Direct Click Handler to Start Photobooth Session & BGM
-  const handleStartCapture = () => {
+  const handleStartCapture = (initialPreset?: string) => {
+    if (initialPreset) {
+      setPreset(initialPreset as FramePreset);
+    }
     shots.forEach((s) => revokeBlobUrl(s.videoBlobUrl));
     setShots([]);
     setCurrentShotIndex(1);

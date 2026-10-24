@@ -675,14 +675,9 @@ export default function EditorStep({
 
                 <div className="max-h-56 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
                   {[
-                    // Editorial Archive Collection (5 Premium Newspaper & Magazine Presets)
-                    { id: "daily_rielly", label: "🗞️ The Daily Rielly", category: "editorial" },
-                    { id: "rielly_archive", label: "🖤 The Rielly Archive", category: "editorial" },
-                    { id: "after_hours", label: "🌙 After Hours (Night Flash)", category: "editorial" },
-                    { id: "sunday_edition", label: "☕ Sunday Edition", category: "editorial" },
-                    { id: "contact_sheet", label: "🎞️ Contact Sheet No. 01", category: "editorial" },
+                    // Editorial Archive Collection (Single Definitive Newspaper Preset)
+                    { id: "daily_rielly", label: "🗞️ The Daily Rielly (Editorial)", category: "editorial" },
                     { id: "riellmatics_news", label: "📰 Riellmatics News", category: "editorial" },
-                    { id: "student_kalcer", label: "🎓 Student Kalcer (Archive)", category: "editorial" },
 
                     // Coquette Collection
                     { id: "coquette", label: "Coquette Ribbon 🎀", category: "coquette" },
@@ -743,30 +738,6 @@ export default function EditorStep({
                             setFontFamily("serif");
                             setCustomText("RIELLYBOOTH");
                             setSubtitleText("A Moment Worth Keeping");
-                          } else if (item.id === "rielly_archive") {
-                            setFrameColor("#FDFBF7");
-                            setTextColor("#111111");
-                            setFontFamily("serif");
-                            setCustomText("THE RIELLY ARCHIVE");
-                            setSubtitleText("A Moment Worth Keeping");
-                          } else if (item.id === "after_hours") {
-                            setFrameColor("#0A0A0C");
-                            setTextColor("#FFFFFF");
-                            setFontFamily("serif");
-                            setCustomText("AFTER HOURS");
-                            setSubtitleText("BY RIELLYBOOTH • CANDID ARCHIVE");
-                          } else if (item.id === "sunday_edition") {
-                            setFrameColor("#F6F2E8");
-                            setTextColor("#221E1F");
-                            setFontFamily("serif");
-                            setCustomText("THE SUNDAY EDITION");
-                            setSubtitleText("A Gentle Record of Ordinary Days");
-                          } else if (item.id === "contact_sheet") {
-                            setFrameColor("#141416");
-                            setTextColor("#FFFFFF");
-                            setFontFamily("mono");
-                            setCustomText("CONTACT SHEET NO. 01");
-                            setSubtitleText("35MM INDIE FILM LAB");
                           } else if (item.id === "riellmatics_news" || item.id === "photomatics_news") {
                             setLayout("strip_2x4");
                             setFrameColor("#ffffff");

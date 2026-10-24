@@ -67,11 +67,11 @@ const FEATURED_FRAMES = [
   {
     id: "halloween_spooky",
     title: "Halloween Spooky 🎃",
-    badge: "Limited (7 Hari Lagi!)",
+    badge: "Limited (Edisi Spesial)",
     tagColor: "bg-orange-500 text-white",
     cardBg: "bg-slate-950 border-orange-500 text-orange-200",
-    description: "Labu jack-o'-lantern, kelelawar terbang & nuansa gothic mistis.",
-    sampleUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=500&q=80",
+    description: "Labu jack-o'-lantern menyala, topi witch mistis & pose peace khas photobooth halloween.",
+    sampleUrl: "/samples/frames/halloween.jpg",
     tags: ["Halloween", "Spooky", "Limited 🎃"],
   },
   {
@@ -80,8 +80,8 @@ const FEATURED_FRAMES = [
     badge: "Koleksi Baru ✨",
     tagColor: "bg-stone-900 text-white",
     cardBg: "bg-[#FAF7F0] border-stone-800 text-stone-900",
-    description: "Koran broadsheet vintage 90-an dengan masthead RIELLYBOOTH besar, kaligrafi 'A Moment Worth Keeping', stempel pos & barcode editorial.",
-    sampleUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=500&q=80",
+    description: "Koran broadsheet vintage 90-an dengan masthead RIELLYBOOTH besar, kaligrafi 'A Moment Worth Keeping' & barcode editorial.",
+    sampleUrl: "/samples/frames/daily_rielly.jpg",
     tags: ["Editorial", "The Daily Rielly", "Vintage 90s"],
   },
   {
@@ -91,7 +91,7 @@ const FEATURED_FRAMES = [
     tagColor: "bg-stone-900 text-white",
     cardBg: "bg-stone-100 border-stone-400 text-stone-900",
     description: "Headline koran editorial retro hitam-putih ala majalah vintage khas riellybooth.",
-    sampleUrl: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=500&q=80",
+    sampleUrl: "/samples/frames/riellmatics.jpg",
     tags: ["Editorial", "Monochrome", "Vintage"],
   },
   {
@@ -100,8 +100,8 @@ const FEATURED_FRAMES = [
     badge: "Viral Gen Z",
     tagColor: "bg-pink-500 text-white",
     cardBg: "bg-white border-pink-300 text-pink-700",
-    description: "Pita satin lembut, pearl borders, dan tone blush pink estetik.",
-    sampleUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=80",
+    description: "Pita satin lembut, pearl borders, dan tone blush pink estetik favorit TikTok.",
+    sampleUrl: "/samples/frames/coquette.jpg",
     tags: ["Coquette", "Aesthetic", "Soft Pink"],
   },
   {
@@ -110,8 +110,8 @@ const FEATURED_FRAMES = [
     badge: "Retro Cyber",
     tagColor: "bg-purple-600 text-white",
     cardBg: "bg-gradient-to-b from-purple-950 to-indigo-950 border-purple-400 text-purple-200",
-    description: "Sparkle bintang 4 sudut, chrome metallic & vibe tahun 2000-an.",
-    sampleUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=500&q=80",
+    description: "Sparkle bintang 4 sudut, chrome metallic & vibe arcade tahun 2000-an.",
+    sampleUrl: "/samples/frames/cyber_y2k.jpg",
     tags: ["Y2K", "Cyber", "Sparkles"],
   },
   {
@@ -120,8 +120,8 @@ const FEATURED_FRAMES = [
     badge: "Cozy Mood",
     tagColor: "bg-amber-700 text-white",
     cardBg: "bg-amber-50 border-amber-300 text-amber-900",
-    description: "Thermal receipt struk kopi estetik lengkap barcode & rincian pesanan.",
-    sampleUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80",
+    description: "Thermal receipt struk kopi estetik lengkap barcode & rincian pesanan cafe santai.",
+    sampleUrl: "/samples/frames/cafe_receipt.jpg",
     tags: ["Receipt", "Cafe", "Thermal"],
   },
   {
@@ -130,8 +130,8 @@ const FEATURED_FRAMES = [
     badge: "Festival",
     tagColor: "bg-emerald-600 text-white",
     cardBg: "bg-emerald-950 border-emerald-400 text-emerald-200",
-    description: "Tiket festival backstage VIP pass dengan lanyard clip digital.",
-    sampleUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=500&q=80",
+    description: "Tiket festival backstage VIP pass dengan lanyard clip digital & lampu konser neon.",
+    sampleUrl: "/samples/frames/festival_vip.jpg",
     tags: ["Concert", "VIP Pass", "Festival"],
   },
   {
@@ -140,8 +140,8 @@ const FEATURED_FRAMES = [
     badge: "Hallyu",
     tagColor: "bg-rose-500 text-white",
     cardBg: "bg-rose-50 border-rose-300 text-rose-800",
-    description: "Sudut rounded 4R layaknya official photocard album idol K-Pop.",
-    sampleUrl: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=500&q=80",
+    description: "Sudut rounded 4R layaknya official photocard album idol K-Pop dengan stiker lucu.",
+    sampleUrl: "/samples/frames/kpop_photocard.jpg",
     tags: ["K-Pop", "Photocard", "Polarr"],
   },
   {
@@ -150,8 +150,8 @@ const FEATURED_FRAMES = [
     badge: "Anime Mood",
     tagColor: "bg-sky-600 text-white",
     cardBg: "bg-sky-50 border-sky-300 text-sky-800",
-    description: "Seragam sekolah Korea & bingkai manga panel aesthetic.",
-    sampleUrl: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=500&q=80",
+    description: "Seragam sekolah Korea & bingkai manga panel aesthetic dengan balon dialog.",
+    sampleUrl: "/samples/frames/webtoon_school.jpg",
     tags: ["School", "Webtoon", "Manga"],
   },
 ];
@@ -277,7 +277,7 @@ function PhotostripTrioShowcase() {
 }
 
 type LandingStepProps = {
-  onStart: () => void;
+  onStart: (initialPreset?: string) => void;
   onUploadPhotos?: (files: FileList) => void;
   onOpenLDR?: () => void;
   onOpenPrivacy?: () => void;
@@ -369,7 +369,7 @@ export default function LandingStep({
         <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 pt-1 w-full max-w-xl">
           <button
             type="button"
-            onClick={onStart}
+            onClick={() => onStart()}
             className="w-full sm:w-auto bg-pink-400 hover:bg-pink-500 border-2 border-pink-500 text-white rounded-full px-6 py-3.5 text-sm sm:text-base font-extrabold shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group cursor-pointer"
           >
             <Camera className="w-5 h-5 animate-pulse" />
@@ -514,7 +514,7 @@ export default function LandingStep({
               {/* Action Button */}
               <button
                 type="button"
-                onClick={onStart}
+                onClick={() => onStart(f.id)}
                 className="mt-4 w-full py-2.5 px-3 bg-pink-500 hover:bg-pink-600 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Pakai Frame Ini</span>
@@ -771,7 +771,7 @@ export default function LandingStep({
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             type="button"
-            onClick={onStart}
+            onClick={() => onStart()}
             className="bg-pink-400 hover:bg-pink-500 border-2 border-pink-500 text-white rounded-full px-8 py-3.5 text-sm sm:text-base font-extrabold shadow-md hover:scale-105 active:scale-95 transition-all inline-flex items-center justify-center gap-2 cursor-pointer"
           >
             <Camera className="w-5 h-5" />
