@@ -16,7 +16,7 @@ import WhatsNewModal from "@/components/WhatsNewModal";
 import { createGifFromCanvas } from "@/lib/gifUtils";
 import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet, revokeBlobUrl } from "@/lib/cameraUtils";
 import { drawPhotoStrip, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
-import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
+import { playShutterSound } from "@/lib/audioUtils";
 import QRCode from "qrcode";
 import { LDRPeerManager, LDRSessionState, LDRMessage, normalizeRoomCode } from "@/lib/ldrPeerManager";
 import { P2PStripSender, P2PStripReceiver } from "@/lib/p2pStripTransfer";
@@ -158,22 +158,7 @@ export default function RiellyBooth() {
     });
   }, [shots]);
 
-  // CONTINUOUS BGM MUSIC PLAYBACK ACROSS ALL STEPS (capture -> review -> editor) ONCE STARTED
-  useEffect(() => {
-    if (step !== "landing" && isAudioOn) {
-      setBgmState(true);
-    } else if (!isAudioOn) {
-      setBgmState(false);
-    }
-
-    return () => {
-      if (step === "landing") {
-        stopBgm();
-      }
-    };
-  }, [step, isAudioOn]);
-
-  // Direct Click Handler to Start Photobooth Session & BGM
+  // Direct Click Handler to Start Photobooth Session
   const handleStartCapture = (initialPreset?: string) => {
     if (initialPreset) {
       setPreset(initialPreset as FramePreset);
@@ -182,8 +167,6 @@ export default function RiellyBooth() {
     setShots([]);
     setCurrentShotIndex(1);
     setRetakeIndex(null);
-    setIsAudioOn(true);
-    setBgmState(true);
     setStep("capture");
   };
 
@@ -739,8 +722,6 @@ export default function RiellyBooth() {
     setShots([]);
     setCurrentShotIndex(1);
     setRetakeIndex(null);
-    setIsAudioOn(true);
-    setBgmState(true);
     setStep("capture");
   };
 

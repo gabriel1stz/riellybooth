@@ -689,7 +689,7 @@ export default function CaptureStep({
         <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-white/60 z-30 pointer-events-none" />
 
         {/* Camera Status Indicator Pill */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 flex items-center gap-2 pointer-events-none text-white text-[11px] font-heading font-bold">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-black/80 px-3 py-1 rounded-full border border-white/20 flex items-center gap-2 pointer-events-none text-white text-[11px] font-heading font-bold">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span>LIVE STUDIO VIEW</span>
         </div>
@@ -736,16 +736,12 @@ export default function CaptureStep({
                   playsInline
                   muted
                   style={{
-                    filter: `brightness(${cameraBrightness}%) contrast(${cameraContrast}%) ${
-                      beautyGlow > 0
-                        ? `drop-shadow(0 0 ${beautyGlow * 0.12}px rgba(248, 216, 227, 0.45))`
-                        : ""
-                    }`,
+                    filter: `brightness(${cameraBrightness}%) contrast(${cameraContrast}%)`,
                   }}
                   className={`w-full h-full object-cover ${facingMode === "user" ? "-scale-x-100" : ""}`}
                 />
                 {remoteStream && (
-                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-[10px] font-heading font-bold text-white rounded-md z-10">
+                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/80 text-[10px] font-heading font-bold text-white rounded-md z-10">
                     Kamu 👤
                   </div>
                 )}
@@ -775,7 +771,7 @@ export default function CaptureStep({
                       muted
                       className="w-full h-full object-cover -scale-x-100"
                     />
-                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-[10px] font-heading font-bold text-white rounded-md z-10">
+                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/80 text-[10px] font-heading font-bold text-white rounded-md z-10">
                       Partner LDR 🌍
                     </div>
                   </div>
@@ -794,7 +790,7 @@ export default function CaptureStep({
             {/* Gesture Progress Overlay */}
             {gestureStatus && (
               <div className="absolute top-14 inset-x-4 z-20 flex flex-col items-center gap-1">
-                <div className="px-4 py-2 bg-black/80 backdrop-blur-md border border-[#F48FB1] text-white text-xs font-heading font-bold rounded-full shadow-paper flex items-center gap-2">
+                <div className="px-4 py-2 bg-black/90 border border-[#F48FB1] text-white text-xs font-heading font-bold rounded-full shadow-paper flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#F48FB1] animate-spin" />
                   <span>{gestureStatus}</span>
                 </div>
@@ -811,7 +807,7 @@ export default function CaptureStep({
 
             {/* COUNTDOWN OVERLAY */}
             {countdown !== null && (
-              <div className="absolute inset-0 backdrop-blur-md bg-stone-950/70 transition-all duration-300 z-30 flex flex-col items-center justify-center gap-3">
+              <div className="absolute inset-0 bg-stone-950/85 transition-all duration-300 z-30 flex flex-col items-center justify-center gap-3">
                 <span className="text-8xl sm:text-9xl font-heading font-black text-white drop-shadow-[0_8px_16px_rgba(232,77,145,0.6)] animate-ping">
                   {countdown}
                 </span>

@@ -131,7 +131,7 @@ export default function ReviewStep({
                 )}
 
                 {/* Left Badge: Pose Index */}
-                <span className="absolute top-2 left-2 bg-[#FFF9F0]/90 backdrop-blur-md text-[10px] text-[#392633] font-heading font-bold px-2 py-0.5 rounded-md border border-[#E9B8CA] shadow-xs">
+                <span className="absolute top-2 left-2 bg-[#FFF9F0] text-[10px] text-[#392633] font-heading font-bold px-2 py-0.5 rounded-md border border-[#E9B8CA] shadow-xs">
                   Pose #{idx + 1}
                 </span>
 

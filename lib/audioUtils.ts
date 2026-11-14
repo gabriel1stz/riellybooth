@@ -131,35 +131,24 @@ export const playShutterSound = (): void => {
 };
 
 /**
- * Starts or stops the background music track safely based on play/mute state
+ * Starts or stops the background music track safely based on play/mute state.
+ * Disabled by default to prevent thermal throttling and CPU audio lag on older mobile devices.
  */
-export const setBgmState = (shouldPlay: boolean): void => {
-  try {
-    if (!shouldPlay && !bgmAudio) return;
-    const audio = getBgmAudio();
-    if (!audio) return;
-
-    if (shouldPlay) {
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          console.warn("BGM play blocked by autoplay policy or missing /audio/bgm.mp3:", err.message);
-        });
-      }
-    } else {
-      audio.pause();
-    }
-  } catch (err) {
-    console.warn("BGM state change error:", err);
-  }
+export const setBgmState = (_shouldPlay: boolean): void => {
+  // BGM disabled to prevent background CPU drain, audio decoding lag, and battery overheating
+  stopBgm();
 };
 
 /**
- * Stops background music completely
+ * Stops background music completely and releases audio element
  */
 export const stopBgm = (): void => {
   if (bgmAudio) {
-    bgmAudio.pause();
-    bgmAudio.currentTime = 0;
+    try {
+      bgmAudio.pause();
+      bgmAudio.currentTime = 0;
+      bgmAudio.src = "";
+    } catch (e) {}
+    bgmAudio = null;
   }
 };

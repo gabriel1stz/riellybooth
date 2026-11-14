@@ -130,13 +130,12 @@ export default function Navbar({
             <button
               type="button"
               onClick={onToggleAudio}
-              className={`p-2 rounded-full border transition flex items-center justify-center cursor-pointer ${
-                isAudioOn
+              className={`p-2 rounded-full border transition flex items-center justify-center cursor-pointer ${isAudioOn
                   ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
                   : "bg-stone-100 border-stone-200 text-stone-400"
-              }`}
-              title={isAudioOn ? "Matikan Musik BGM" : "Nyalakan Musik BGM"}
-              aria-label={isAudioOn ? "Matikan Musik BGM" : "Nyalakan Musik BGM"}
+                }`}
+              title={isAudioOn ? "Matikan Efek Suara Kamera" : "Nyalakan Efek Suara Kamera"}
+              aria-label={isAudioOn ? "Matikan Efek Suara Kamera" : "Nyalakan Efek Suara Kamera"}
             >
               {isAudioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
@@ -161,12 +160,11 @@ export default function Navbar({
             <button
               type="button"
               onClick={onToggleAudio}
-              className={`p-2 rounded-full border text-xs cursor-pointer ${
-                isAudioOn
+              className={`p-2 rounded-full border text-xs cursor-pointer ${isAudioOn
                   ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
                   : "bg-stone-100 border-stone-200 text-stone-400"
-              }`}
-              aria-label={isAudioOn ? "Matikan Musik BGM" : "Nyalakan Musik BGM"}
+                }`}
+              aria-label={isAudioOn ? "Matikan Efek Suara Kamera" : "Nyalakan Efek Suara Kamera"}
             >
               {isAudioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>

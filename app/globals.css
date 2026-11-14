@@ -8,14 +8,19 @@
   body {
     @apply bg-[#FFF0F4] text-[#392633] font-sans antialiased selection:bg-[#F48FB1] selection:text-white min-h-screen;
     background-color: #FFF0F4;
-    background-image: 
+    background-image:
       radial-gradient(#F8D8E3 1px, transparent 1px),
       radial-gradient(#F48FB1 0.7px, transparent 0.7px);
     background-size: 24px 24px, 48px 48px;
     background-position: 0 0, 12px 12px;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-heading tracking-tight;
   }
 }
@@ -23,7 +28,7 @@
 /* Gen Z Scrapbook Craft Elements */
 .scrapbook-paper {
   background-color: #FFF9F0;
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(57, 38, 51, 0.06),
     0 8px 24px -4px rgba(232, 77, 145, 0.1);
   border: 2px solid #E9B8CA;
@@ -33,7 +38,7 @@
 .scrapbook-polaroid {
   background-color: #FFFFFF;
   padding: 0.75rem 0.75rem 2rem 0.75rem;
-  box-shadow: 
+  box-shadow:
     0 4px 16px -2px rgba(57, 38, 51, 0.12),
     0 1px 4px rgba(0, 0, 0, 0.04);
   border: 1px solid #E9B8CA;
@@ -42,7 +47,7 @@
 
 .scrapbook-polaroid:hover {
   transform: translateY(-4px) rotate(0deg) !important;
-  box-shadow: 
+  box-shadow:
     0 12px 28px -4px rgba(232, 77, 145, 0.2),
     0 2px 8px rgba(57, 38, 51, 0.08);
 }
@@ -52,8 +57,7 @@
   position: absolute;
   height: 1.35rem;
   width: 5.5rem;
-  background: rgba(244, 143, 177, 0.65);
-  backdrop-filter: blur(2px);
+  background: rgba(244, 143, 177, 0.75);
   border-left: 2px dashed rgba(255, 255, 255, 0.8);
   border-right: 2px dashed rgba(255, 255, 255, 0.8);
   box-shadow: 0 1px 3px rgba(57, 38, 51, 0.12);
@@ -139,7 +143,10 @@
 
 /* Prefers Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
+
+  *,
+  ::before,
+  ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

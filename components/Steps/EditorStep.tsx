@@ -456,7 +456,7 @@ export default function EditorStep({
       {/* 2. MIDDLE SECTION: CANVAS STUDIO PREVIEW + TABS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
         {/* Left Interactive Canvas Preview Container */}
-        <div className="lg:col-span-6 flex flex-col items-center gap-2 sticky top-16 z-30 bg-[#FFF0F4]/95 backdrop-blur-md p-2 rounded-2xl shadow-paper lg:static lg:bg-transparent lg:p-0 lg:shadow-none w-full">
+        <div className="lg:col-span-6 flex flex-col items-center gap-2 sticky top-16 z-30 bg-[#FFF0F4] p-2 rounded-2xl shadow-paper lg:static lg:bg-transparent lg:p-0 lg:shadow-none w-full">
           <div className="w-full flex items-center justify-between px-2 py-1">
             <span className="text-[11px] font-heading font-bold text-[#E84D91] uppercase tracking-wider flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5 text-[#E84D91]" /> KANVAS PRATINJAU STUDIO
@@ -486,7 +486,7 @@ export default function EditorStep({
           >
             {/* Anti-Flicker Smooth Overlay Loader */}
             {isUpdatingCanvas && (
-              <div className="absolute inset-0 bg-white/70 backdrop-blur-xs z-40 flex items-center justify-center gap-2 pointer-events-none transition-opacity duration-150">
+              <div className="absolute inset-0 bg-white/85 z-40 flex items-center justify-center gap-2 pointer-events-none transition-opacity duration-150">
                 <Sparkles className="w-5 h-5 text-[#E84D91] animate-spin" />
                 <span className="text-xs font-heading font-bold text-[#392633]">Memperbarui Tampilan...</span>
               </div>
