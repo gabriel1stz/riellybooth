@@ -11,7 +11,7 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react";
-import { generateLDRRoomCode } from "@/lib/ldrPeerManager";
+import { generateLDRRoomCode, normalizeRoomCode } from "@/lib/ldrPeerManager";
 
 type LDRRemoteModalProps = {
   isOpen: boolean;
@@ -59,7 +59,7 @@ export default function LDRRemoteModal({
 
   const handleJoinGuest = () => {
     if (!inputRoomId.trim()) return;
-    const cleanId = inputRoomId.trim().toUpperCase();
+    const cleanId = normalizeRoomCode(inputRoomId);
     onStartLDRSession(cleanId, false);
     onClose();
   };

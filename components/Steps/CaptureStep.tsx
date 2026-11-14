@@ -761,7 +761,15 @@ export default function CaptureStep({
 
                   <div className="w-1/2 h-full relative overflow-hidden bg-black flex items-center justify-center">
                     <video
-                      ref={remoteVideoRef}
+                      ref={(el) => {
+                        if (remoteVideoRef) {
+                          (remoteVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el;
+                        }
+                        if (el && remoteStream && el.srcObject !== remoteStream) {
+                          el.srcObject = remoteStream;
+                          el.play().catch((e) => console.warn("Remote video auto-play error:", e));
+                        }
+                      }}
                       autoPlay
                       playsInline
                       muted

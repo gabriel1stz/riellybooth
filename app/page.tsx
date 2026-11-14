@@ -18,7 +18,7 @@ import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveV
 import { drawPhotoStrip, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
 import { playShutterSound, setBgmState, stopBgm } from "@/lib/audioUtils";
 import QRCode from "qrcode";
-import { LDRPeerManager, LDRSessionState, LDRMessage } from "@/lib/ldrPeerManager";
+import { LDRPeerManager, LDRSessionState, LDRMessage, normalizeRoomCode } from "@/lib/ldrPeerManager";
 import { P2PStripSender, P2PStripReceiver } from "@/lib/p2pStripTransfer";
 import LDRAmissionModal from "@/components/LDRAmissionModal";
 import P2PTransferReceiverModal from "@/components/P2PTransferReceiverModal";
@@ -235,19 +235,23 @@ export default function RiellyBooth() {
 
   // Remote LDR Photobooth Session Trigger with real WebRTC P2P
   const handleStartLDRSession = async (roomId: string, isHost: boolean) => {
-    setLdrRoomId(roomId);
+    const cleanRoomCode = normalizeRoomCode(roomId);
+    setLdrRoomId(cleanRoomCode);
     setIsLDRHost(isHost);
     handleStartCapture();
 
     // Pastikan camera stream siap
     let stream = mediaStreamRef.current;
-    if (!stream) {
+    if (!stream || !stream.active || stream.getVideoTracks().length === 0) {
       try {
         stream = await startCameraStream(facingMode);
         mediaStreamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
-      } catch (err) {
+      } catch (err: any) {
         console.warn("LDR Camera start error:", err);
+        setCameraError(err.message || "Gagal mengoneksikan kamera.");
+        setLdrStatusMessage("Kamera belum aktif. Berikan izin kamera di browser kamu lalu coba lagi.");
+        return;
       }
     }
 
@@ -265,7 +269,7 @@ export default function RiellyBooth() {
           if (state.guestRequest) {
             setPendingGuestRequest({
               guestName: state.guestRequest.guestName,
-              roomCode: roomId,
+              roomCode: cleanRoomCode,
               accept: state.guestRequest.accept,
               reject: state.guestRequest.reject,
             });
@@ -279,6 +283,24 @@ export default function RiellyBooth() {
           runCountdown(msg.seconds).then(() => {
             triggerSnapshotFx();
           });
+        } else if (msg.type === "SYNC_SHOT") {
+          // Synchronize shot captured by remote partner
+          const newShot: Shot = {
+            id: Date.now() + Math.random(),
+            dataUrl: msg.dataUrl,
+            videoBlobUrl: undefined,
+          };
+          setShots((prevShots) => {
+            const maxShots = sessionMode === "korean_6" ? 6 : 4;
+            const updated = [...prevShots, newShot];
+            syncShots(updated);
+            if (updated.length < maxShots) {
+              setCurrentShotIndex(updated.length + 1);
+            } else {
+              setStep("review");
+            }
+            return updated;
+          });
         } else if (msg.type === "SESSION_ENDED") {
           setLdrStatusMessage("Sesi LDR telah berakhir.");
           setRemoteStream(null);
@@ -289,9 +311,9 @@ export default function RiellyBooth() {
     ldrManagerRef.current = manager;
 
     if (isHost) {
-      await manager.initHostRoom(roomId, stream);
+      await manager.initHostRoom(cleanRoomCode, stream);
     } else {
-      await manager.joinRoom(roomId, stream);
+      await manager.joinRoom(cleanRoomCode, stream);
     }
   };
 
@@ -331,12 +353,12 @@ export default function RiellyBooth() {
           }
         );
       } else if (ldrParam) {
-        setLdrRoomId(ldrParam);
+        const cleanCode = normalizeRoomCode(ldrParam);
+        setLdrRoomId(cleanCode);
         setIsLDRHost(false);
-        handleStartCapture();
         setTimeout(() => {
-          handleStartLDRSession(ldrParam, false);
-        }, 800);
+          handleStartLDRSession(cleanCode, false);
+        }, 300);
       }
     }
   }, []);
@@ -383,10 +405,21 @@ export default function RiellyBooth() {
   }, [showShareModal, downloadedDataUrl]);
 
   // Toggle Camera Facing Mode (Front / Back)
-  const handleToggleFacingMode = () => {
+  const handleToggleFacingMode = async () => {
     stopCameraStream(mediaStreamRef.current);
     mediaStreamRef.current = null;
-    setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
+    const nextMode = facingMode === "user" ? "environment" : "user";
+    setFacingMode(nextMode);
+    try {
+      const newStream = await startCameraStream(nextMode);
+      mediaStreamRef.current = newStream;
+      if (videoRef.current) videoRef.current.srcObject = newStream;
+      if (ldrManagerRef.current) {
+        ldrManagerRef.current.updateLocalStream(newStream);
+      }
+    } catch (e: any) {
+      console.warn("Camera switch error:", e);
+    }
   };
 
   // WebRTC Stream Lifecycle Management
@@ -395,6 +428,18 @@ export default function RiellyBooth() {
 
     if (step === "capture") {
       setCameraError(null);
+
+      // Avoid double requesting camera if stream is already actively running
+      if (
+        mediaStreamRef.current &&
+        mediaStreamRef.current.active &&
+        mediaStreamRef.current.getVideoTracks().length > 0
+      ) {
+        if (videoRef.current && videoRef.current.srcObject !== mediaStreamRef.current) {
+          videoRef.current.srcObject = mediaStreamRef.current;
+        }
+        return;
+      }
 
       startCameraStream(facingMode)
         .then((stream) => {
@@ -405,6 +450,9 @@ export default function RiellyBooth() {
           mediaStreamRef.current = stream;
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
+          }
+          if (ldrManagerRef.current) {
+            ldrManagerRef.current.updateLocalStream(stream);
           }
         })
         .catch((err: Error) => {
@@ -651,6 +699,11 @@ export default function RiellyBooth() {
           }
           return updatedShots;
         });
+
+        // Broadcast captured snapshot to LDR partner
+        if (ldrManagerRef.current && remoteStream) {
+          ldrManagerRef.current.syncShot(currentShotIndex, dataUrl);
+        }
 
         // Non-blocking background video snippet compilation
         if (livePhotoSource && isLivePhotoOn) {

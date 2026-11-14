@@ -136,6 +136,7 @@ export default function Navbar({
                   : "bg-stone-100 border-stone-200 text-stone-400"
               }`}
               title={isAudioOn ? "Matikan Musik BGM" : "Nyalakan Musik BGM"}
+              aria-label={isAudioOn ? "Matikan Musik BGM" : "Nyalakan Musik BGM"}
             >
               {isAudioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
@@ -165,6 +166,7 @@ export default function Navbar({
                   ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
                   : "bg-stone-100 border-stone-200 text-stone-400"
               }`}
+              aria-label={isAudioOn ? "Matikan Musik BGM" : "Nyalakan Musik BGM"}
             >
               {isAudioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
