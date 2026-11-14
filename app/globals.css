@@ -6,25 +6,143 @@
 
 @layer base {
   body {
-    @apply bg-[#FAF7F2] text-[#3C2A2A] font-sans antialiased selection:bg-[#FF85A1] selection:text-white;
+    @apply bg-[#FFF0F4] text-[#392633] font-sans antialiased selection:bg-[#F48FB1] selection:text-white min-h-screen;
+    background-color: #FFF0F4;
+    background-image: 
+      radial-gradient(#F8D8E3 1px, transparent 1px),
+      radial-gradient(#F48FB1 0.7px, transparent 0.7px);
+    background-size: 24px 24px, 48px 48px;
+    background-position: 0 0, 12px 12px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
   }
 }
 
-.bg-pattern-polkadot {
-  background-image: radial-gradient(#f472b6 1.2px, transparent 1.2px);
-  background-size: 20px 20px;
+/* Gen Z Scrapbook Craft Elements */
+.scrapbook-paper {
+  background-color: #FFF9F0;
+  box-shadow: 
+    0 1px 3px rgba(57, 38, 51, 0.06),
+    0 8px 24px -4px rgba(232, 77, 145, 0.1);
+  border: 2px solid #E9B8CA;
+  border-radius: 1.5rem;
 }
 
-/* Custom Micro-Animation Utilities */
-@keyframes spinSlow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.scrapbook-polaroid {
+  background-color: #FFFFFF;
+  padding: 0.75rem 0.75rem 2rem 0.75rem;
+  box-shadow: 
+    0 4px 16px -2px rgba(57, 38, 51, 0.12),
+    0 1px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid #E9B8CA;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
 }
 
-.animate-spin-slow {
-  animation: spinSlow 8s linear infinite;
+.scrapbook-polaroid:hover {
+  transform: translateY(-4px) rotate(0deg) !important;
+  box-shadow: 
+    0 12px 28px -4px rgba(232, 77, 145, 0.2),
+    0 2px 8px rgba(57, 38, 51, 0.08);
+}
+
+/* Washi Tape Ribbon Effect */
+.washi-tape {
+  position: absolute;
+  height: 1.35rem;
+  width: 5.5rem;
+  background: rgba(244, 143, 177, 0.65);
+  backdrop-filter: blur(2px);
+  border-left: 2px dashed rgba(255, 255, 255, 0.8);
+  border-right: 2px dashed rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 3px rgba(57, 38, 51, 0.12);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.washi-tape-yellow {
+  background: rgba(254, 240, 138, 0.75);
+}
+
+.washi-tape-mint {
+  background: rgba(167, 243, 208, 0.75);
+}
+
+.washi-tape-lavender {
+  background: rgba(233, 213, 255, 0.75);
+}
+
+/* Stamp border for cute cards */
+.stamp-edge {
+  background-image: radial-gradient(circle at 10px 0, transparent 0, transparent 6px, #FFF9F0 7px);
+}
+
+/* Handwritten font class */
+.font-handwriting {
+  font-family: var(--font-caveat), 'Caveat', cursive;
+}
+
+.font-heading {
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+}
+
+.font-sans {
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+}
+
+/* Subtle Scrapbook Pin / Button */
+.scrapbook-btn {
+  background-color: #E84D91;
+  color: #FFFFFF;
+  font-family: var(--font-fredoka), sans-serif;
+  font-weight: 600;
+  border-radius: 9999px;
+  box-shadow: 0 4px 0 #392633;
+  transition: all 0.15s ease-out;
+}
+
+.scrapbook-btn:hover {
+  background-color: #F48FB1;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 #392633;
+}
+
+.scrapbook-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #392633;
+}
+
+.scrapbook-btn-secondary {
+  background-color: #FFF9F0;
+  color: #392633;
+  font-family: var(--font-fredoka), sans-serif;
+  font-weight: 600;
+  border: 2px solid #E9B8CA;
+  border-radius: 9999px;
+  box-shadow: 0 3px 0 #E9B8CA;
+  transition: all 0.15s ease-out;
+}
+
+.scrapbook-btn-secondary:hover {
+  background-color: #FFF0F4;
+  border-color: #E84D91;
+  color: #E84D91;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #E84D91;
+}
+
+.scrapbook-btn-secondary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #E84D91;
+}
+
+/* Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

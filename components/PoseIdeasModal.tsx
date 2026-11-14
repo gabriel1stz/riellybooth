@@ -45,7 +45,7 @@ const POSE_COLLECTION: Record<
       title: "Double Peace Side (V di Samping)",
       desc: "Keduanya mengangkat tangan pose peace menyamping di dekat pelipis mata.",
       vibe: "Korean Idol",
-      tips: "Tahan 1 detik untuk memicu Peace Auto-Take riellybooth!",
+      tips: "Tahan 1 detik untuk memicu Peace Auto-Take RiellyBooth!",
       emoji: "✌️",
       imgUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     },
@@ -79,7 +79,7 @@ const POSE_COLLECTION: Record<
       title: "Sunglasses Lower (Intip Kacamata)",
       desc: "Turunkan sedikit kacamata hitam di batang hidung dan tatap kamera di atas bingkai.",
       vibe: "Cyber Y2K",
-      tips: "Padukan dengan bingkai Cyber Y2K Sparkle di riellybooth!",
+      tips: "Padukan dengan bingkai Cyber Y2K Sparkle di RiellyBooth!",
       emoji: "🕶️",
       imgUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=400&q=80",
     },
@@ -115,7 +115,7 @@ const POSE_COLLECTION: Record<
       title: "Cat Paws (Cakar Kucing Manis)",
       desc: "Bentuk kedua tangan mengepal seperti cakar kucing di samping pipi.",
       vibe: "Neko Kawaii",
-      tips: "Nyalakan filter AR Kucing di kamera riellybooth!",
+      tips: "Nyalakan filter AR Kucing di kamera RiellyBooth!",
       emoji: "🐾",
       imgUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     },
@@ -154,41 +154,41 @@ export default function PoseIdeasModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white border-4 border-pink-300 rounded-3xl p-5 sm:p-6 max-w-2xl w-full shadow-2xl space-y-4 relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+      <div className="scrapbook-paper bg-[#FFF9F0] border-4 border-[#E9B8CA] p-5 sm:p-6 max-w-2xl w-full shadow-paper-lg space-y-4 relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 rounded-full bg-[#FFF0F4] text-[#E84D91] hover:bg-[#F8D8E3] border border-[#E9B8CA] transition cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
         <div className="text-center space-y-1 shrink-0">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-pink-100 rounded-full border border-pink-300 text-pink-700 text-xs font-black">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFF0F4] rounded-full border border-[#E9B8CA] text-[#E84D91] text-xs font-heading font-bold">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Katalog Pose Viral</span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-black text-slate-800">
+          <h3 className="text-xl sm:text-2xl font-heading font-bold text-[#392633]">
             Inspirasi Pose Photobooth 📸
           </h3>
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-xs text-[#8B7180] font-sans font-medium">
             Bingung mau gaya apa pas countdown? Pilih ide pose estetik di bawah ini!
           </p>
         </div>
 
         {/* Category Tabs */}
         <div className="flex justify-center shrink-0">
-          <div className="inline-flex bg-pink-50 p-1 rounded-2xl border border-pink-200 gap-1 overflow-x-auto max-w-full">
+          <div className="inline-flex bg-[#FFF0F4] p-1 rounded-2xl border border-[#E9B8CA] gap-1 overflow-x-auto max-w-full">
             <button
               type="button"
               onClick={() => setActiveTab("duo")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === "duo"
-                  ? "bg-pink-500 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-pink-100/50"
+                  ? "bg-[#E84D91] text-white shadow-xs"
+                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
               }`}
             >
               <Heart className="w-3.5 h-3.5" />
@@ -198,10 +198,10 @@ export default function PoseIdeasModal({
             <button
               type="button"
               onClick={() => setActiveTab("solo")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === "solo"
-                  ? "bg-pink-500 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-pink-100/50"
+                  ? "bg-[#E84D91] text-white shadow-xs"
+                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
               }`}
             >
               <User className="w-3.5 h-3.5" />
@@ -211,10 +211,10 @@ export default function PoseIdeasModal({
             <button
               type="button"
               onClick={() => setActiveTab("group")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === "group"
-                  ? "bg-pink-500 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-pink-100/50"
+                  ? "bg-[#E84D91] text-white shadow-xs"
+                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -224,10 +224,10 @@ export default function PoseIdeasModal({
             <button
               type="button"
               onClick={() => setActiveTab("fun")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === "fun"
-                  ? "bg-pink-500 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-pink-100/50"
+                  ? "bg-[#E84D91] text-white shadow-xs"
+                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
               }`}
             >
               <Laugh className="w-3.5 h-3.5" />
@@ -242,10 +242,10 @@ export default function PoseIdeasModal({
             {POSE_COLLECTION[activeTab].map((p, idx) => (
               <div
                 key={idx}
-                className="bg-pink-50/50 border-2 border-pink-200 rounded-2xl p-3.5 flex gap-3 hover:border-pink-400 transition-all hover:shadow-xs group"
+                className="bg-white border-2 border-[#E9B8CA] rounded-2xl p-3.5 flex gap-3 hover:border-[#E84D91] transition-all hover:shadow-paper group"
               >
                 {/* Visual Thumbnail */}
-                <div className="w-20 h-24 rounded-xl overflow-hidden shrink-0 border border-pink-200 bg-white relative">
+                <div className="w-20 h-24 rounded-xl overflow-hidden shrink-0 border border-[#E9B8CA] bg-stone-100 relative">
                   <img
                     src={p.imgUrl}
                     alt={p.title}
@@ -259,19 +259,19 @@ export default function PoseIdeasModal({
                 {/* Content */}
                 <div className="flex-1 space-y-1 text-left">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-black text-xs sm:text-sm text-slate-800">
+                    <h4 className="font-heading font-bold text-xs sm:text-sm text-[#392633]">
                       {p.title}
                     </h4>
-                    <span className="text-[10px] font-bold text-pink-600 bg-white px-2 py-0.5 rounded-full border border-pink-200">
+                    <span className="text-[10px] font-heading font-bold text-[#E84D91] bg-[#FFF0F4] px-2 py-0.5 rounded-full border border-[#E9B8CA]">
                       {p.vibe}
                     </span>
                   </div>
 
-                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                  <p className="text-[11px] text-[#8B7180] font-sans font-medium leading-relaxed">
                     {p.desc}
                   </p>
 
-                  <p className="text-[10px] text-amber-700 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200/60 font-semibold">
+                  <p className="text-[10px] text-amber-900 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200/60 font-medium">
                     💡 <em>{p.tips}</em>
                   </p>
                 </div>
@@ -281,8 +281,8 @@ export default function PoseIdeasModal({
         </div>
 
         {/* Bottom CTA */}
-        <div className="shrink-0 pt-2 border-t border-pink-200 flex justify-between items-center">
-          <span className="text-xs font-bold text-pink-600">
+        <div className="shrink-0 pt-2 border-t border-[#E9B8CA] flex justify-between items-center">
+          <span className="text-xs font-handwriting text-[#E84D91] font-bold text-sm">
             ✌️ Pose Peace 1 detik untuk auto-jepret
           </span>
 
@@ -292,7 +292,7 @@ export default function PoseIdeasModal({
               onClose();
               if (onSelectPoseIdea) onSelectPoseIdea();
             }}
-            className="px-5 py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+            className="px-5 py-2.5 scrapbook-btn text-xs flex items-center gap-1.5 cursor-pointer"
           >
             <Camera className="w-4 h-4" />
             <span>Mulai Foto Sekarang</span>

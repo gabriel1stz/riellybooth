@@ -1,52 +1,77 @@
-import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Fredoka, DM_Sans, Caveat } from "next/font/google";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const fredoka = Fredoka({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-fredoka",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-sans",
+  variable: "--font-dm-sans",
+  display: "swap",
 });
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-caveat",
+  display: "swap",
+});
+
+export const viewport: Viewport = {
+  themeColor: "#F48FB1",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://riellybooth.my.id"),
-  title: "riellybooth ♡ Photobooth Online Gratis & Aesthetic Photo Strip",
-  description: "Bikin photo strip aesthetic langsung dari browser gratis tanpa watermark! Tersedia 16+ frame viral Gen Z (Student Kalcer Si Paling Rajin, Riellmatics News, Halloween Spooky, Coquette, Y2K), filter retro, dan Live Photo boomerang MP4.",
+  title: "RiellyBooth ♡ Little Moments, Big Memories · Online Photobooth",
+  description:
+    "Your own little photo studio. Capture cute moments, create aesthetic photo strips, and keep memories forever. 100% free, private in-browser, no watermark.",
   keywords: [
     "photobooth online gratis",
     "photo strip online",
-    "riellmatics online",
-    "student kalcer photobooth",
-    "photomatics online",
-    "photobox online",
     "riellybooth",
+    "riellmatics online",
+    "aesthetic photobooth",
+    "korean photobooth online",
+    "scrapbook photobooth",
     "virtual photobooth",
     "aesthetic photo strip",
     "live photo photobooth",
     "cetak photobooth 4r",
-    "photobooth peace pose"
+    "little moments big memories",
   ],
-  authors: [{ name: "riellybooth" }],
+  authors: [{ name: "RiellyBooth" }],
   openGraph: {
     type: "website",
     locale: "id_ID",
     url: "https://riellybooth.my.id",
-    siteName: "riellybooth",
-    title: "riellybooth ♡ Photobooth Online Gratis & Aesthetic Photo Strip",
-    description: "Bikin photo strip aesthetic langsung dari browser gratis tanpa watermark! Pose peace ✌️ kamera jepret otomatis. Tersedia bingkai Student Kalcer, Riellmatics News, Halloween, dan Live Photo video.",
+    siteName: "RiellyBooth",
+    title: "RiellyBooth ♡ Little Moments, Big Memories",
+    description:
+      "Your own little photo studio. Capture cute moments, create aesthetic photo strips, and keep memories forever.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "riellybooth aesthetic photobooth online",
+        alt: "RiellyBooth - Little Moments, Big Memories",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "riellybooth ♡ Photobooth Online Gratis & Aesthetic Photo Strip",
-    description: "Bikin photo strip aesthetic langsung dari browser gratis tanpa watermark! Pose peace ✌️ kamera otomatis jepret.",
+    title: "RiellyBooth ♡ Little Moments, Big Memories",
+    description:
+      "Your own little photo studio. Capture cute moments, create photo strips, and keep memories forever.",
     images: ["/opengraph-image"],
     creator: "@riellybooth_",
   },
@@ -61,10 +86,10 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "riellybooth",
+  name: "RiellyBooth",
   url: "https://riellybooth.my.id",
   description:
-    "Virtual Photobooth Online Gratis bergaya Korea & Y2K Aesthetic. Bikin photo strip dan live photo boomerang MP4 tanpa watermark.",
+    "Your own little photo studio. Capture cute moments, create aesthetic photo strips, and keep memories forever. 100% in-browser, private, and free.",
   applicationCategory: "MultimediaApplication",
   operatingSystem: "All",
   browserRequirements: "Requires WebRTC and HTML5 Canvas",
@@ -91,7 +116,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${plusJakartaSans.variable} font-sans antialiased bg-rose-50/50 text-slate-800`}>
+      <body
+        className={`${fredoka.variable} ${dmSans.variable} ${caveat.variable} font-sans antialiased bg-[#FFF0F4] text-[#392633] selection:bg-[#F48FB1] selection:text-[#392633]`}
+      >
         {children}
       </body>
     </html>

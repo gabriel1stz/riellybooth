@@ -39,7 +39,7 @@ function TikTokIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
   );
 }
 
-const VIRAL_CAPTION = `Baru aja foto estetik di riellybooth ♡ Cobain bikin photo strip & Live Photo gratis tanpa watermark di sini 👉 https://riellybooth.my.id ✨`;
+const VIRAL_CAPTION = `Baru aja foto estetik di RiellyBooth ♡ Cobain bikin photo strip & Live Photo gratis tanpa watermark di sini 👉 https://riellybooth.my.id ✨`;
 
 export default function RiellyBooth() {
   const [step, setStep] = useState<Step>("landing");
@@ -509,7 +509,7 @@ export default function RiellyBooth() {
         "riellybooth_shots_backup",
         JSON.stringify(newShots.map((s) => ({ id: s.id, dataUrl: s.dataUrl })))
       );
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   // Restore shots from sessionStorage backup on component mount if React state dropped
@@ -523,7 +523,7 @@ export default function RiellyBooth() {
           shotsRef.current = parsed;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   // Single Shot Capture Trigger with flexible timer & camera tuning filters & LDR sync
@@ -805,7 +805,7 @@ export default function RiellyBooth() {
         vid.loop = true;
         vid.muted = true;
         vid.playsInline = true;
-        vid.play().catch(() => {});
+        vid.play().catch(() => { });
         return vid;
       });
 
@@ -865,7 +865,7 @@ export default function RiellyBooth() {
               origin: { y: 0.6 },
               colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
             });
-          } catch (e) {}
+          } catch (e) { }
           setTimeout(() => setShowShareModal(true), 400);
           return;
         }
@@ -887,7 +887,7 @@ export default function RiellyBooth() {
         origin: { y: 0.6 },
         colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
       });
-    } catch (e) {}
+    } catch (e) { }
 
     setTimeout(() => setShowShareModal(true), 400);
   };
@@ -955,7 +955,7 @@ export default function RiellyBooth() {
 
         try {
           confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        } catch (e) {}
+        } catch (e) { }
 
         setTimeout(() => setShowShareModal(true), 400);
       };
@@ -1014,7 +1014,7 @@ export default function RiellyBooth() {
 
       try {
         confetti({ particleCount: 110, spread: 75, origin: { y: 0.6 } });
-      } catch (e) {}
+      } catch (e) { }
 
       setTimeout(() => setShowShareModal(true), 400);
     } catch (err) {
@@ -1066,13 +1066,14 @@ export default function RiellyBooth() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FAF7F2] text-[#3C2A2A] flex flex-col justify-between font-sans selection:bg-[#FF85A1] selection:text-white overflow-x-hidden">
+    <main className="min-h-screen bg-[#FFF0F4] text-[#392633] flex flex-col justify-between font-sans selection:bg-[#F48FB1] selection:text-white overflow-x-hidden">
       <InAppBrowserBanner />
 
       <Navbar
         isAudioOn={isAudioOn}
         onToggleAudio={() => setIsAudioOn((v) => !v)}
         onGoHome={() => setStep("landing")}
+        onStartStudio={() => handleStartCapture()}
         onOpenAbout={() => setShowAboutModal(true)}
         onOpenSupport={() => setShowSupportModal(true)}
         onOpenPrivacy={() => setShowPrivacyModal(true)}
@@ -1186,54 +1187,54 @@ export default function RiellyBooth() {
 
       {/* ABOUT MODAL */}
       {showAboutModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 relative animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="scrapbook-paper bg-[#FFF9F0] border-4 border-[#E9B8CA] p-6 max-w-md w-full shadow-paper-lg space-y-4 relative animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setShowAboutModal(false)}
-              className="absolute top-4 right-4 p-1 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-[#FFF0F4] text-[#E84D91] hover:bg-[#F8D8E3] border border-[#E9B8CA] transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-2 text-pink-500">
+            <div className="flex items-center gap-2 text-[#E84D91]">
               <Sparkles className="w-5 h-5 animate-pulse" />
-              <h3 className="text-2xl font-black">Tentang riellybooth</h3>
+              <h3 className="text-2xl font-heading font-bold">Tentang RiellyBooth</h3>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              <strong className="text-pink-600">riellybooth</strong> adalah aplikasi Virtual Photobooth gratis bergaya Korea & Y2K Aesthetic yang dirancang untuk mengabadikan momen serumu di mana saja tanpa watermark.
+            <p className="text-xs text-[#8B7180] leading-relaxed font-sans font-medium">
+              <strong className="text-[#E84D91] font-heading">RiellyBooth</strong> adalah aplikasi Virtual Photobooth gratis bergaya Korea & Y2K Aesthetic yang dirancang untuk mengabadikan momen serumu di mana saja tanpa watermark.
             </p>
 
             {/* Creator Backstory */}
-            <div className="bg-gradient-to-r from-pink-50 to-rose-50 border-2 border-pink-200 p-3.5 rounded-2xl space-y-1.5 text-left text-xs">
-              <span className="font-black text-pink-700 flex items-center gap-1.5">
-                <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
-                <span>Kenapa riellybooth dibuat?</span>
+            <div className="bg-[#FFF0F4] border-2 border-[#E9B8CA] p-3.5 rounded-2xl space-y-1.5 text-left text-xs shadow-xs">
+              <span className="font-heading font-bold text-[#E84D91] flex items-center gap-1.5">
+                <Heart className="w-4 h-4 text-[#E84D91] fill-[#E84D91]" />
+                <span>Kenapa RiellyBooth dibuat?</span>
               </span>
-              <p className="text-slate-600 leading-relaxed font-medium">
-                Berawal dari sering pengen foto photobooth bareng temen & ayang, tapi studio mall antrenya panjang banget dan mahal (40-50rb sekali foto). Akhirnya gue (<a href="https://instagram.com/dhikasatriaaa" target="_blank" rel="noopener noreferrer" className="text-pink-600 font-bold underline">@dhikasatriaaa</a>) mutusin bikin web photobooth gratis ini dari kamar! Tujuannya simpel: biar siapa pun, di mana pun, bisa dapet hasil foto strip estetik tanpa bayar dan tanpa watermark! ♡
+              <p className="text-[#8B7180] leading-relaxed font-sans font-medium">
+                Berawal dari sering pengen foto photobooth bareng temen & ayang, tapi studio mall antrenya panjang banget dan mahal (40-50rb sekali foto). Akhirnya gue (<a href="https://instagram.com/dhikasatriaaa" target="_blank" rel="noopener noreferrer" className="text-[#E84D91] font-bold underline">@dhikasatriaaa</a>) mutusin bikin web photobooth gratis ini dari kamar! Tujuannya simpel: biar siapa pun, di mana pun, bisa dapet hasil foto strip estetik tanpa bayar dan tanpa watermark! ♡
               </p>
             </div>
 
-            <div className="space-y-2 bg-rose-50 border-2 border-pink-200 p-3 rounded-2xl text-xs font-bold text-slate-700">
+            <div className="space-y-2 bg-white border-2 border-[#E9B8CA] p-3.5 rounded-2xl text-xs font-heading font-semibold text-[#392633] shadow-xs">
               <div className="flex items-center gap-2">
-                <Camera className="w-4 h-4 text-pink-500" /> Auto-take gesture V-sign (✌️)
+                <Camera className="w-4 h-4 text-[#E84D91]" /> Auto-take gesture V-sign (✌️)
               </div>
               <div className="flex items-center gap-2">
-                <Video className="w-4 h-4 text-purple-500" /> Live Photo 🎥 moving video
+                <Video className="w-4 h-4 text-purple-600" /> Live Photo 🎥 moving video
               </div>
               <div className="flex items-center gap-2">
-                <Wand2 className="w-4 h-4 text-sky-500" /> Retro & Webcam Toy Filters
+                <Wand2 className="w-4 h-4 text-sky-600" /> Retro & Webcam Toy Filters
               </div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" /> 100% Bebas Watermark & Aman
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> 100% Bebas Watermark & Aman
               </div>
             </div>
 
             <div className="text-center pt-2">
               <button
                 onClick={() => setShowAboutModal(false)}
-                className="w-full py-3 bg-pink-400 hover:bg-pink-500 text-white font-black text-sm rounded-2xl shadow-md border-2 border-pink-500 transition"
+                className="w-full py-3 scrapbook-btn text-xs sm:text-sm flex items-center justify-center cursor-pointer"
               >
                 Tutup Info ✨
               </button>
@@ -1242,24 +1243,24 @@ export default function RiellyBooth() {
         </div>
       )}
 
-      {/* TRAKTEER-ONLY SUPPORT / DONATE MODAL */}
+      {/* SUPPORT / DONATE MODAL */}
       {showSupportModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 relative animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="scrapbook-paper bg-[#FFF9F0] border-4 border-[#E9B8CA] p-6 max-w-md w-full shadow-paper-lg space-y-5 relative animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setShowSupportModal(false)}
-              className="absolute top-4 right-4 p-1 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-[#FFF0F4] text-[#E84D91] hover:bg-[#F8D8E3] border border-[#E9B8CA] transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="text-center space-y-1">
-              <div className="inline-flex p-3 bg-pink-100 rounded-full border border-pink-300 text-pink-500">
+              <div className="inline-flex p-3 bg-[#FFF0F4] rounded-full border border-[#E9B8CA] text-[#E84D91]">
                 <Coffee className="w-6 h-6 animate-bounce" />
               </div>
-              <h3 className="text-2xl font-black text-slate-800">Support / Traktir Kopi 💖</h3>
-              <p className="text-xs text-slate-600 font-medium">
-                Dukung server riellybooth tetap gratis!
+              <h3 className="text-2xl font-heading font-bold text-[#392633]">Support / Traktir Kopi 💖</h3>
+              <p className="text-xs text-[#8B7180] font-sans font-medium">
+                Dukung server RiellyBooth tetap gratis & update berkala!
               </p>
             </div>
 
@@ -1268,17 +1269,17 @@ export default function RiellyBooth() {
                 href="https://teer.id/eveexyz"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full p-4 bg-rose-400 hover:bg-rose-500 text-white font-black text-sm rounded-2xl border-2 border-rose-500 flex items-center justify-between transition shadow-md hover:scale-102 active:scale-95"
+                className="w-full p-4 scrapbook-btn text-xs sm:text-sm flex items-center justify-between transition cursor-pointer"
               >
                 <span>💖 Traktir Kopi via Trakteer</span>
-                <span className="text-[10px] bg-white/20 px-2 py-1 rounded-md font-bold">Trakteer.id</span>
+                <span className="text-[10px] bg-white/20 px-2 py-1 rounded-md font-mono font-bold">Trakteer.id</span>
               </a>
             </div>
 
             <div className="text-center pt-1">
               <button
                 onClick={() => setShowSupportModal(false)}
-                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition"
+                className="w-full py-2.5 scrapbook-btn-secondary text-xs flex items-center justify-center cursor-pointer"
               >
                 Kembali
               </button>
@@ -1289,21 +1290,21 @@ export default function RiellyBooth() {
 
       {/* ENHANCED SOCIAL MEDIA SHARE & VIRAL CAPTION MODAL */}
       {showShareModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="scrapbook-paper bg-[#FFF9F0] border-4 border-[#E9B8CA] p-6 max-w-md w-full shadow-paper-lg space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
             <button
               onClick={() => setShowShareModal(false)}
-              className="absolute top-4 right-4 p-1 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition"
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-[#FFF0F4] text-[#E84D91] hover:bg-[#F8D8E3] border border-[#E9B8CA] transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="inline-flex p-3 bg-pink-100 rounded-full border border-pink-300 text-pink-500">
+            <div className="inline-flex p-3 bg-[#FFF0F4] rounded-full border border-[#E9B8CA] text-[#E84D91]">
               <Share2 className="w-6 h-6 animate-bounce" />
             </div>
 
-            <h3 className="text-2xl font-black text-slate-800">Photo Strip Selesai! 🎉</h3>
-            <p className="text-xs text-slate-600 font-medium">
+            <h3 className="text-2xl font-heading font-bold text-[#392633]">Photo Strip Selesai! 🎉</h3>
+            <p className="text-xs text-[#8B7180] font-sans font-medium">
               Bagikan photo strip kamu ke Instagram Story, WhatsApp, TikTok & Twitter!
             </p>
 
@@ -1311,48 +1312,48 @@ export default function RiellyBooth() {
             <button
               type="button"
               onClick={handleNativeMultiAppShare}
-              className="w-full py-3.5 px-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-sm rounded-2xl border-2 border-pink-500 shadow-md flex items-center justify-center gap-2 transition hover:scale-102 active:scale-95 cursor-pointer"
+              className="w-full py-3.5 px-4 scrapbook-btn text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               <Share2 className="w-5 h-5" /> Bagikan Langsung + Foto 📲
             </button>
 
             {/* QR CODE FOR DESKTOP TO MOBILE P2P TRANSFER (Zero Server Storage) */}
-            <div className="bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-pink-200 p-3.5 rounded-2xl flex flex-col items-center gap-2">
-              <span className="text-xs font-black text-[#3C2A2A] flex items-center gap-1.5">
+            <div className="bg-white border-2 border-[#E9B8CA] p-3.5 rounded-2xl flex flex-col items-center gap-2 shadow-xs">
+              <span className="text-xs font-heading font-bold text-[#392633] flex items-center gap-1.5">
                 <span>📱 Buka & Simpan di HP (P2P WebRTC)</span>
               </span>
-              <div className="p-2 bg-white rounded-xl shadow-xs border border-pink-200">
+              <div className="p-2 bg-white rounded-xl shadow-xs border border-[#E9B8CA]">
                 {qrCodeDataUrl ? (
                   <img
                     src={qrCodeDataUrl}
-                    alt="QR Code Transfer riellybooth"
+                    alt="QR Code Transfer RiellyBooth"
                     className="w-28 h-28 object-contain"
                   />
                 ) : (
-                  <div className="w-28 h-28 flex flex-col items-center justify-center bg-pink-50 rounded-lg text-[10px] text-pink-600 font-bold animate-pulse p-2 text-center">
+                  <div className="w-28 h-28 flex flex-col items-center justify-center bg-[#FFF0F4] rounded-lg text-[10px] text-[#E84D91] font-heading font-bold animate-pulse p-2 text-center">
                     <span>Membuat QR Client-side... 🎀</span>
                   </div>
                 )}
               </div>
-              <p className="text-[10px] text-slate-500 font-medium">
+              <p className="text-[10px] text-[#8B7180] font-sans font-medium">
                 {transferStatus || "Scan pakai kamera smartphone kamu untuk kirim strip langsung ke HP via WebRTC terenkripsi!"}
               </p>
             </div>
 
             {/* VIRAL CAPTION BOX */}
-            <div className="bg-rose-50 border-2 border-pink-200 p-3.5 rounded-2xl text-left space-y-2">
+            <div className="bg-[#FFF0F4] border-2 border-[#E9B8CA] p-3.5 rounded-2xl text-left space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-pink-700">Caption Viral:</span>
+                <span className="text-xs font-heading font-bold text-[#E84D91]">Caption Viral:</span>
                 <button
                   type="button"
                   onClick={handleCopyCaption}
-                  className="px-2.5 py-1 bg-white hover:bg-pink-100 text-pink-700 text-[11px] font-bold rounded-lg border border-pink-300 flex items-center gap-1 transition shadow-xs cursor-pointer"
+                  className="px-2.5 py-1 bg-white hover:bg-[#F8D8E3] text-[#E84D91] text-[11px] font-heading font-bold rounded-lg border border-[#E9B8CA] flex items-center gap-1 transition shadow-xs cursor-pointer"
                 >
-                  {copiedCaption ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-pink-500" />}
+                  {copiedCaption ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-[#E84D91]" />}
                   <span>{copiedCaption ? "Tersalin!" : "Salin Caption"}</span>
                 </button>
               </div>
-              <p className="text-[11px] font-medium text-slate-700 bg-white p-2.5 rounded-xl border border-pink-200 leading-relaxed italic">
+              <p className="text-[11px] font-sans font-medium text-[#392633] bg-white p-2.5 rounded-xl border border-[#E9B8CA] leading-relaxed italic">
                 {VIRAL_CAPTION}
               </p>
             </div>
@@ -1363,7 +1364,7 @@ export default function RiellyBooth() {
                 href={`https://api.whatsapp.com/send?text=${encodeURIComponent(VIRAL_CAPTION)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2.5 px-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs rounded-xl border border-emerald-600 flex items-center justify-center gap-2 transition shadow-xs"
+                className="py-2.5 px-3 bg-emerald-500 hover:bg-emerald-600 text-white font-heading font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition shadow-xs"
               >
                 <MessageCircle className="w-4 h-4" /> WhatsApp
               </a>
@@ -1372,7 +1373,7 @@ export default function RiellyBooth() {
                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(VIRAL_CAPTION)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl border border-slate-900 flex items-center justify-center gap-2 transition shadow-xs"
+                className="py-2.5 px-3 bg-stone-900 hover:bg-stone-800 text-white font-heading font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition shadow-xs"
               >
                 <Twitter className="w-4 h-4" /> Twitter / X
               </a>
@@ -1380,18 +1381,18 @@ export default function RiellyBooth() {
 
             {/* TRAKTIR KOPI DEVELOPER CALL-TO-ACTION */}
             <div className="bg-amber-50 border-2 border-amber-300 p-3.5 rounded-2xl flex flex-col items-center gap-2 text-center">
-              <div className="flex items-center gap-1.5 text-amber-900 font-black text-xs">
+              <div className="flex items-center gap-1.5 text-amber-900 font-heading font-bold text-xs">
                 <Coffee className="w-4 h-4 text-amber-600" />
                 <span>Suka hasilnya? Traktir Kopi Developer ☕💖</span>
               </div>
-              <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
-                Dukungan seikhlasnya dari kamu ngebantu bayar server dan update frame musiman (Halloween, Natal, Imlek)!
+              <p className="text-[11px] text-amber-800 font-sans font-medium leading-relaxed">
+                Dukungan seikhlasnya dari kamu ngebantu bayar server dan update frame musiman!
               </p>
               <a
                 href="https://teer.id/eveexyz"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                className="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition cursor-pointer"
               >
                 <Coffee className="w-4 h-4" /> Traktir Kopi di Trakteer ☕
               </a>
@@ -1399,13 +1400,13 @@ export default function RiellyBooth() {
 
             {/* 9:16 Aspect Story Preview Card */}
             <div className="space-y-1.5 pt-1">
-              <span className="text-xs font-bold text-slate-700">Pratinjau Hasil:</span>
-              <div className="w-full aspect-[9/16] max-h-56 bg-slate-900 rounded-2xl overflow-hidden border-2 border-pink-300 shadow-md flex items-center justify-center p-2 mx-auto">
+              <span className="text-xs font-heading font-bold text-[#392633]">Pratinjau Hasil:</span>
+              <div className="w-full aspect-[9/16] max-h-56 bg-stone-950 rounded-2xl overflow-hidden border-2 border-[#E9B8CA] shadow-paper flex items-center justify-center p-2 mx-auto">
                 {downloadedDataUrl ? (
                   <img src={downloadedDataUrl} alt="Story Preview" className="h-full w-auto object-contain rounded-lg" />
                 ) : (
-                  <div className="text-white text-xs font-bold space-y-2">
-                    <Sparkles className="w-6 h-6 text-pink-400 mx-auto animate-bounce" />
+                  <div className="text-white text-xs font-heading font-bold space-y-2">
+                    <Sparkles className="w-6 h-6 text-[#F48FB1] mx-auto animate-bounce" />
                     <p>Photo Strip Ready!</p>
                   </div>
                 )}
@@ -1416,16 +1417,16 @@ export default function RiellyBooth() {
               <button
                 type="button"
                 onClick={handleCopyShareLink}
-                className="flex-1 py-2.5 bg-rose-50 hover:bg-rose-100 text-pink-700 font-bold text-xs rounded-xl border border-pink-200 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 py-2.5 bg-[#FFF0F4] hover:bg-[#F8D8E3] text-[#E84D91] font-heading font-bold text-xs rounded-xl border border-[#E9B8CA] transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                {copiedLink ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-pink-500" />}
+                {copiedLink ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-[#E84D91]" />}
                 <span>{copiedLink ? "Link Tersalin!" : "Salin Link Web"}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setShowShareModal(false)}
-                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition cursor-pointer"
+                className="py-2.5 px-4 scrapbook-btn-secondary text-xs flex items-center justify-center cursor-pointer"
               >
                 Tutup
               </button>
@@ -1436,47 +1437,49 @@ export default function RiellyBooth() {
 
       {/* CONDITIONAL NON-LANDING FOOTER */}
       {step !== "landing" && (
-        <footer className="w-full border-t border-pink-200 py-6 text-center text-xs text-slate-600 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center gap-2.5 px-4 shadow-sm">
-          <div className="font-bold text-[#3C2A2A]">
-            © 2026 riellybooth 🎀 · &ldquo;buat momen yang pengen kamu simpan&rdquo;
+        <footer className="w-full border-t-2 border-[#E9B8CA] py-6 text-center text-xs text-[#8B7180] bg-[#FFF9F0]/90 backdrop-blur-md flex flex-col items-center justify-center gap-2.5 px-4 shadow-paper">
+          <div className="flex items-center gap-1.5 font-heading font-bold text-[#392633]">
+            <span>© 2026 RiellyBooth</span>
+            <span className="text-[#E84D91]">♡</span>
+            <span className="font-handwriting text-sm text-[#8B7180]">Little Moments, Big Memories.</span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-bold">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-semibold">
             <a
               href="mailto:riellybooth@gmail.com"
-              className="hover:text-pink-600 transition inline-flex items-center gap-1.5"
+              className="hover:text-[#E84D91] transition inline-flex items-center gap-1.5"
             >
-              <Mail className="w-3.5 h-3.5 text-pink-500" />
+              <Mail className="w-3.5 h-3.5 text-[#E84D91]" />
               <span>riellybooth@gmail.com</span>
             </a>
-            <span className="text-pink-300">·</span>
+            <span className="text-[#E9B8CA]">·</span>
             <a
               href="https://instagram.com/riellybooth"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-pink-600 hover:underline transition inline-flex items-center gap-1.5"
+              className="text-[#E84D91] hover:underline transition inline-flex items-center gap-1.5"
             >
-              <Instagram className="w-3.5 h-3.5 text-pink-500" />
+              <Instagram className="w-3.5 h-3.5 text-[#E84D91]" />
               <span>@riellybooth</span>
             </a>
-            <span className="text-pink-300">·</span>
+            <span className="text-[#E9B8CA]">·</span>
             <a
               href="https://tiktok.com/@riellybooth_"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-pink-600 transition inline-flex items-center gap-1.5"
+              className="hover:text-[#E84D91] transition inline-flex items-center gap-1.5"
             >
-              <TikTokIcon className="w-3.5 h-3.5 text-pink-500" />
+              <TikTokIcon className="w-3.5 h-3.5 text-[#E84D91]" />
               <span>@riellybooth_</span>
             </a>
-            <span className="text-pink-300">·</span>
+            <span className="text-[#E9B8CA]">·</span>
             <a
               href="https://instagram.com/dhikasatriaaa"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-slate-600 hover:text-pink-600 underline transition inline-flex items-center gap-1.5"
+              className="hover:text-[#E84D91] underline transition inline-flex items-center gap-1.5 text-[#8B7180]"
             >
-              <Instagram className="w-3.5 h-3.5 text-[#8B4A5A]" />
+              <Instagram className="w-3.5 h-3.5 text-[#8B7180]" />
               <span>Dev: @dhikasatriaaa</span>
             </a>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Download, Sparkles, X, ShieldCheck, Smartphone, CheckCircle } from "lucide-react";
+import { Download, X, ShieldCheck, Smartphone } from "lucide-react";
 
 type P2PTransferReceiverModalProps = {
   isOpen: boolean;
@@ -31,30 +31,30 @@ export default function P2PTransferReceiverModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-stone-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div className="scrapbook-paper bg-[#FFF9F0] border-4 border-[#E9B8CA] p-6 max-w-sm w-full shadow-paper-lg space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 transition cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 rounded-full bg-[#FFF0F4] text-[#E84D91] hover:bg-[#F8D8E3] border border-[#E9B8CA] transition cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="inline-flex p-3 bg-pink-100 rounded-full border-2 border-pink-300 text-pink-600">
+        <div className="inline-flex p-3 bg-[#FFF0F4] rounded-full border-2 border-[#E9B8CA] text-[#E84D91]">
           <Smartphone className="w-6 h-6 animate-pulse" />
         </div>
 
-        <h3 className="text-xl font-black text-slate-800">
+        <h3 className="text-xl font-heading font-bold text-[#392633]">
           {receivedDataUrl ? "Strip Diterima dari Laptop! 🎉" : "Menerima Photo Strip..."}
         </h3>
 
-        <div className="px-3 py-2 bg-pink-50 border border-pink-200 rounded-xl text-xs font-bold text-pink-900">
+        <div className="px-3 py-2 bg-white border border-[#E9B8CA] rounded-xl text-xs font-heading font-bold text-[#E84D91] shadow-xs">
           {status}
         </div>
 
         {receivedDataUrl && (
           <div className="space-y-3">
-            <div className="border-2 border-pink-200 rounded-2xl p-2 bg-slate-50 max-h-72 overflow-y-auto flex justify-center shadow-inner">
+            <div className="border-2 border-[#E9B8CA] rounded-2xl p-2 bg-white max-h-72 overflow-y-auto flex justify-center shadow-inner">
               <img
                 src={receivedDataUrl}
                 alt="Received Photo Strip"
@@ -65,7 +65,7 @@ export default function P2PTransferReceiverModal({
             <button
               type="button"
               onClick={handleDownload}
-              className="w-full py-3.5 px-4 bg-pink-500 hover:bg-pink-600 text-white font-black text-sm rounded-2xl border-2 border-pink-600 shadow-md flex items-center justify-center gap-2 transition hover:scale-102 active:scale-95 cursor-pointer"
+              className="w-full py-3.5 px-4 scrapbook-btn text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               <Download className="w-5 h-5" />
               <span>Simpan ke Galeri HP 📥</span>
@@ -73,9 +73,9 @@ export default function P2PTransferReceiverModal({
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-semibold pt-1">
+        <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#8B7180] font-sans font-medium pt-1">
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>100% WebRTC P2P Langsung • Zero Server Upload</span>
+          <span>100% WebRTC P2P Langsung · Zero Server Storage</span>
         </div>
       </div>
     </div>

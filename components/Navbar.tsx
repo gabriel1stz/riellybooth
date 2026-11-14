@@ -1,11 +1,14 @@
+"use client";
+
 import React, { useState } from "react";
 import Image from "next/image";
-import { Sparkles, Camera, Volume2, VolumeX, Home, Info, Heart, ShieldCheck } from "lucide-react";
+import { Sparkles, Camera, Volume2, VolumeX, Home, Info, Heart, ShieldCheck, Menu, X, ArrowRight } from "lucide-react";
 
 type NavbarProps = {
   isAudioOn?: boolean;
   onToggleAudio?: () => void;
   onGoHome?: () => void;
+  onStartStudio?: () => void;
   onOpenAbout?: () => void;
   onOpenSupport?: () => void;
   onOpenPrivacy?: () => void;
@@ -17,6 +20,7 @@ export default function Navbar({
   isAudioOn = true,
   onToggleAudio,
   onGoHome,
+  onStartStudio,
   onOpenAbout,
   onOpenSupport,
   onOpenPrivacy,
@@ -24,129 +28,242 @@ export default function Navbar({
   onToggleLang,
 }: NavbarProps) {
   const [logoFailed, setLogoFailed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="border-b border-pink-200/80 px-4 sm:px-8 py-3 flex justify-between items-center bg-white/90 backdrop-blur-md sticky top-0 z-50 transition-all duration-300 shadow-xs">
-      {/* Brand Logo & Name */}
-      <div
-        onClick={onGoHome}
-        className="flex items-center gap-3 group cursor-pointer"
-      >
-        <div className="p-1 sm:p-1.5 rounded-2xl bg-pink-100/80 border border-pink-300 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
-          {!logoFailed ? (
-            <Image
-              src="/logo.png"
-              alt="riellybooth logo"
-              width={160}
-              height={48}
-              priority
-              onError={() => setLogoFailed(true)}
-              className="h-8 sm:h-9 w-auto object-contain"
-            />
-          ) : (
-            <Camera className="w-6 h-6 text-pink-500" />
+    <header className="border-b-2 border-[#E9B8CA] px-4 sm:px-8 py-3 bg-[#FFF9F0]/95 backdrop-blur-md sticky top-0 z-50 transition-all duration-300 shadow-paper">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
+        {/* Brand Logo & Tagline */}
+        <div
+          onClick={onGoHome}
+          className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer select-none"
+        >
+          <div className="p-1.5 rounded-2xl bg-[#FFF0F4] border-2 border-[#E9B8CA] group-hover:rotate-[-3deg] transition-transform duration-200 flex items-center justify-center shadow-xs">
+            {!logoFailed ? (
+              <Image
+                src="/logo.png"
+                alt="RiellyBooth logo"
+                width={150}
+                height={42}
+                priority
+                onError={() => setLogoFailed(true)}
+                className="h-7 sm:h-8 w-auto object-contain"
+              />
+            ) : (
+              <Camera className="w-5 h-5 text-[#E84D91]" />
+            )}
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xl sm:text-2xl font-heading font-bold tracking-tight text-[#E84D91]">
+                RiellyBooth
+              </span>
+              <span className="text-xs text-[#F48FB1] animate-pulse">♡</span>
+            </div>
+            <span className="hidden sm:inline text-[11px] font-handwriting text-[#8B7180] tracking-wide -mt-1">
+              Little Moments, Big Memories.
+            </span>
+          </div>
+        </div>
+
+        {/* Desktop Navigation Links */}
+        <nav className="hidden md:flex items-center gap-1.5 lg:gap-2 text-xs font-semibold text-[#392633]">
+          {onGoHome && (
+            <button
+              type="button"
+              onClick={onGoHome}
+              className="px-3 py-1.5 rounded-full hover:bg-[#FFF0F4] hover:text-[#E84D91] transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Home className="w-3.5 h-3.5 text-[#F48FB1]" />
+              <span>Home</span>
+            </button>
+          )}
+
+          {onStartStudio && (
+            <button
+              type="button"
+              onClick={onStartStudio}
+              className="px-3 py-1.5 rounded-full hover:bg-[#FFF0F4] hover:text-[#E84D91] transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Camera className="w-3.5 h-3.5 text-[#E84D91]" />
+              <span>Studio</span>
+            </button>
+          )}
+
+          {onOpenAbout && (
+            <button
+              type="button"
+              onClick={onOpenAbout}
+              className="px-3 py-1.5 rounded-full hover:bg-[#FFF0F4] hover:text-[#E84D91] transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Info className="w-3.5 h-3.5 text-[#8B7180]" />
+              <span>About</span>
+            </button>
+          )}
+
+          {onOpenPrivacy && (
+            <button
+              type="button"
+              onClick={onOpenPrivacy}
+              className="px-3 py-1.5 rounded-full hover:bg-[#FFF0F4] hover:text-[#E84D91] transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Privasi</span>
+            </button>
+          )}
+
+          {/* Support / Treat coffee */}
+          {onOpenSupport && (
+            <button
+              type="button"
+              onClick={onOpenSupport}
+              className="px-3 py-1.5 rounded-full bg-[#FFF0F4] border border-[#E9B8CA] hover:bg-[#F8D8E3] text-[#E84D91] transition flex items-center gap-1.5 cursor-pointer"
+              title="Support developer"
+            >
+              <Heart className="w-3.5 h-3.5 fill-[#E84D91] text-[#E84D91] animate-bounce" />
+              <span>Support</span>
+            </button>
+          )}
+
+          {/* Audio BGM Toggle */}
+          {onToggleAudio && (
+            <button
+              type="button"
+              onClick={onToggleAudio}
+              className={`p-2 rounded-full border transition flex items-center justify-center cursor-pointer ${
+                isAudioOn
+                  ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
+                  : "bg-stone-100 border-stone-200 text-stone-400"
+              }`}
+              title={isAudioOn ? "Matikan Musik BGM" : "Nyalakan Musik BGM"}
+            >
+              {isAudioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </button>
+          )}
+
+          {/* Main CTA: Start Creating */}
+          {onStartStudio && (
+            <button
+              type="button"
+              onClick={onStartStudio}
+              className="ml-2 px-5 py-2 scrapbook-btn text-xs sm:text-sm font-heading flex items-center gap-1.5 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Start Creating</span>
+            </button>
+          )}
+        </nav>
+
+        {/* Mobile Action Controls & Hamburger Toggle */}
+        <div className="flex md:hidden items-center gap-2">
+          {onToggleAudio && (
+            <button
+              type="button"
+              onClick={onToggleAudio}
+              className={`p-2 rounded-full border text-xs cursor-pointer ${
+                isAudioOn
+                  ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
+                  : "bg-stone-100 border-stone-200 text-stone-400"
+              }`}
+            >
+              {isAudioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </button>
+          )}
+
+          {onStartStudio && (
+            <button
+              type="button"
+              onClick={onStartStudio}
+              className="px-3.5 py-1.5 scrapbook-btn text-xs font-heading flex items-center gap-1 cursor-pointer"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>Foto</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            className="p-2 rounded-xl bg-[#FFF0F4] border border-[#E9B8CA] text-[#392633] cursor-pointer"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden mt-3 pt-3 border-t border-[#E9B8CA] flex flex-col gap-2 pb-2 animate-in slide-in-from-top-2 duration-150">
+          {onGoHome && (
+            <button
+              type="button"
+              onClick={() => {
+                onGoHome();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-[#FFF0F4] text-xs font-bold text-[#392633] flex items-center gap-2"
+            >
+              <Home className="w-4 h-4 text-[#F48FB1]" /> Home
+            </button>
+          )}
+
+          {onStartStudio && (
+            <button
+              type="button"
+              onClick={() => {
+                onStartStudio();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-[#FFF0F4] text-xs font-bold text-[#E84D91] flex items-center justify-between"
+            >
+              <span className="flex items-center gap-2">
+                <Camera className="w-4 h-4 text-[#E84D91]" /> Photo Studio
+              </span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#E84D91]" />
+            </button>
+          )}
+
+          {onOpenAbout && (
+            <button
+              type="button"
+              onClick={() => {
+                onOpenAbout();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-[#FFF0F4] text-xs font-bold text-[#392633] flex items-center gap-2"
+            >
+              <Info className="w-4 h-4 text-[#8B7180]" /> About RiellyBooth
+            </button>
+          )}
+
+          {onOpenPrivacy && (
+            <button
+              type="button"
+              onClick={() => {
+                onOpenPrivacy();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-[#FFF0F4] text-xs font-bold text-[#392633] flex items-center gap-2"
+            >
+              <ShieldCheck className="w-4 h-4 text-emerald-600" /> Kebijakan Privasi
+            </button>
+          )}
+
+          {onOpenSupport && (
+            <button
+              type="button"
+              onClick={() => {
+                onOpenSupport();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-[#FFF0F4] text-xs font-bold text-[#E84D91] flex items-center gap-2"
+            >
+              <Heart className="w-4 h-4 text-[#E84D91] fill-[#E84D91]" /> Support / Traktir Kopi
+            </button>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-pink-500">
-            riellybooth
-          </h1>
-          <Sparkles className="w-4 h-4 text-pink-400 animate-[spin_6s_linear_infinite]" />
-        </div>
-      </div>
-
-      {/* Navigation & Action Links */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5">
-        {/* Language Toggle (ID / EN) */}
-        {onToggleLang && (
-          <button
-            type="button"
-            onClick={onToggleLang}
-            className="px-2.5 py-1.5 rounded-full border border-pink-200 bg-rose-50 hover:bg-pink-100 text-[#3C2A2A] text-xs font-black transition flex items-center gap-1 shadow-xs"
-            title="Ganti Bahasa / Change Language"
-          >
-            <span>{lang === "id" ? "🇮🇩 ID" : "🇬🇧 EN"}</span>
-          </button>
-        )}
-
-        {/* Home Link */}
-        {onGoHome && (
-          <button
-            type="button"
-            onClick={onGoHome}
-            className="p-2 sm:px-3 py-1.5 rounded-full border border-pink-200 bg-rose-50 hover:bg-pink-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
-            title="Beranda / Home"
-          >
-            <Home className="w-4 h-4 text-pink-500" />
-            <span className="hidden sm:inline">Home</span>
-          </button>
-        )}
-
-        {/* About Link */}
-        {onOpenAbout && (
-          <button
-            type="button"
-            onClick={onOpenAbout}
-            className="p-2 sm:px-3 py-1.5 rounded-full border border-pink-200 bg-rose-50 hover:bg-pink-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
-            title="Tentang riellybooth"
-          >
-            <Info className="w-4 h-4 text-pink-500" />
-            <span className="hidden sm:inline">About</span>
-          </button>
-        )}
-
-        {/* Privacy Link */}
-        {onOpenPrivacy && (
-          <button
-            type="button"
-            onClick={onOpenPrivacy}
-            className="p-2 sm:px-3 py-1.5 rounded-full border border-pink-200 bg-rose-50 hover:bg-pink-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
-            title="Kebijakan Privasi & Keamanan Kamera"
-          >
-            <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            <span className="hidden sm:inline">Privasi</span>
-          </button>
-        )}
-
-        {/* Support / Donate Link */}
-        {onOpenSupport && (
-          <button
-            type="button"
-            onClick={onOpenSupport}
-            className="px-3.5 py-1.5 rounded-full border-2 border-pink-400 bg-pink-400 hover:bg-pink-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95"
-            title="Dukung / Traktir Kopi 💖"
-          >
-            <Heart className="w-3.5 h-3.5 fill-current animate-bounce" />
-            <span>Support 💖</span>
-          </button>
-        )}
-
-        {/* Audio Toggle */}
-        {onToggleAudio && (
-          <button
-            type="button"
-            onClick={onToggleAudio}
-            className={`px-3 py-1.5 rounded-full border-2 text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-xs ${
-              isAudioOn
-                ? "bg-pink-100 text-pink-700 border-pink-300"
-                : "bg-slate-100 text-slate-500 border-slate-300"
-            }`}
-            title="Toggle Background Music 🎵"
-          >
-            {isAudioOn ? (
-              <>
-                <Volume2 className="w-4 h-4 text-pink-500" />
-                <span className="hidden md:inline">BGM ON</span>
-              </>
-            ) : (
-              <>
-                <VolumeX className="w-4 h-4 text-slate-400" />
-                <span className="hidden md:inline">BGM OFF</span>
-              </>
-            )}
-          </button>
-        )}
-      </div>
+      )}
     </header>
   );
 }

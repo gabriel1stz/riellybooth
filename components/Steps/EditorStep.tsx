@@ -1,7 +1,26 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Download, ArrowLeft, RefreshCw, Layout, Palette, Sparkles, Video, Wand2, FlipHorizontal, Trash2, Image as ImageIcon, Upload, Share2, RefreshCcw, Undo2, Redo2, RotateCw, ZoomIn, X } from "lucide-react";
+import {
+  Download,
+  ArrowLeft,
+  RefreshCw,
+  Layout,
+  Palette,
+  Sparkles,
+  Video,
+  Wand2,
+  FlipHorizontal,
+  Trash2,
+  Image as ImageIcon,
+  Upload,
+  Share2,
+  RefreshCcw,
+  Undo2,
+  Redo2,
+  X,
+  Heart,
+} from "lucide-react";
 import { LayoutMode, FramePreset, CuteFilter, FontFamily, FilterState, PlacedSticker } from "@/lib/canvasUtils";
 import ColorPicker from "../UI/ColorPicker";
 import Slider from "../UI/Slider";
@@ -9,10 +28,10 @@ import Slider from "../UI/Slider";
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
 
 const STICKER_PACKS = [
-  { id: "all", name: "Semua", stickers: ["🎃", "👻", "🦇", "🕷️", "🕸️", "🎀", "💖", "🍒", "🌸", "🧸", "✨", "⭐", "💫", "🕶️", "🦋", "☕", "🥐", "🍩", "🧁", "🇮🇩", "🦅", "🎗️", "✌️", "👑"] },
-  { id: "spooky", name: "🎃 Spooky", stickers: ["🎃", "👻", "🦇", "🕷️", "🕸️", "🍬", "🧙‍♀️", "💀", "🕯️", "🧛", "🖤", "🔮"] },
+  { id: "all", name: "Semua", stickers: ["🎀", "💖", "🍒", "🌸", "🧸", "✨", "⭐", "💫", "🕶️", "🦋", "☕", "🥐", "🧁", "✌️", "👑", "🎃", "👻", "🦇", "🕷️", "🕸️", "💌", "🐰", "🐾"] },
   { id: "coquette", name: "🎀 Cute", stickers: ["🎀", "💖", "🍒", "🌸", "🧸", "🍰", "🍓", "🧁", "💌", "🐰", "🐱", "🐾"] },
   { id: "y2k", name: "✨ Y2K", stickers: ["✨", "⭐", "💫", "🕶️", "🦋", "💿", "⚡", "🔮", "💅", "🔥", "👑", "✌️"] },
+  { id: "spooky", name: "🎃 Spooky", stickers: ["🎃", "👻", "🦇", "🕷️", "🕸️", "🍬", "🧙‍♀️", "💀", "🕯️", "🧛", "🖤", "🔮"] },
   { id: "cafe", name: "☕ Cafe", stickers: ["☕", "🥐", "🍩", "🍦", "🎈", "🍭", "🥑", "🥦", "🍕", "🍔", "🥤", "🛹"] },
   { id: "indo", name: "🇮🇩 Merah Putih", stickers: ["🇮🇩", "🦅", "🎗️", "🛵", "🎸", "🎵", "🏆", "🌟", "🎉", "🔥", "👏", "🤍"] },
 ];
@@ -163,7 +182,6 @@ export default function EditorStep({
       isFlipped,
     };
 
-    // Trim redo stack if we're not at the end
     const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
     newHistory.push(currentState);
     historyRef.current = newHistory;
@@ -173,19 +191,16 @@ export default function EditorStep({
     setCanRedo(false);
   }, [layout, preset, cuteFilter, customText, fontFamily, subtitleText, placedStickers, frameColor, textColor, filter, isFlipped]);
 
-  // Initial history snapshot
   useEffect(() => {
     if (historyRef.current.length === 0) {
       pushHistoryState();
     }
   }, [pushHistoryState]);
 
-  // Push to history when user edits options (debounced / track state changes)
   useEffect(() => {
     pushHistoryState();
   }, [layout, preset, cuteFilter, frameColor, textColor, filter.filterIntensity, filter.grain, filter.beautyGlow, filter.brightness, filter.contrast, filter.saturation, placedStickers, isFlipped]);
 
-  // Perform Undo
   const handleUndo = () => {
     if (historyIndexRef.current > 0) {
       isUndoRedoActionRef.current = true;
@@ -208,7 +223,6 @@ export default function EditorStep({
     }
   };
 
-  // Perform Redo
   const handleRedo = () => {
     if (historyIndexRef.current < historyRef.current.length - 1) {
       isUndoRedoActionRef.current = true;
@@ -231,14 +245,12 @@ export default function EditorStep({
     }
   };
 
-  // Trigger anti-flicker brief loading overlay during layout/preset/filter transitions
   useEffect(() => {
     setIsUpdatingCanvas(true);
     const timer = setTimeout(() => setIsUpdatingCanvas(false), 180);
     return () => clearTimeout(timer);
   }, [layout, preset, cuteFilter, frameColor, textColor, filter]);
 
-  // Throttled Pointer Event Handlers for Draggable Stickers
   const getCanvasPos = (clientX: number, clientY: number) => {
     if (!canvasRef.current) return null;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -263,7 +275,6 @@ export default function EditorStep({
     };
   };
 
-  // Extract and update Valorant fields
   const valoStats = React.useMemo(() => {
     let ign = "guraisu";
     let role = "Smoker";
@@ -294,7 +305,6 @@ export default function EditorStep({
     setCustomText(`${updated.ign}|${updated.role}|${updated.agent}|${updated.rank}|${updated.line}`);
   };
 
-  // Extract and update Student ID fields
   const studentStats = React.useMemo(() => {
     let name = "STEFANY PUTRI";
     let idNo = "2024-08912";
@@ -378,26 +388,26 @@ export default function EditorStep({
 
   return (
     <div className="w-full max-w-6xl px-2 sm:px-4 py-3 space-y-4 sm:space-y-6">
-      {/* 1. TOP SECTION: ACTION HEADER & NAVIGATION BAR WITH UNDO / REDO */}
-      <div className="flex flex-wrap justify-between items-center gap-3 bg-white border-2 border-pink-200 p-3 sm:p-4 rounded-2xl shadow-sm">
+      {/* 1. TOP ACTION HEADER & TOOLBAR */}
+      <div className="flex flex-wrap justify-between items-center gap-3 scrapbook-paper p-3 sm:p-4 shadow-paper">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onBack}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl flex items-center gap-1.5 transition border border-slate-300"
+            className="px-4 py-2 bg-white hover:bg-[#FFF0F4] text-[#392633] text-xs font-heading font-bold rounded-xl flex items-center gap-1.5 transition border border-[#E9B8CA] cursor-pointer shadow-xs"
           >
-            <ArrowLeft className="w-4 h-4" /> Review Foto
+            <ArrowLeft className="w-4 h-4 text-[#E84D91]" /> Review Foto
           </button>
 
-          {/* UNDO & REDO BUTTONS */}
+          {/* UNDO & REDO */}
           <button
             type="button"
             onClick={handleUndo}
             disabled={!canUndo}
-            className="p-2 bg-slate-100 hover:bg-pink-100 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 rounded-xl transition border border-slate-300 flex items-center gap-1 text-xs font-bold"
+            className="p-2 bg-white hover:bg-[#FFF0F4] disabled:opacity-40 text-[#392633] rounded-xl transition border border-[#E9B8CA] flex items-center gap-1 text-xs font-heading font-bold cursor-pointer shadow-xs"
             title="Batal / Undo (↺)"
           >
-            <Undo2 className="w-4 h-4 text-pink-500" />
+            <Undo2 className="w-4 h-4 text-[#E84D91]" />
             <span className="hidden sm:inline">Undo</span>
           </button>
 
@@ -405,10 +415,10 @@ export default function EditorStep({
             type="button"
             onClick={handleRedo}
             disabled={!canRedo}
-            className="p-2 bg-slate-100 hover:bg-pink-100 disabled:opacity-40 disabled:hover:bg-slate-100 text-slate-700 rounded-xl transition border border-slate-300 flex items-center gap-1 text-xs font-bold"
+            className="p-2 bg-white hover:bg-[#FFF0F4] disabled:opacity-40 text-[#392633] rounded-xl transition border border-[#E9B8CA] flex items-center gap-1 text-xs font-heading font-bold cursor-pointer shadow-xs"
             title="Ulang / Redo (↻)"
           >
-            <Redo2 className="w-4 h-4 text-pink-500" />
+            <Redo2 className="w-4 h-4 text-[#E84D91]" />
             <span className="hidden sm:inline">Redo</span>
           </button>
         </div>
@@ -418,11 +428,10 @@ export default function EditorStep({
           <button
             type="button"
             onClick={() => setIsFlipped((v) => !v)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border-2 shadow-xs ${
-              isFlipped
-                ? "bg-pink-400 text-white border-pink-500"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border-2 shadow-xs cursor-pointer ${isFlipped
+                ? "bg-[#E84D91] text-white border-[#E84D91]"
+                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+              }`}
             title="Cermin Horisontal"
           >
             <FlipHorizontal className="w-4 h-4" />
@@ -433,36 +442,33 @@ export default function EditorStep({
           <button
             type="button"
             onClick={() => setIsLivePhotoOn(!isLivePhotoOn)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border-2 shadow-xs ${
-              isLivePhotoOn
-                ? "bg-pink-400 text-white border-pink-500"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border-2 shadow-xs cursor-pointer ${isLivePhotoOn
+                ? "bg-[#E84D91] text-white border-[#E84D91]"
+                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+              }`}
           >
-            <Video className="w-4 h-4 text-pink-500" />
+            <Video className="w-4 h-4 text-[#E84D91]" />
             <span>Live Photo 🎥 {isLivePhotoOn ? "ON" : "OFF"}</span>
           </button>
         </div>
       </div>
 
-      {/* 2. MIDDLE SECTION: CENTERED CANVAS PREVIEW CARD + CONTROL TABS */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
+      {/* 2. MIDDLE SECTION: CANVAS STUDIO PREVIEW + TABS */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
         {/* Left Interactive Canvas Preview Container */}
-        <div className="lg:col-span-6 flex flex-col items-center gap-2 sticky top-16 z-30 bg-rose-50/95 backdrop-blur-md p-2 rounded-2xl shadow-md overflow-hidden mb-3 lg:mb-0 lg:static lg:bg-transparent lg:p-0 lg:shadow-none w-full">
-          {/* Top Status Pill */}
+        <div className="lg:col-span-6 flex flex-col items-center gap-2 sticky top-16 z-30 bg-[#FFF0F4]/95 backdrop-blur-md p-2 rounded-2xl shadow-paper lg:static lg:bg-transparent lg:p-0 lg:shadow-none w-full">
           <div className="w-full flex items-center justify-between px-2 py-1">
-            <span className="text-[11px] font-black text-pink-600 uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-pink-500" /> KANVAS PRATINJAU STUDIO
+            <span className="text-[11px] font-heading font-bold text-[#E84D91] uppercase tracking-wider flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-[#E84D91]" /> KANVAS PRATINJAU STUDIO
             </span>
-            <span className="text-[10px] font-bold text-slate-500">
-              Live Photo: {isLivePhotoOn ? "ON 🎥" : "OFF"}
+            <span className="text-[10px] font-mono font-semibold text-[#8B7180]">
+              Live: {isLivePhotoOn ? "ON 🎥" : "OFF"}
             </span>
           </div>
 
-          {/* RESPONSIVE FLEX CARD CONTAINER BOX FOR MOBILE CANVAS PREVIEW */}
           <div
             ref={containerRef}
-            className="relative w-full max-w-sm sm:max-w-md mx-auto p-3 flex items-center justify-center bg-white rounded-3xl shadow-md overflow-hidden cursor-grab active:cursor-grabbing select-none"
+            className="relative w-full max-w-sm sm:max-w-md mx-auto p-4 flex items-center justify-center bg-white border-2 border-[#E9B8CA] rounded-3xl shadow-polaroid overflow-hidden cursor-grab active:cursor-grabbing select-none"
             onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
             onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
             onMouseUp={handlePointerUp}
@@ -478,11 +484,11 @@ export default function EditorStep({
             }}
             onTouchEnd={handlePointerUp}
           >
-            {/* Anti-Flicker Smooth Overlay Loader during transitions */}
+            {/* Anti-Flicker Smooth Overlay Loader */}
             {isUpdatingCanvas && (
               <div className="absolute inset-0 bg-white/70 backdrop-blur-xs z-40 flex items-center justify-center gap-2 pointer-events-none transition-opacity duration-150">
-                <Sparkles className="w-5 h-5 text-pink-500 animate-spin" />
-                <span className="text-xs font-black text-slate-800">Memperbarui Tampilan...</span>
+                <Sparkles className="w-5 h-5 text-[#E84D91] animate-spin" />
+                <span className="text-xs font-heading font-bold text-[#392633]">Memperbarui Tampilan...</span>
               </div>
             )}
 
@@ -507,7 +513,7 @@ export default function EditorStep({
                     left: `${domPos.left + 15}px`,
                     top: `${domPos.top - 15}px`,
                   }}
-                  className="absolute z-50 p-1 bg-rose-500 hover:bg-rose-600 text-white rounded-full shadow-lg border border-white transition transform hover:scale-110 active:scale-95"
+                  className="absolute z-50 p-1 bg-[#E84D91] hover:bg-[#F48FB1] text-white rounded-full shadow-lg border border-white transition transform hover:scale-110 active:scale-95 cursor-pointer"
                   title="Hapus Stiker Ini (x)"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -516,67 +522,63 @@ export default function EditorStep({
             })()}
           </div>
 
-          <p className="hidden lg:block text-[11px] font-bold text-slate-500 text-center">
-            💡 <span className="text-pink-600">Geser / Drag</span> stiker langsung di atas kanvas pratinjau!
+          <p className="hidden lg:block text-[11px] font-sans font-medium text-[#8B7180] text-center">
+            💡 <span className="text-[#E84D91] font-bold">Geser / Drag</span> stiker langsung di atas kanvas pratinjau!
           </p>
         </div>
 
-        {/* Right Editor Control Panel (4-TAB NAVIGATION BAR) */}
-        <div className="lg:col-span-6 bg-white border-2 border-pink-200 rounded-3xl p-4 sm:p-5 shadow-lg space-y-4 sm:space-y-5">
+        {/* Right Editor Control Panel (4-TAB NAVIGATION) */}
+        <div className="lg:col-span-6 scrapbook-paper p-4 sm:p-5 shadow-paper space-y-4 sm:space-y-5">
           {/* Navigation Control Tabs */}
-          <div className="flex bg-rose-50 p-1.5 rounded-2xl border border-pink-200 gap-1 overflow-x-auto">
+          <div className="flex bg-[#FFF0F4] p-1.5 rounded-2xl border border-[#E9B8CA] gap-1 overflow-x-auto">
             <button
               type="button"
               onClick={() => setActiveTab("layout")}
-              className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 whitespace-nowrap ${
-                activeTab === "layout"
-                  ? "bg-pink-400 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-pink-100"
-              }`}
+              className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-heading font-bold transition flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer ${activeTab === "layout"
+                  ? "bg-[#E84D91] text-white shadow-xs"
+                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
+                }`}
             >
               <Layout className="w-3.5 h-3.5" /> Layout & Swap
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("frame")}
-              className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 whitespace-nowrap ${
-                activeTab === "frame"
-                  ? "bg-pink-400 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-pink-100"
-              }`}
+              className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-heading font-bold transition flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer ${activeTab === "frame"
+                  ? "bg-[#E84D91] text-white shadow-xs"
+                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
+                }`}
             >
               <Palette className="w-3.5 h-3.5" /> Bingkai & Warna
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("filter")}
-              className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 whitespace-nowrap ${
-                activeTab === "filter"
-                  ? "bg-pink-400 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-pink-100"
-              }`}
+              className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-heading font-bold transition flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer ${activeTab === "filter"
+                  ? "bg-[#E84D91] text-white shadow-xs"
+                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
+                }`}
             >
               <Wand2 className="w-3.5 h-3.5" /> Filter Warna
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("stickers")}
-              className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 whitespace-nowrap ${
-                activeTab === "stickers"
-                  ? "bg-pink-400 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-pink-100"
-              }`}
+              className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-heading font-bold transition flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer ${activeTab === "stickers"
+                  ? "bg-[#E84D91] text-white shadow-xs"
+                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
+                }`}
             >
               <Sparkles className="w-3.5 h-3.5" /> Stiker & Logo
             </button>
           </div>
 
-          {/* TAB 1: EXPANDED LAYOUT GRIDS (9 OPTIONS) & PHOTO SWAP */}
+          {/* TAB 1: LAYOUT & PHOTO SWAP */}
           {activeTab === "layout" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Pilih Layout Potongan Foto (10 Options):</label>
-                <div className="max-h-44 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
+                <label className="text-xs font-heading font-bold text-[#392633]">Pilih Layout Potongan Foto (10 Options):</label>
+                <div className="max-h-48 overflow-y-auto p-2 border border-[#E9B8CA] rounded-2xl bg-white grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin">
                   {[
                     { id: "strip_2x4", label: "Double Strip 2x4 👯" },
                     { id: "newspaper_grid", label: "Newspaper Grid 📰" },
@@ -593,11 +595,10 @@ export default function EditorStep({
                       key={item.id}
                       type="button"
                       onClick={() => setLayout(item.id as LayoutMode)}
-                      className={`py-2 px-2 rounded-xl text-[11px] font-bold border-2 transition ${
-                        layout === item.id
-                          ? "bg-pink-400 text-white border-pink-500 shadow-xs"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                      }`}
+                      className={`py-2 px-2 rounded-xl text-[11px] font-heading font-bold border-2 transition cursor-pointer ${layout === item.id
+                          ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                          : "bg-[#FFF9F0] text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                        }`}
                     >
                       {item.label}
                     </button>
@@ -606,9 +607,9 @@ export default function EditorStep({
               </div>
 
               {/* Photo Position Swap Helper Thumbnails */}
-              <div className="w-full bg-rose-50/80 border border-pink-200 p-3 rounded-2xl space-y-2 shadow-xs">
-                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <RefreshCw className="w-3.5 h-3.5 text-pink-500" /> Tukar Urutan Foto (Klik 2 Foto):
+              <div className="w-full bg-[#FFF0F4] border-2 border-[#E9B8CA] p-3 rounded-2xl space-y-2 shadow-xs">
+                <span className="text-xs font-heading font-bold text-[#392633] flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5 text-[#E84D91]" /> Tukar Urutan Foto (Klik 2 Foto):
                 </span>
                 <div className="grid grid-cols-4 gap-2">
                   {[0, 1, 2, 3].map((idx) => {
@@ -619,14 +620,13 @@ export default function EditorStep({
                         key={shot.id || idx}
                         type="button"
                         onClick={() => onSwapPhotos(idx)}
-                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition ${
-                          selectedForSwap === idx
-                            ? "border-pink-500 ring-4 ring-pink-300 scale-105"
-                            : "border-pink-200 hover:border-pink-400"
-                        }`}
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition cursor-pointer ${selectedForSwap === idx
+                            ? "border-[#E84D91] ring-4 ring-[#F8D8E3] scale-105"
+                            : "border-[#E9B8CA] hover:border-[#E84D91]"
+                          }`}
                       >
                         <img src={shot.dataUrl} alt={`Pos #${idx + 1}`} className="w-full h-full object-cover" />
-                        <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
+                        <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[9px] font-mono px-1.5 py-0.5 rounded">
                           #{idx + 1}
                         </span>
                       </button>
@@ -637,15 +637,14 @@ export default function EditorStep({
             </div>
           )}
 
-          {/* TAB 2: FIXED NEWSPAPER & EXPANDED GEN Z FRAME PRESETS */}
-          {/* TAB 2: FIXED NEWSPAPER & EXPANDED GEN Z FRAME PRESETS */}
+          {/* TAB 2: FRAME PRESETS & PALETTE */}
           {activeTab === "frame" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-slate-700">Pilihan Bingkai & Koleksi Editorial:</label>
-                  <span className="text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-200">
-                    Koleksi: Editorial Archive 🗞️
+                  <label className="text-xs font-heading font-bold text-[#392633]">Pilihan Bingkai & Koleksi:</label>
+                  <span className="text-[10px] font-heading font-bold text-[#E84D91] bg-[#FFF0F4] px-2.5 py-0.5 rounded-full border border-[#E9B8CA]">
+                    Gen Z Scrapbook 🎀
                   </span>
                 </div>
 
@@ -662,21 +661,20 @@ export default function EditorStep({
                       key={cat.id}
                       type="button"
                       onClick={() => setPresetCategory(cat.id as any)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-                        presetCategory === cat.id
-                          ? "bg-slate-900 text-white shadow-xs"
-                          : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                      }`}
+                      className={`px-3 py-1 rounded-xl text-xs font-heading font-bold transition whitespace-nowrap cursor-pointer ${presetCategory === cat.id
+                          ? "bg-[#392633] text-white shadow-xs"
+                          : "bg-white text-[#8B7180] border border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                        }`}
                     >
                       {cat.label}
                     </button>
                   ))}
                 </div>
 
-                <div className="max-h-56 overflow-y-auto p-2 border border-pink-100 rounded-2xl bg-rose-50/30 grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin scrollbar-thumb-pink-300">
+                <div className="max-h-56 overflow-y-auto p-2 border border-[#E9B8CA] rounded-2xl bg-white grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin">
                   {[
-                    // Editorial Archive Collection (Single Definitive Newspaper Preset)
-                    { id: "daily_rielly", label: "🗞️ The Daily Rielly (Editorial)", category: "editorial" },
+                    // Editorial Archive Collection
+                    { id: "daily_rielly", label: "🗞️ The Daily Rielly", category: "editorial" },
                     { id: "riellmatics_news", label: "📰 Riellmatics News", category: "editorial" },
 
                     // Coquette Collection
@@ -752,21 +750,12 @@ export default function EditorStep({
                             setFontFamily("serif");
                             setCustomText("TRICK OR TREAT");
                             setSubtitleText("HALLOWEEN 2026 • RIELLYBOOTH ♡");
-                          } else if (item.id === "hut_ri_81_3strip") {
-                            setLayout("strip_3cut");
-                            setFrameColor("#ffffff");
-                            setTextColor("#dc2626");
-                          } else if (item.id === "hut_ri_81_4strip") {
-                            setLayout("strip_1x4");
-                            setFrameColor("#ffffff");
-                            setTextColor("#dc2626");
                           }
                         }}
-                        className={`py-2 px-2.5 rounded-xl text-xs font-bold border-2 transition ${
-                          preset === item.id
-                            ? "bg-pink-400 text-white border-pink-500 shadow-xs"
-                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                        }`}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-heading font-bold border-2 transition cursor-pointer ${preset === item.id
+                            ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                            : "bg-[#FFF9F0] text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                          }`}
                       >
                         {item.label}
                       </button>
@@ -782,11 +771,11 @@ export default function EditorStep({
             </div>
           )}
 
-          {/* TAB 3: CUTE & RETRO WEBCAM TOY FILTERS + INTENSITY SLIDER */}
+          {/* TAB 3: RETRO WEBCAM TOY & BEAUTY FILTERS */}
           {activeTab === "filter" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Webcam Toy & Cute Filters:</label>
+                <label className="text-xs font-heading font-bold text-[#392633]">Webcam Toy & Cute Filters:</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { id: "none", label: "Original ✨" },
@@ -803,11 +792,10 @@ export default function EditorStep({
                       key={item.id}
                       type="button"
                       onClick={() => setCuteFilter(item.id as CuteFilter)}
-                      className={`py-2 px-2 rounded-xl text-[11px] font-bold border-2 transition ${
-                        cuteFilter === item.id
-                          ? "bg-pink-400 text-white border-pink-500 shadow-xs"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                      }`}
+                      className={`py-2 px-2 rounded-xl text-[11px] font-heading font-bold border-2 transition cursor-pointer ${cuteFilter === item.id
+                          ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                          : "bg-[#FFF9F0] text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                        }`}
                     >
                       {item.label}
                     </button>
@@ -816,9 +804,8 @@ export default function EditorStep({
               </div>
 
               <div className="space-y-3 pt-2">
-                {/* FILTER INTENSITY SLIDER (0% to 100%) */}
                 <Slider
-                  label="Intensitas Filter 🎨 (Filter Blend)"
+                  label="Intensitas Filter 🎨 (Blend)"
                   min={0}
                   max={100}
                   value={filter.filterIntensity ?? 100}
@@ -863,15 +850,15 @@ export default function EditorStep({
             </div>
           )}
 
-          {/* TAB 4: STICKERS & TRANSFORM CONTROLS & CUSTOM LOGO */}
+          {/* TAB 4: STICKERS, CUSTOM LOGO & PNG OVERLAY */}
           {activeTab === "stickers" && (
             <div className="space-y-4 animate-in fade-in duration-200">
               {/* STICKER TRANSFORM CONTROLS FOR SELECTED STICKER */}
               {selectedSticker && onUpdateStickerTransform && (
-                <div className="space-y-3 bg-pink-50 border-2 border-pink-300 p-3.5 rounded-2xl shadow-xs animate-in zoom-in-95 duration-150">
+                <div className="space-y-3 bg-[#FFF0F4] border-2 border-[#E9B8CA] p-3.5 rounded-2xl shadow-xs animate-in zoom-in-95 duration-150">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-black text-pink-700 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-pink-500" /> Kontrol Stiker {selectedSticker.emoji}
+                    <span className="text-xs font-heading font-bold text-[#E84D91] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#E84D91]" /> Kontrol Stiker {selectedSticker.emoji}
                     </span>
                     <button
                       type="button"
@@ -879,7 +866,7 @@ export default function EditorStep({
                         if (onDeleteSticker) onDeleteSticker(selectedSticker.id);
                         setSelectedStickerId(null);
                       }}
-                      className="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-bold rounded-lg transition flex items-center gap-1 shadow-xs"
+                      className="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-heading font-bold rounded-lg transition flex items-center gap-1 shadow-xs cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" /> Hapus Stiker (x)
                     </button>
@@ -903,20 +890,20 @@ export default function EditorStep({
                 </div>
               )}
 
-              {/* UPLOAD CUSTOM FULL-FRAME PNG OVERLAY SECTION */}
-              <div className="space-y-2 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 p-3.5 rounded-2xl">
+              {/* UPLOAD CUSTOM FULL-FRAME PNG OVERLAY */}
+              <div className="space-y-2 bg-gradient-to-r from-[#FFF0F4] to-[#FFF9F0] border-2 border-[#E9B8CA] p-3.5 rounded-2xl">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-purple-600" /> Bingkai Custom Sendiri (PNG Transparan):
+                  <label className="text-xs font-heading font-bold text-[#392633] flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-[#E84D91]" /> Bingkai Custom Sendiri (PNG Transparan):
                   </label>
                   {customFrameOverlayUrl && (
-                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded-full border border-emerald-300">
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-300">
                       Aktif ✨
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Upload file PNG transparan desain sendiri (cocok buat acara ulang tahun, nikahan, wisuda, atau event komunitas)!
+                <p className="text-[11px] text-[#8B7180] font-sans font-medium">
+                  Upload file PNG transparan desain sendiri dari Canva/Photoshop (cocok buat ulang tahun, wisuda, atau event komunitas)!
                 </p>
 
                 <input
@@ -931,7 +918,7 @@ export default function EditorStep({
                   <button
                     type="button"
                     onClick={() => frameOverlayInputRef.current?.click()}
-                    className="flex-1 py-2 px-3 bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs rounded-xl border border-purple-600 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 py-2 px-3 bg-[#E84D91] hover:bg-[#F48FB1] text-white font-heading font-bold text-xs rounded-xl border border-[#E84D91] transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>{customFrameOverlayUrl ? "Ganti Bingkai PNG" : "Upload Bingkai Sendiri (PNG)"}</span>
@@ -941,7 +928,7 @@ export default function EditorStep({
                     <button
                       type="button"
                       onClick={onClearCustomFrameOverlay}
-                      className="py-2 px-3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs rounded-xl border border-rose-300 transition cursor-pointer"
+                      className="py-2 px-3 bg-white hover:bg-rose-50 text-rose-700 font-heading font-bold text-xs rounded-xl border border-rose-300 transition cursor-pointer"
                     >
                       Hapus
                     </button>
@@ -949,10 +936,10 @@ export default function EditorStep({
                 </div>
               </div>
 
-              {/* UPLOAD CUSTOM BRAND LOGO SECTION */}
-              <div className="space-y-2 bg-rose-50 border-2 border-pink-200 p-3.5 rounded-2xl">
-                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <ImageIcon className="w-4 h-4 text-pink-500" /> Logo Brand / Event Kustom (PNG):
+              {/* UPLOAD CUSTOM BRAND LOGO */}
+              <div className="space-y-2 bg-[#FFF0F4] border-2 border-[#E9B8CA] p-3.5 rounded-2xl">
+                <label className="text-xs font-heading font-bold text-[#392633] flex items-center gap-1.5">
+                  <ImageIcon className="w-4 h-4 text-[#E84D91]" /> Logo Brand / Event Kustom (PNG):
                 </label>
 
                 <input
@@ -967,7 +954,7 @@ export default function EditorStep({
                   <button
                     type="button"
                     onClick={() => logoInputRef.current?.click()}
-                    className="flex-1 py-2 px-3 bg-pink-400 hover:bg-pink-500 text-white font-bold text-xs rounded-xl border border-pink-500 transition shadow-xs flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2 px-3 bg-[#E84D91] hover:bg-[#F48FB1] text-white font-heading font-bold text-xs rounded-xl border border-[#E84D91] transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>{customLogoUrl ? "Ganti Logo Brand" : "Upload Logo (PNG)"}</span>
@@ -977,7 +964,7 @@ export default function EditorStep({
                     <button
                       type="button"
                       onClick={onClearCustomLogo}
-                      className="py-2 px-3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs rounded-xl border border-rose-300 transition"
+                      className="py-2 px-3 bg-white hover:bg-rose-50 text-rose-700 font-heading font-bold text-xs rounded-xl border border-rose-300 transition cursor-pointer"
                     >
                       Hapus Logo
                     </button>
@@ -988,43 +975,41 @@ export default function EditorStep({
               {/* STICKER PALETTE */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-slate-700">Pilih Stiker Lucu (Klik untuk menambah):</label>
+                  <label className="text-xs font-heading font-bold text-[#392633]">Pilih Stiker Lucu (Klik untuk menambah):</label>
                   {placedStickers.length > 0 && (
                     <button
                       type="button"
                       onClick={onClearStickers}
-                      className="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 text-[11px] font-bold rounded-lg transition flex items-center gap-1 border border-rose-300"
+                      className="px-2.5 py-1 bg-white hover:bg-rose-50 text-rose-700 text-[11px] font-heading font-bold rounded-lg transition flex items-center gap-1 border border-rose-300 cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" /> Hapus Semua ({placedStickers.length})
                     </button>
                   )}
                 </div>
 
-                {/* Themed Sticker Pack Selector Tabs */}
                 <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                   {STICKER_PACKS.map((pack) => (
                     <button
                       key={pack.id}
                       type="button"
                       onClick={() => setSelectedStickerPack(pack.id)}
-                      className={`px-3 py-1 rounded-full text-xs font-black whitespace-nowrap transition border ${
-                        selectedStickerPack === pack.id
-                          ? "bg-pink-400 text-white border-pink-500 shadow-xs"
-                          : "bg-white text-slate-700 border-pink-200 hover:bg-pink-50"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-heading font-bold whitespace-nowrap transition border cursor-pointer ${selectedStickerPack === pack.id
+                          ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                          : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                        }`}
                     >
                       {pack.name}
                     </button>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 bg-rose-50/70 border-2 border-pink-200 p-3 rounded-2xl max-h-48 overflow-y-auto">
+                <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 bg-[#FFF0F4] border-2 border-[#E9B8CA] p-3 rounded-2xl max-h-48 overflow-y-auto">
                   {(STICKER_PACKS.find((p) => p.id === selectedStickerPack) || STICKER_PACKS[0]).stickers.map((emoji) => (
                     <button
                       key={emoji}
                       type="button"
                       onClick={() => onAddSticker(emoji)}
-                      className="p-2.5 text-2xl bg-white border-2 border-pink-200 rounded-xl hover:bg-pink-100 hover:scale-110 active:scale-90 transition duration-150 shadow-xs flex items-center justify-center cursor-pointer"
+                      className="p-2.5 text-2xl bg-white border border-[#E9B8CA] rounded-xl hover:bg-[#F8D8E3] hover:scale-110 active:scale-90 transition duration-150 shadow-xs flex items-center justify-center cursor-pointer"
                       title={`Tambah Stiker ${emoji}`}
                     >
                       {emoji}
@@ -1033,36 +1018,34 @@ export default function EditorStep({
                 </div>
               </div>
 
-              {/* SPECIAL VALORANT PLAYER STATS FORM OR REGULAR FOOTER EDITORS */}
+              {/* SPECIAL VALORANT / STUDENT FORM OR REGULAR FOOTER TEXT */}
               {preset === "valorant_id" ? (
-                <div className="space-y-3 bg-slate-900 border-2 border-red-500/60 p-3.5 rounded-2xl text-slate-100 shadow-md">
-                  <div className="flex items-center justify-between border-b border-slate-700 pb-2">
-                    <span className="text-red-500 font-black text-xs tracking-wider flex items-center gap-1.5">
+                <div className="space-y-3 bg-stone-900 border-2 border-red-500/60 p-3.5 rounded-2xl text-stone-100 shadow-md">
+                  <div className="flex items-center justify-between border-b border-stone-700 pb-2">
+                    <span className="text-red-400 font-mono font-bold text-xs tracking-wider">
                       🎯 VALORANT IDENTIFICATION
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">PROTOCOL // 00</span>
+                    <span className="text-[10px] text-stone-400 font-mono">PROTOCOL // 00</span>
                   </div>
 
-                  {/* IGN */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-300 font-mono">IGN (In-Game Name):</label>
+                    <label className="text-[11px] font-mono text-stone-300">IGN (In-Game Name):</label>
                     <input
                       type="text"
                       value={valoStats.ign}
                       onChange={(e) => updateValoField("ign", e.target.value)}
                       placeholder="Contoh: guraisu"
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
+                      className="w-full px-3 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
                     />
                   </div>
 
-                  {/* ROLE & AGENT */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300 font-mono">Role:</label>
+                      <label className="text-[11px] font-mono text-stone-300">Role:</label>
                       <select
                         value={valoStats.role}
                         onChange={(e) => updateValoField("role", e.target.value)}
-                        className="w-full px-2 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
+                        className="w-full px-2 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
                       >
                         <option value="Smoker">💨 Smoker</option>
                         <option value="Duelist">⚔️ Duelist</option>
@@ -1073,24 +1056,23 @@ export default function EditorStep({
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300 font-mono">Favorite Agent:</label>
+                      <label className="text-[11px] font-mono text-stone-300">Favorite Agent:</label>
                       <input
                         type="text"
                         value={valoStats.agent}
                         onChange={(e) => updateValoField("agent", e.target.value)}
                         placeholder="Contoh: Clove"
-                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
                       />
                     </div>
                   </div>
 
-                  {/* PEAK RANK */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-300 font-mono">Peak Rank:</label>
+                    <label className="text-[11px] font-mono text-stone-300">Peak Rank:</label>
                     <select
                       value={valoStats.rank}
                       onChange={(e) => updateValoField("rank", e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
+                      className="w-full px-2.5 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
                     >
                       <option value="Radiant">👑 Radiant</option>
                       <option value="Immortal">💎 Immortal</option>
@@ -1104,113 +1086,108 @@ export default function EditorStep({
                     </select>
                   </div>
 
-                  {/* MOST SAID LINE */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-300 font-mono">Most Said Line:</label>
+                    <label className="text-[11px] font-mono text-stone-300">Most Said Line:</label>
                     <input
                       type="text"
                       value={valoStats.line}
                       onChange={(e) => updateValoField("line", e.target.value)}
                       placeholder="Contoh: Kaget anjg, game sialan"
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
+                      className="w-full px-3 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-xs font-mono text-white focus:border-red-500 outline-none transition"
                     />
                   </div>
                 </div>
               ) : preset === "student_id" ? (
-                <div className="space-y-3 bg-slate-900 border-2 border-blue-500/60 p-3.5 rounded-2xl text-slate-100 shadow-md">
-                  <div className="flex items-center justify-between border-b border-slate-700 pb-2">
-                    <span className="text-blue-400 font-black text-xs tracking-wider flex items-center gap-1.5">
+                <div className="space-y-3 bg-stone-900 border-2 border-blue-500/60 p-3.5 rounded-2xl text-stone-100 shadow-md">
+                  <div className="flex items-center justify-between border-b border-stone-700 pb-2">
+                    <span className="text-blue-400 font-mono font-bold text-xs tracking-wider">
                       🪪 STUDENT IDENTIFICATION CARD
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">MANNER HIGH</span>
+                    <span className="text-[10px] text-stone-400 font-mono">MANNER HIGH</span>
                   </div>
 
-                  {/* STUDENT NAME */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-300 font-mono">Nama Siswa / Name:</label>
+                    <label className="text-[11px] font-mono text-stone-300">Nama Siswa / Name:</label>
                     <input
                       type="text"
                       value={studentStats.name}
                       onChange={(e) => updateStudentField("name", e.target.value)}
                       placeholder="Contoh: STEFANY PUTRI"
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
+                      className="w-full px-3 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
                     />
                   </div>
 
-                  {/* STUDENT ID NO & CLASS */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300 font-mono">No. Pelajar / ID:</label>
+                      <label className="text-[11px] font-mono text-stone-300">No. Pelajar / ID:</label>
                       <input
                         type="text"
                         value={studentStats.idNo}
                         onChange={(e) => updateStudentField("idNo", e.target.value)}
                         placeholder="2024-08912"
-                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300 font-mono">Kelas / Grade:</label>
+                      <label className="text-[11px] font-mono text-stone-300">Kelas / Grade:</label>
                       <input
                         type="text"
                         value={studentStats.grade}
                         onChange={(e) => updateStudentField("grade", e.target.value)}
                         placeholder="CLASS 3-A"
-                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
                       />
                     </div>
                   </div>
 
-                  {/* MAJOR / CLUB & DOB */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300 font-mono">Jurusan / Club:</label>
+                      <label className="text-[11px] font-mono text-stone-300">Jurusan / Club:</label>
                       <input
                         type="text"
                         value={studentStats.major}
                         onChange={(e) => updateStudentField("major", e.target.value)}
                         placeholder="VISUAL ARTS"
-                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-300 font-mono">Tgl Lahir / DOB:</label>
+                      <label className="text-[11px] font-mono text-stone-300">Tgl Lahir / DOB:</label>
                       <input
                         type="text"
                         value={studentStats.dob}
                         onChange={(e) => updateStudentField("dob", e.target.value)}
                         placeholder="16 AUG 2006"
-                        className="w-full px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
+                        className="w-full px-2.5 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-xs font-mono text-white focus:border-blue-500 outline-none transition"
                       />
                     </div>
                   </div>
                 </div>
               ) : (
                 <>
-                  {/* FOOTER TEXT EDITORS */}
                   {!customLogoUrl && (
                     <div className="space-y-1.5 pt-1">
-                      <label className="text-xs font-bold text-slate-700">Teks Judul Utama Footer:</label>
+                      <label className="text-xs font-heading font-bold text-[#392633]">Teks Judul Utama Footer:</label>
                       <input
                         type="text"
                         value={customText}
                         onChange={(e) => setCustomText(e.target.value)}
-                        placeholder="Contoh: riellybooth ♡"
-                        className="w-full px-3.5 py-2 rounded-xl border-2 border-pink-200 text-xs font-bold focus:border-pink-500 outline-none transition"
+                        placeholder="Contoh: RiellyBooth ♡"
+                        className="w-full px-3.5 py-2 rounded-xl border-2 border-[#E9B8CA] text-xs font-heading font-bold focus:border-[#E84D91] outline-none transition bg-white"
                       />
                     </div>
                   )}
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Teks Subtitle Tanggal / Pesan:</label>
+                    <label className="text-xs font-heading font-bold text-[#392633]">Teks Subtitle Tanggal / Pesan:</label>
                     <input
                       type="text"
                       value={subtitleText}
                       onChange={(e) => setSubtitleText(e.target.value)}
-                      placeholder="Contoh: ✨ 04 Agu 2026 ✨"
-                      className="w-full px-3.5 py-2 rounded-xl border-2 border-pink-200 text-xs font-bold focus:border-pink-500 outline-none transition"
+                      placeholder="Contoh: ✨ 14 Nov 2026 ✨"
+                      className="w-full px-3.5 py-2 rounded-xl border-2 border-[#E9B8CA] text-xs font-sans font-medium focus:border-[#E84D91] outline-none transition bg-white"
                     />
                   </div>
 
@@ -1226,62 +1203,62 @@ export default function EditorStep({
         </div>
       </div>
 
-      {/* 3. BOTTOM SECTION: DOWNLOAD CARDS, SHARE & RE-TAKE BUTTONS */}
-      <div className="space-y-4 pt-4 border-t-2 border-pink-200">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+      {/* 3. BOTTOM SECTION: EXPORT CARDS (PNG, VIDEO MP4, GIF) & SHARE */}
+      <div className="space-y-4 pt-4 border-t-2 border-[#E9B8CA]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Card 1: PNG HD Photo Strip */}
-          <div className="bg-white border-2 border-pink-300 p-3.5 sm:p-4 rounded-2xl shadow-sm flex flex-col justify-between gap-3">
+          <div className="scrapbook-paper p-4 flex flex-col justify-between gap-3 shadow-paper">
             <div className="space-y-1">
-              <span className="text-xs font-black text-pink-600 uppercase tracking-wider flex items-center gap-1">
+              <span className="text-xs font-heading font-bold text-[#E84D91] uppercase tracking-wider flex items-center gap-1">
                 <Download className="w-3.5 h-3.5" /> Foto Statis
               </span>
-              <h4 className="text-xs sm:text-sm font-black text-slate-800">Simpan Foto (PNG HD)</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Resolusi tinggi tajam tanpa watermark, siap cetak 4R.</p>
+              <h4 className="text-sm font-heading font-bold text-[#392633]">Simpan Foto (PNG HD)</h4>
+              <p className="text-[11px] text-[#8B7180] font-sans font-medium">Resolusi tinggi tajam tanpa watermark, siap cetak 4R.</p>
             </div>
             <button
               type="button"
               onClick={onDownloadPng}
-              className="w-full py-2.5 bg-pink-400 hover:bg-pink-500 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-pink-500 shadow-md transition hover:scale-102 active:scale-95 text-center"
+              className="w-full py-2.5 scrapbook-btn text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer text-center"
             >
-              Simpan PNG ⬇️
+              <span>Simpan PNG ⬇️</span>
             </button>
           </div>
 
           {/* Card 2: Live Video (MP4 / REELS 🎥) */}
-          <div className="bg-white border-2 border-purple-300 p-3.5 sm:p-4 rounded-2xl shadow-sm flex flex-col justify-between gap-3">
+          <div className="scrapbook-paper p-4 flex flex-col justify-between gap-3 shadow-paper">
             <div className="space-y-1">
-              <span className="text-xs font-black text-purple-600 uppercase tracking-wider flex items-center gap-1">
+              <span className="text-xs font-heading font-bold text-purple-600 uppercase tracking-wider flex items-center gap-1">
                 <Video className="w-3.5 h-3.5" /> Moving Video
               </span>
-              <h4 className="text-xs sm:text-sm font-black text-slate-800">Live Video (MP4 / REELS 🎥)</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Video gerak klip pendek boomerang siap share ke Story.</p>
+              <h4 className="text-sm font-heading font-bold text-[#392633]">Live Video (MP4 / REELS 🎥)</h4>
+              <p className="text-[11px] text-[#8B7180] font-sans font-medium">Video gerak klip pendek boomerang siap share ke Story.</p>
             </div>
             <button
               type="button"
               onClick={onDownloadVideo}
               disabled={isExportingVideo || !isLivePhotoOn}
-              className="w-full py-2.5 bg-purple-500 hover:bg-purple-600 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-purple-600 shadow-md transition disabled:opacity-50 hover:scale-102 active:scale-95 text-center"
+              className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-heading font-bold text-xs sm:text-sm rounded-full shadow-paper transition disabled:opacity-50 cursor-pointer text-center"
             >
-              {isExportingVideo ? "Exporting MP4..." : "Simpan MP4 🎥"}
+              <span>{isExportingVideo ? "Exporting MP4..." : "Simpan MP4 🎥"}</span>
             </button>
           </div>
 
           {/* Card 3: Animated GIF (GIF Animasi 🎞️) */}
-          <div className="bg-white border-2 border-emerald-300 p-3.5 sm:p-4 rounded-2xl shadow-sm flex flex-col justify-between gap-3">
+          <div className="scrapbook-paper p-4 flex flex-col justify-between gap-3 shadow-paper">
             <div className="space-y-1">
-              <span className="text-xs font-black text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+              <span className="text-xs font-heading font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5" /> Loop Animasi
               </span>
-              <h4 className="text-xs sm:text-sm font-black text-slate-800">Simpan GIF Animasi 🎞️</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Format GIF gerak looping tanpa henti, cocok buat WhatsApp & Telegram.</p>
+              <h4 className="text-sm font-heading font-bold text-[#392633]">Simpan GIF Animasi 🎞️</h4>
+              <p className="text-[11px] text-[#8B7180] font-sans font-medium">Format GIF gerak looping tanpa henti, cocok buat WhatsApp & Telegram.</p>
             </div>
             <button
               type="button"
               onClick={onDownloadGif}
               disabled={isExportingGif || !isLivePhotoOn}
-              className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-emerald-600 shadow-md transition disabled:opacity-50 hover:scale-102 active:scale-95 text-center"
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-xs sm:text-sm rounded-full shadow-paper transition disabled:opacity-50 cursor-pointer text-center"
             >
-              {isExportingGif ? "Membuat GIF..." : "Simpan GIF 🎞️"}
+              <span>{isExportingGif ? "Membuat GIF..." : "Simpan GIF 🎞️"}</span>
             </button>
           </div>
         </div>
@@ -1291,18 +1268,18 @@ export default function EditorStep({
           <button
             type="button"
             onClick={onOpenShareModal}
-            className="px-6 py-3 bg-purple-100 hover:bg-purple-200 text-purple-800 font-extrabold text-xs sm:text-sm rounded-2xl border border-purple-300 transition shadow-xs flex items-center gap-2"
+            className="px-6 py-3 scrapbook-btn text-xs sm:text-sm flex items-center gap-2 cursor-pointer"
           >
-            <Share2 className="w-4 h-4 text-purple-600" />
+            <Share2 className="w-4 h-4" />
             <span>Bagikan ke Story / Sosmed 📲</span>
           </button>
 
           <button
             type="button"
             onClick={onBack}
-            className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-2xl border border-slate-300 transition shadow-xs flex items-center gap-2"
+            className="px-6 py-3 scrapbook-btn-secondary text-xs sm:text-sm flex items-center gap-2 cursor-pointer"
           >
-            <RefreshCcw className="w-4 h-4 text-slate-500" />
+            <RefreshCcw className="w-4 h-4 text-[#8B7180]" />
             <span>Foto Ulang / Ganti Pose 🔄</span>
           </button>
         </div>

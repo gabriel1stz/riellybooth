@@ -3,9 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import {
   Camera,
-  Upload,
   AlertCircle,
-  RefreshCw,
   Hand,
   Sparkles,
   Image as ImageIcon,
@@ -17,6 +15,9 @@ import {
   Smile,
   X,
   Zap,
+  Volume2,
+  VolumeX,
+  Check,
 } from "lucide-react";
 import { getHandLandmarker, isPeaceSignGesture } from "@/lib/gestureUtils";
 import { getFaceLandmarker, drawARFaceFilter, ARFaceFilterPreset } from "@/lib/faceFilterUtils";
@@ -111,9 +112,9 @@ export default function CaptureStep({
   const [triggerMode, setTriggerMode] = useState<"gesture" | "timer_3" | "timer_5" | "instant">("gesture");
 
   // Camera Tuning Sliders State (Kecerahan ☀️ & Beauty Glow ✨)
-  const [cameraBrightness, setCameraBrightness] = useState(105); // 80 - 150%
-  const [cameraContrast, setCameraContrast] = useState(105); // 80 - 130%
-  const [beautyGlow, setBeautyGlow] = useState(0); // 0 - 100%
+  const [cameraBrightness, setCameraBrightness] = useState(105);
+  const [cameraContrast, setCameraContrast] = useState(105);
+  const [beautyGlow, setBeautyGlow] = useState(0);
   const [showTuning, setShowTuning] = useState(false);
 
   // AR Face Filter State
@@ -123,7 +124,6 @@ export default function CaptureStep({
   // Modals
   const [showPoseIdeas, setShowPoseIdeas] = useState(false);
   const [showPermissionGuide, setShowPermissionGuide] = useState(false);
-  const [showPreCaptureTips, setShowPreCaptureTips] = useState(true);
   const [isLowPowerMode, setIsLowPowerMode] = useState(false);
 
   // Gesture Detection State
@@ -312,10 +312,9 @@ export default function CaptureStep({
     }
   };
 
-  // Dynamic Action Button Label Generator
   const getButtonLabel = () => {
-    if (countdown !== null) return `Capturing... (${countdown}s)`;
-    if (isCapturing) return "Cooldown...";
+    if (countdown !== null) return `Capturing (${countdown}s)...`;
+    if (isCapturing) return "Memproses...";
     if (triggerMode === "gesture") return "Jepret Manual (3s) 📸";
     if (triggerMode === "timer_3") return "Mulai Timer 3s ⏱️";
     if (triggerMode === "timer_5") return "Mulai Timer 5s ⏱️";
@@ -340,7 +339,7 @@ export default function CaptureStep({
   };
 
   return (
-    <div className="w-full max-w-4xl px-2 sm:px-4 py-2 sm:py-4 flex flex-col items-center gap-3 sm:gap-4 animate-in fade-in duration-300">
+    <div className="w-full max-w-4xl px-3 sm:px-4 py-2 sm:py-4 flex flex-col items-center gap-4 animate-in fade-in duration-300">
       {/* Camera Snapshot Flash Screen FX */}
       {flashFx && (
         <div className="fixed inset-0 bg-white z-[100] animate-out fade-out duration-300 pointer-events-none" />
@@ -348,13 +347,13 @@ export default function CaptureStep({
 
       {/* LDR Mode Active Status Banner */}
       {(remoteStream || ldrStatusMessage) && (
-        <div className="w-full max-w-3xl bg-linear-to-r from-pink-600 to-rose-600 text-white px-4 py-2.5 rounded-2xl flex items-center justify-between shadow-md border-2 border-pink-300 animate-in slide-in-from-top-2 duration-200">
+        <div className="w-full max-w-3xl bg-gradient-to-r from-[#E84D91] to-[#F48FB1] text-white px-4 py-2.5 rounded-2xl flex items-center justify-between shadow-paper border-2 border-white/60 animate-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2.5">
             <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-white" />
             </span>
-            <span className="text-xs sm:text-sm font-black tracking-wide">
+            <span className="text-xs sm:text-sm font-heading font-bold tracking-wide">
               {ldrStatusMessage || "Mode Jarak Jauh (LDR) Aktif 💖 Dua Perangkat Terhubung!"}
             </span>
           </div>
@@ -362,7 +361,7 @@ export default function CaptureStep({
             <button
               type="button"
               onClick={onDisconnectLDR}
-              className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-xl transition cursor-pointer border border-white/40"
+              className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-xs font-heading font-bold rounded-xl transition cursor-pointer border border-white/40"
             >
               Tutup Sesi
             </button>
@@ -370,66 +369,66 @@ export default function CaptureStep({
         </div>
       )}
 
-      {/* Top Header Status Badge with Shot Counter Badge */}
-      <div className="w-full flex flex-wrap justify-between items-center gap-3 bg-white border-2 border-pink-200 p-3 sm:p-4 rounded-2xl shadow-sm">
+      {/* Top Header Status Card */}
+      <div className="w-full flex flex-wrap justify-between items-center gap-3 scrapbook-paper p-3.5 sm:p-4 shadow-paper">
         <div className="flex items-center gap-2.5">
           <span
-            className={`px-3.5 py-1.5 font-extrabold text-xs sm:text-sm rounded-full shadow-xs tracking-wider ${
+            className={`px-3.5 py-1 font-heading font-bold text-xs sm:text-sm rounded-full shadow-xs tracking-wider ${
               retakeIndex !== null && retakeIndex !== undefined
                 ? "bg-amber-500 text-white animate-pulse"
-                : "bg-pink-500 text-white"
+                : "bg-[#E84D91] text-white"
             }`}
           >
             {retakeIndex !== null && retakeIndex !== undefined
-              ? `RETAKE FOTO #${retakeIndex + 1}`
+              ? `RETAKE #${retakeIndex + 1}`
               : `SHOT ${Math.min(currentShotIndex, maxShots)} / ${maxShots}`}
           </span>
 
-          <h3 className="text-sm sm:text-base font-black text-slate-800">
+          <h3 className="text-sm sm:text-base font-heading font-bold text-[#392633]">
             {retakeIndex !== null && retakeIndex !== undefined
-              ? `Mengulang Pose #${retakeIndex + 1} ✨`
+              ? `Ulang Pose #${retakeIndex + 1} ✨`
               : shotsCount < maxShots
               ? `Jepret Foto #${currentShotIndex}`
               : `Selesai ${maxShots} Pose! ✨`}
           </h3>
         </div>
 
-        {/* Action Quick Tools: Pose Ideas + Filter Wajah + Tuning + Switch Camera */}
+        {/* Quick Toolbar: Pose Ideas, Face Filter, Tuning, Low Power, Switch Camera */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Pose Ideas Guide Trigger */}
           <button
             type="button"
             onClick={() => setShowPoseIdeas(true)}
-            className="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-50 hover:bg-amber-100 text-amber-800 border-2 border-amber-300 transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+            className="px-3 py-1.5 rounded-xl text-xs font-heading font-bold bg-[#FFF0F4] hover:bg-[#F8D8E3] text-[#E84D91] border border-[#E9B8CA] transition flex items-center gap-1.5 shadow-xs cursor-pointer"
             title="Lihat Ide Pose"
           >
-            <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
-            <span>Ide Pose 💡</span>
+            <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+            <span>Ide Pose</span>
           </button>
 
           {/* AR Face Filter Toggle Trigger */}
           <button
             type="button"
             onClick={() => setShowFilterPicker((v) => !v)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 border-2 shadow-xs cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${
               arFilterPreset !== "none"
-                ? "bg-purple-500 text-white border-purple-600 shadow-xs"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-purple-50"
+                ? "bg-[#E84D91] text-white border-[#E84D91]"
+                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
             }`}
             title="Filter Wajah AR Props"
           >
             <Smile className="w-3.5 h-3.5" />
-            <span>Filter Wajah 🎭</span>
+            <span>Props Wajah 🎭</span>
           </button>
 
           {/* Camera Tuning Dropdown Trigger */}
           <button
             type="button"
             onClick={() => setShowTuning((v) => !v)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 border-2 shadow-xs cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${
               showTuning
-                ? "bg-pink-500 text-white border-pink-600 shadow-xs"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-pink-50"
+                ? "bg-[#E84D91] text-white border-[#E84D91]"
+                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
             }`}
             title="Tuning Kecerahan & Glow"
           >
@@ -437,40 +436,36 @@ export default function CaptureStep({
             <span>Tuning ☀️</span>
           </button>
 
-          {/* Low Power / HP Kentang Mode Toggle */}
+          {/* Low Power Mode Toggle */}
           <button
             type="button"
             onClick={() => setIsLowPowerMode((v) => !v)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 border-2 shadow-xs cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${
               isLowPowerMode
-                ? "bg-amber-400 text-slate-900 border-amber-500 shadow-xs"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-amber-50"
+                ? "bg-amber-400 text-[#392633] border-amber-500"
+                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-amber-50"
             }`}
-            title="Mode Hemat: Meringankan kerja HP kentang biar FPS lancar & gak panas"
+            title="Mode Hemat: Meringankan kerja kamera biar lancar"
           >
             <Zap className="w-3.5 h-3.5 text-amber-600" />
-            <span>{isLowPowerMode ? "Hemat ON ⚡" : "Mode Hemat"}</span>
+            <span>{isLowPowerMode ? "Hemat ON ⚡" : "Hemat"}</span>
           </button>
 
-          {/* Front/Back Camera Switcher Toggle */}
+          {/* Front/Back Camera Switcher */}
           {onToggleFacingMode && (
             <button
               type="button"
               onClick={onToggleFacingMode}
               disabled={isCapturing}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border-2 shadow-xs ${
-                facingMode === "environment"
-                  ? "bg-purple-500 text-white border-purple-600"
-                  : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+              className="px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border border-[#E9B8CA] bg-white text-[#392633] hover:bg-[#FFF0F4] shadow-xs cursor-pointer"
               title="Ganti Kamera Depan / Belakang"
             >
-              <SwitchCamera className="w-3.5 h-3.5" />
+              <SwitchCamera className="w-3.5 h-3.5 text-[#E84D91]" />
               <span>{facingMode === "user" ? "Depan 🤳" : "Belakang 📷"}</span>
             </button>
           )}
 
-          {/* Peace Gesture Quick Toggle */}
+          {/* Gesture Toggle */}
           <button
             type="button"
             onClick={() => {
@@ -482,30 +477,30 @@ export default function CaptureStep({
               }
             }}
             disabled={isCapturing}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border-2 shadow-xs cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${
               triggerMode === "gesture" && gestureEnabled
-                ? "bg-pink-400 text-white border-pink-500"
-                : "bg-slate-100 text-slate-500 border-slate-300"
+                ? "bg-[#E84D91] text-white border-[#E84D91]"
+                : "bg-stone-100 text-stone-500 border-stone-300"
             }`}
           >
             <Hand className="w-3.5 h-3.5" />
-            <span>Gesture ✌️ {triggerMode === "gesture" && gestureEnabled ? "ON" : "OFF"}</span>
+            <span>Peace ✌️ {triggerMode === "gesture" && gestureEnabled ? "ON" : "OFF"}</span>
           </button>
         </div>
       </div>
 
-      {/* EXPANDABLE AR FACE PROPS FILTER DRAWER */}
+      {/* AR FACE PROPS FILTER DRAWER */}
       {showFilterPicker && (
-        <div className="w-full bg-white/95 backdrop-blur-md p-3 rounded-2xl border-2 border-purple-200 shadow-md space-y-2 animate-in slide-in-from-top-2 duration-200 text-left">
+        <div className="w-full bg-[#FFF9F0] p-3 rounded-2xl border-2 border-[#E9B8CA] shadow-paper space-y-2 animate-in slide-in-from-top-2 duration-200 text-left">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-black text-purple-900 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+            <span className="text-xs font-heading font-bold text-[#E84D91] flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-[#E84D91]" />
               <span>Pilih Filter / Props Wajah Real-Time 🎭:</span>
             </span>
             <button
               type="button"
               onClick={() => setShowFilterPicker(false)}
-              className="p-1 text-slate-400 hover:text-slate-600"
+              className="p-1 text-[#8B7180] hover:text-[#392633] cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -517,10 +512,10 @@ export default function CaptureStep({
                 key={f.id}
                 type="button"
                 onClick={() => setArFilterPreset(f.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   arFilterPreset === f.id
-                    ? "bg-purple-600 text-white shadow-xs"
-                    : "bg-purple-50 text-purple-900 hover:bg-purple-100"
+                    ? "bg-[#E84D91] text-white shadow-xs"
+                    : "bg-[#FFF0F4] text-[#392633] border border-[#E9B8CA] hover:bg-[#F8D8E3]"
                 }`}
               >
                 <span>{f.emoji}</span>
@@ -531,28 +526,27 @@ export default function CaptureStep({
         </div>
       )}
 
-      {/* EXPANDABLE CAMERA TUNING DRAWER (BRIGHTNESS & BEAUTY GLOW SLIDERS) */}
+      {/* CAMERA TUNING DRAWER (BRIGHTNESS & BEAUTY GLOW) */}
       {showTuning && (
-        <div className="w-full bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border-2 border-pink-200 shadow-md space-y-3 animate-in slide-in-from-top-2 duration-200 text-left">
+        <div className="w-full bg-[#FFF9F0] p-3.5 rounded-2xl border-2 border-[#E9B8CA] shadow-paper space-y-3 animate-in slide-in-from-top-2 duration-200 text-left">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-black text-pink-900 flex items-center gap-1">
-              <Sliders className="w-3.5 h-3.5 text-pink-600" />
+            <span className="text-xs font-heading font-bold text-[#E84D91] flex items-center gap-1">
+              <Sliders className="w-3.5 h-3.5 text-[#E84D91]" />
               <span>Tuning Kecerahan & Skin Glow Kamera:</span>
             </span>
             <button
               type="button"
               onClick={() => setShowTuning(false)}
-              className="p-1 text-slate-400 hover:text-slate-600"
+              className="p-1 text-[#8B7180] hover:text-[#392633] cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Brightness */}
             <div className="space-y-1">
-              <div className="flex justify-between text-xs font-bold text-slate-700">
-                <span>☀️ Kecerahan (Brightness):</span>
+              <div className="flex justify-between text-xs font-sans font-bold text-[#392633]">
+                <span>☀️ Kecerahan:</span>
                 <span>{cameraBrightness}%</span>
               </div>
               <input
@@ -561,13 +555,12 @@ export default function CaptureStep({
                 max="150"
                 value={cameraBrightness}
                 onChange={(e) => setCameraBrightness(Number(e.target.value))}
-                className="w-full accent-pink-500"
+                className="w-full accent-[#E84D91]"
               />
             </div>
 
-            {/* Contrast */}
             <div className="space-y-1">
-              <div className="flex justify-between text-xs font-bold text-slate-700">
+              <div className="flex justify-between text-xs font-sans font-bold text-[#392633]">
                 <span>🎯 Kontras:</span>
                 <span>{cameraContrast}%</span>
               </div>
@@ -577,13 +570,12 @@ export default function CaptureStep({
                 max="135"
                 value={cameraContrast}
                 onChange={(e) => setCameraContrast(Number(e.target.value))}
-                className="w-full accent-pink-500"
+                className="w-full accent-[#E84D91]"
               />
             </div>
 
-            {/* Beauty Glow */}
             <div className="space-y-1">
-              <div className="flex justify-between text-xs font-bold text-slate-700">
+              <div className="flex justify-between text-xs font-sans font-bold text-[#392633]">
                 <span>✨ Beauty Soft Glow:</span>
                 <span>{beautyGlow}%</span>
               </div>
@@ -593,7 +585,7 @@ export default function CaptureStep({
                 max="100"
                 value={beautyGlow}
                 onChange={(e) => setBeautyGlow(Number(e.target.value))}
-                className="w-full accent-pink-500"
+                className="w-full accent-[#E84D91]"
               />
             </div>
           </div>
@@ -602,18 +594,18 @@ export default function CaptureStep({
 
       {/* MODE SHUTTER SELECTOR TABS + SESSION MODE */}
       <div className="w-full flex flex-wrap justify-between items-center gap-2">
-        {/* Shutter Trigger Mode */}
-        <div className="inline-flex bg-white/95 backdrop-blur-xs p-1 rounded-2xl border-2 border-pink-200 shadow-xs gap-1 max-w-full overflow-x-auto">
+        {/* Trigger mode pills */}
+        <div className="inline-flex bg-[#FFF9F0] p-1 rounded-2xl border-2 border-[#E9B8CA] shadow-xs gap-1 max-w-full overflow-x-auto">
           <button
             type="button"
             onClick={() => {
               setTriggerMode("gesture");
               setGestureEnabled(true);
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               triggerMode === "gesture"
-                ? "bg-pink-500 text-white shadow-xs"
-                : "text-slate-600 hover:bg-pink-50"
+                ? "bg-[#E84D91] text-white shadow-xs"
+                : "text-[#8B7180] hover:bg-[#FFF0F4]"
             }`}
           >
             <span>✌️ Auto Peace</span>
@@ -622,10 +614,10 @@ export default function CaptureStep({
           <button
             type="button"
             onClick={() => setTriggerMode("timer_3")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               triggerMode === "timer_3"
-                ? "bg-pink-500 text-white shadow-xs"
-                : "text-slate-600 hover:bg-pink-50"
+                ? "bg-[#E84D91] text-white shadow-xs"
+                : "text-[#8B7180] hover:bg-[#FFF0F4]"
             }`}
           >
             <span>⏱️ Timer 3s</span>
@@ -634,10 +626,10 @@ export default function CaptureStep({
           <button
             type="button"
             onClick={() => setTriggerMode("timer_5")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               triggerMode === "timer_5"
-                ? "bg-pink-500 text-white shadow-xs"
-                : "text-slate-600 hover:bg-pink-50"
+                ? "bg-[#E84D91] text-white shadow-xs"
+                : "text-[#8B7180] hover:bg-[#FFF0F4]"
             }`}
           >
             <span>⏱️ Timer 5s</span>
@@ -646,26 +638,26 @@ export default function CaptureStep({
           <button
             type="button"
             onClick={() => setTriggerMode("instant")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               triggerMode === "instant"
-                ? "bg-pink-500 text-white shadow-xs"
-                : "text-slate-600 hover:bg-pink-50"
+                ? "bg-[#E84D91] text-white shadow-xs"
+                : "text-[#8B7180] hover:bg-[#FFF0F4]"
             }`}
           >
             <span>⚡ Instan</span>
           </button>
         </div>
 
-        {/* Korean Mode Switcher (Ambil 6, Pilih 4) */}
+        {/* Korean Mode Switcher (4 Pose vs Ambil 6 Pilih 4) */}
         {onToggleSessionMode && (
-          <div className="inline-flex bg-white/95 p-1 rounded-2xl border-2 border-pink-200 shadow-xs gap-1">
+          <div className="inline-flex bg-[#FFF9F0] p-1 rounded-2xl border-2 border-[#E9B8CA] shadow-xs gap-1">
             <button
               type="button"
               onClick={() => onToggleSessionMode("standard_4")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer ${
                 maxShots === 4
-                  ? "bg-pink-500 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-pink-50"
+                  ? "bg-[#E84D91] text-white shadow-xs"
+                  : "text-[#8B7180] hover:bg-[#FFF0F4]"
               }`}
             >
               <span>4 Pose</span>
@@ -673,10 +665,10 @@ export default function CaptureStep({
             <button
               type="button"
               onClick={() => onToggleSessionMode("korean_6")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer ${
                 maxShots === 6
-                  ? "bg-pink-500 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-pink-50"
+                  ? "bg-[#E84D91] text-white shadow-xs"
+                  : "text-[#8B7180] hover:bg-[#FFF0F4]"
               }`}
               title="Gaya photobooth Korea: ambil 6 foto lalu pilih 4 terbaik"
             >
@@ -686,33 +678,27 @@ export default function CaptureStep({
         )}
       </div>
 
-      {/* PRE-CAPTURE AESTHETIC TIPS BANNER */}
-      {showPreCaptureTips && (
-        <div className="w-full max-w-3xl bg-amber-50/95 border-2 border-amber-300 p-2.5 sm:p-3 rounded-2xl flex items-center justify-between gap-3 text-xs font-bold text-amber-950 shadow-xs animate-in fade-in duration-200">
-          <div className="flex items-center gap-2 text-left">
-            <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>
-              <strong>Tips Hasil Estetik:</strong> Posisikan wajah di tengah viewfinder, hadap sumber cahaya depan (jangan membelakangi jendela/backlight), dan senyum terbaikmu! ✨
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowPreCaptureTips(false)}
-            className="p-1 hover:bg-amber-200/80 rounded-lg text-amber-800 transition shrink-0 cursor-pointer"
-            title="Tutup Tips"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+      {/* ========================================================
+          MAIN CAMERA AREA: Vintage Photobooth Viewport
+          ======================================================== */}
+      <div className="relative w-full max-w-3xl aspect-[3/4] sm:aspect-[4/3] bg-stone-950 border-4 border-[#E9B8CA] rounded-3xl overflow-hidden shadow-paper-lg flex items-center justify-center">
+        {/* Vintage camera viewfinder corner marks */}
+        <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-white/60 z-30 pointer-events-none" />
+        <div className="absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-white/60 z-30 pointer-events-none" />
+        <div className="absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-white/60 z-30 pointer-events-none" />
+        <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-white/60 z-30 pointer-events-none" />
 
-      {/* Main WebRTC Camera Viewport Container */}
-      <div className="relative w-full max-w-3xl aspect-[3/4] sm:aspect-[4/3] bg-slate-900 border-2 sm:border-4 border-pink-300 rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl flex items-center justify-center">
+        {/* Camera Status Indicator Pill */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 flex items-center gap-2 pointer-events-none text-white text-[11px] font-heading font-bold">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>LIVE STUDIO VIEW</span>
+        </div>
+
         {cameraError ? (
-          <div className="p-6 text-center space-y-3 text-white max-w-md">
-            <AlertCircle className="w-12 h-12 text-rose-400 mx-auto animate-bounce" />
-            <h4 className="font-black text-lg">Kamera Tidak Terhubung</h4>
-            <p className="text-xs text-rose-200 font-medium leading-relaxed">
+          <div className="p-6 text-center space-y-3 text-white max-w-md z-30">
+            <AlertCircle className="w-12 h-12 text-[#F48FB1] mx-auto animate-bounce" />
+            <h4 className="font-heading font-bold text-lg">Kamera Belum Terhubung</h4>
+            <p className="text-xs text-rose-200 font-sans font-medium leading-relaxed">
               {cameraError}
             </p>
 
@@ -720,7 +706,7 @@ export default function CaptureStep({
               <button
                 type="button"
                 onClick={() => setShowPermissionGuide(true)}
-                className="w-full py-2.5 px-3 bg-rose-500 hover:bg-rose-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2.5 px-3 bg-[#E84D91] hover:bg-[#F48FB1] text-white font-heading font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <HelpCircle className="w-4 h-4" />
                 <span>Panduan Buka Izin Kamera 📱</span>
@@ -729,7 +715,7 @@ export default function CaptureStep({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full py-2.5 px-3 bg-white/20 hover:bg-white/30 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+                className="w-full py-2.5 px-3 bg-white/20 hover:bg-white/30 text-white font-heading font-bold text-xs rounded-xl transition cursor-pointer"
               >
                 <span>Upload Foto dari Galeri Saja 🖼️</span>
               </button>
@@ -737,7 +723,7 @@ export default function CaptureStep({
           </div>
         ) : (
           <>
-            {/* Live WebRTC Camera Stream (Side-by-Side if LDR Mode) */}
+            {/* Live Camera Stream View */}
             <div className="w-full h-full flex items-center justify-center relative">
               <div
                 className={`${
@@ -752,14 +738,14 @@ export default function CaptureStep({
                   style={{
                     filter: `brightness(${cameraBrightness}%) contrast(${cameraContrast}%) ${
                       beautyGlow > 0
-                        ? `drop-shadow(0 0 ${beautyGlow * 0.12}px rgba(255, 180, 210, 0.45))`
+                        ? `drop-shadow(0 0 ${beautyGlow * 0.12}px rgba(248, 216, 227, 0.45))`
                         : ""
                     }`,
                   }}
                   className={`w-full h-full object-cover ${facingMode === "user" ? "-scale-x-100" : ""}`}
                 />
                 {remoteStream && (
-                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-[10px] font-extrabold text-white rounded-md z-10">
+                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-[10px] font-heading font-bold text-white rounded-md z-10">
                     Kamu 👤
                   </div>
                 )}
@@ -767,9 +753,8 @@ export default function CaptureStep({
 
               {remoteStream && (
                 <>
-                  {/* Pink Center Divider with Heart */}
-                  <div className="w-1 h-full bg-pink-400 z-10 relative flex items-center justify-center">
-                    <div className="w-6 h-6 rounded-full bg-pink-500 border-2 border-white flex items-center justify-center shadow-md">
+                  <div className="w-1 h-full bg-[#E84D91] z-10 relative flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-[#E84D91] border-2 border-white flex items-center justify-center shadow-md">
                       <span className="text-[10px]">💖</span>
                     </div>
                   </div>
@@ -782,8 +767,8 @@ export default function CaptureStep({
                       muted
                       className="w-full h-full object-cover -scale-x-100"
                     />
-                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-[10px] font-extrabold text-white rounded-md z-10">
-                      Partner Jarak Jauh 🌍
+                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-[10px] font-heading font-bold text-white rounded-md z-10">
+                      Partner LDR 🌍
                     </div>
                   </div>
                 </>
@@ -800,15 +785,15 @@ export default function CaptureStep({
 
             {/* Gesture Progress Overlay */}
             {gestureStatus && (
-              <div className="absolute top-4 inset-x-4 z-20 flex flex-col items-center gap-1">
-                <div className="px-4 py-2 bg-slate-900/80 backdrop-blur-md border border-pink-400 text-white text-xs font-black rounded-full shadow-lg flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-pink-400 animate-spin" />
+              <div className="absolute top-14 inset-x-4 z-20 flex flex-col items-center gap-1">
+                <div className="px-4 py-2 bg-black/80 backdrop-blur-md border border-[#F48FB1] text-white text-xs font-heading font-bold rounded-full shadow-paper flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#F48FB1] animate-spin" />
                   <span>{gestureStatus}</span>
                 </div>
                 {peaceProgress > 0 && (
-                  <div className="w-48 bg-slate-800/80 rounded-full h-2 overflow-hidden border border-pink-400/50 mt-1">
+                  <div className="w-48 bg-black/80 rounded-full h-2 overflow-hidden border border-[#F48FB1]/50 mt-1">
                     <div
-                      className="bg-pink-400 h-full transition-all duration-75"
+                      className="bg-[#E84D91] h-full transition-all duration-75"
                       style={{ width: `${peaceProgress}%` }}
                     />
                   </div>
@@ -818,9 +803,12 @@ export default function CaptureStep({
 
             {/* COUNTDOWN OVERLAY */}
             {countdown !== null && (
-              <div className="absolute inset-0 backdrop-blur-2xl bg-slate-950/70 transition-all duration-500 z-30 flex flex-col items-center justify-center gap-3">
-                <span className="text-8xl sm:text-9xl font-black text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] animate-ping">
+              <div className="absolute inset-0 backdrop-blur-md bg-stone-950/70 transition-all duration-300 z-30 flex flex-col items-center justify-center gap-3">
+                <span className="text-8xl sm:text-9xl font-heading font-black text-white drop-shadow-[0_8px_16px_rgba(232,77,145,0.6)] animate-ping">
                   {countdown}
+                </span>
+                <span className="text-sm font-handwriting text-[#F8D8E3] tracking-wider">
+                  say cheese! ✌️
                 </span>
               </div>
             )}
@@ -828,8 +816,8 @@ export default function CaptureStep({
         )}
       </div>
 
-      {/* CIRCULAR STEP TRACKER THUMBNAILS (SHOT X / maxShots) */}
-      <div className="flex items-center justify-center gap-2.5 py-1">
+      {/* PHOTO STRIP TRACKER THUMBNAILS */}
+      <div className="flex items-center justify-center gap-2.5 py-1 select-none">
         {Array.from({ length: maxShots }).map((_, idx) => {
           const shot = shots[idx];
           const isRetakeTarget = retakeIndex === idx;
@@ -837,29 +825,29 @@ export default function CaptureStep({
           return (
             <div key={idx} className="flex flex-col items-center gap-1">
               <div
-                className={`w-11 h-11 sm:w-13 sm:h-13 rounded-full border-2 flex items-center justify-center overflow-hidden transition-all duration-300 shadow-md ${
+                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 flex items-center justify-center overflow-hidden transition-all duration-300 shadow-paper ${
                   isRetakeTarget
-                    ? "border-amber-500 bg-amber-100 ring-4 ring-amber-300 animate-pulse scale-110"
+                    ? "border-amber-500 bg-amber-100 ring-4 ring-amber-300 animate-pulse scale-105"
                     : shot
-                    ? "border-pink-500 bg-white scale-105"
+                    ? "border-[#E84D91] bg-white scale-105"
                     : isActive
-                    ? "border-pink-400 bg-pink-100 ring-4 ring-pink-200 animate-pulse"
-                    : "border-slate-300 bg-slate-100 text-slate-400"
+                    ? "border-[#F48FB1] bg-[#FFF0F4] ring-4 ring-[#F8D8E3] animate-pulse"
+                    : "border-[#E9B8CA] bg-[#FFF9F0] text-[#8B7180]"
                 }`}
               >
                 {shot ? (
                   <img src={shot.dataUrl} alt={`Thumb #${idx + 1}`} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-xs font-black">0{idx + 1}</span>
+                  <span className="text-xs font-heading font-bold text-[#8B7180]">0{idx + 1}</span>
                 )}
               </div>
               <span
-                className={`text-[9px] sm:text-[10px] font-bold ${
+                className={`text-[10px] font-heading font-semibold ${
                   isRetakeTarget
-                    ? "text-amber-600 font-extrabold"
+                    ? "text-amber-600 font-bold"
                     : shot
-                    ? "text-pink-600"
-                    : "text-slate-400"
+                    ? "text-[#E84D91]"
+                    : "text-[#8B7180]"
                 }`}
               >
                 #{idx + 1} {isRetakeTarget ? "(Ulang)" : ""}
@@ -869,14 +857,14 @@ export default function CaptureStep({
         })}
       </div>
 
-      {/* Main Control Action Bar */}
+      {/* MAIN CAMERA SHUTTER & GALLERY ACTION BAR */}
       <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-lg">
         {/* Main Camera Shutter Trigger Button */}
         <button
           type="button"
           onClick={handleShutterClick}
           disabled={isCapturing || countdown !== null || !!cameraError}
-          className="w-full py-4 bg-pink-400 hover:bg-pink-500 text-white font-black text-base sm:text-lg rounded-2xl border-4 border-pink-500 shadow-xl transition-all duration-150 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-4 scrapbook-btn text-base sm:text-lg flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
         >
           <Camera className="w-6 h-6 animate-pulse" />
           <span>{getButtonLabel()}</span>
@@ -894,20 +882,20 @@ export default function CaptureStep({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="w-full sm:w-auto px-4 py-3 bg-white hover:bg-rose-50 text-slate-700 font-bold text-xs rounded-2xl border-2 border-pink-200 shadow-sm transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+          className="w-full sm:w-auto px-5 py-3.5 scrapbook-btn-secondary text-xs rounded-2xl flex items-center justify-center gap-2 shrink-0 cursor-pointer"
         >
-          <ImageIcon className="w-4 h-4 text-pink-500" />
+          <ImageIcon className="w-4 h-4 text-[#E84D91]" />
           <span>Upload Galeri 🖼️</span>
         </button>
       </div>
 
-      {/* User Helper Directive Badge */}
-      <p className="text-xs text-slate-500 font-medium text-center max-w-md">
-        💡 <strong className="text-pink-600">Tips:</strong>{" "}
+      {/* Helpful Hint */}
+      <p className="text-xs text-[#8B7180] font-sans font-medium text-center max-w-md">
+        💡 <strong className="text-[#E84D91]">Tips:</strong>{" "}
         {triggerMode === "gesture"
           ? "Tunjukkan pose Peace (✌️) selama 1 detik di depan kamera untuk otomatis jepret!"
           : triggerMode === "timer_3"
-          ? "Timer 3 detik siap! Tekan tombol jepret lalu bersiap pose estetik."
+          ? "Timer 3 detik siap! Tekan tombol lalu berpose estetik."
           : triggerMode === "timer_5"
           ? "Timer 5 detik memberikan waktu ekstra buat atur posisi bareng bestie!"
           : "Mode instan akan langsung mengambil foto tanpa countdown."}

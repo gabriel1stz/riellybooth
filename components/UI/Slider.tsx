@@ -10,10 +10,10 @@ type SliderProps = {
 
 export default function Slider({ label, value, min, max, onChange }: SliderProps) {
   return (
-    <div className="space-y-1.5 bg-rose-50/60 border-2 border-pink-200 p-3 rounded-xl">
-      <div className="flex justify-between items-center text-xs font-bold">
-        <span className="text-slate-700">{label}</span>
-        <span className="text-pink-600 font-mono bg-pink-100 px-2 py-0.5 rounded border border-pink-300">
+    <div className="space-y-1.5 bg-[#FFF0F4] border-2 border-[#E9B8CA] p-3 rounded-2xl shadow-xs">
+      <div className="flex justify-between items-center text-xs font-heading font-bold">
+        <span className="text-[#392633]">{label}</span>
+        <span className="text-[#E84D91] font-mono bg-white px-2 py-0.5 rounded-lg border border-[#E9B8CA] shadow-xs">
           {value}%
         </span>
       </div>
@@ -23,7 +23,7 @@ export default function Slider({ label, value, min, max, onChange }: SliderProps
         max={max}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-pink-500 bg-slate-200 rounded-lg cursor-pointer h-2 transition-all hover:bg-slate-300"
+        className="w-full accent-[#E84D91] bg-stone-200 rounded-lg cursor-pointer h-2 transition-all hover:bg-stone-300"
       />
     </div>
   );
