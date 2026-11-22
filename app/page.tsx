@@ -662,13 +662,39 @@ export default function RiellyBooth() {
       // Only allocate composite canvas recording loop when Live Photo is explicitly enabled
       let livePhotoSource: MediaStream | HTMLCanvasElement | null = null;
       if (isLivePhotoOn && videoRef.current) {
+        const vw = videoRef.current.videoWidth || 640;
+        const vh = videoRef.current.videoHeight || 480;
+        const scale = Math.min(1, 640 / Math.max(vw, vh));
         const compCanvas = document.createElement("canvas");
-        compCanvas.width = 640;
-        compCanvas.height = 360;
+        // Preserve exact native camera aspect ratio (even dimensions required for MP4/H.264 encoder)
+        compCanvas.width = Math.max(2, Math.round((vw * scale) / 2) * 2);
+        compCanvas.height = Math.max(2, Math.round((vh * scale) / 2) * 2);
         const compCtx = compCanvas.getContext("2d");
         if (compCtx) {
           let recActive = true;
           let lastDraw = 0;
+          const drawCoverToHalf = (
+            vid: HTMLVideoElement,
+            dx: number,
+            dy: number,
+            dw: number,
+            dh: number
+          ) => {
+            const svw = vid.videoWidth || dw;
+            const svh = vid.videoHeight || dh;
+            const srcRatio = svw / svh;
+            const dstRatio = dw / dh;
+            let sx = 0, sy = 0, sw = svw, sh = svh;
+            if (srcRatio > dstRatio) {
+              sw = svh * dstRatio;
+              sx = (svw - sw) / 2;
+            } else {
+              sh = svw / dstRatio;
+              sy = (svh - sh) / 2;
+            }
+            compCtx.drawImage(vid, sx, sy, sw, sh, dx, dy, dw, dh);
+          };
+
           const drawFrame = () => {
             if (!recActive || !videoRef.current) return;
             const now = performance.now();
@@ -676,13 +702,10 @@ export default function RiellyBooth() {
               lastDraw = now;
               if (activeRemoteEl) {
                 const halfW = compCanvas.width / 2;
-                compCtx.drawImage(videoRef.current, 0, 0, halfW, compCanvas.height);
-                compCtx.drawImage(activeRemoteEl, halfW, 0, halfW, compCanvas.height);
+                drawCoverToHalf(videoRef.current, 0, 0, halfW, compCanvas.height);
+                drawCoverToHalf(activeRemoteEl, halfW, 0, halfW, compCanvas.height);
               } else {
                 compCtx.drawImage(videoRef.current, 0, 0, compCanvas.width, compCanvas.height);
-              }
-              if (arCanvasRef.current) {
-                compCtx.drawImage(arCanvasRef.current, 0, 0, compCanvas.width, compCanvas.height);
               }
             }
             requestAnimationFrame(drawFrame);
@@ -1349,7 +1372,7 @@ export default function RiellyBooth() {
                 <span>Kenapa RiellyBooth dibuat?</span>
               </span>
               <p className="text-[#8B7180] leading-relaxed font-sans font-medium">
-                Berawal dari sering pengen foto photobooth bareng temen & ayang, tapi studio mall antrenya panjang banget dan mahal (40-50rb sekali foto). Akhirnya gue (<a href="https://instagram.com/dhikasatriaaa" target="_blank" rel="noopener noreferrer" className="text-[#E84D91] font-bold underline">@dhikasatriaaa</a>) mutusin bikin web photobooth gratis ini dari kamar! Tujuannya simpel: biar siapa pun, di mana pun, bisa dapet hasil foto strip estetik tanpa bayar dan tanpa watermark! ♡
+                Berawal dari sering pengen foto photobooth bareng temen &amp; orang tersayang, tapi studio mall antrenya panjang banget dan mahal (40–50rb sekali foto). Akhirnya RiellyBooth hadir sebagai studio photobooth online gratis yang bisa diakses langsung dari HP atau laptop — biar siapa pun, di mana pun, bisa dapat hasil photo strip estetik tanpa bayar dan tanpa watermark.
               </p>
             </div>
 
@@ -1608,16 +1631,6 @@ export default function RiellyBooth() {
             >
               <TikTokIcon className="w-3.5 h-3.5 text-[#E84D91]" />
               <span>@riellybooth_</span>
-            </a>
-            <span className="text-[#E9B8CA]">·</span>
-            <a
-              href="https://instagram.com/dhikasatriaaa"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-[#E84D91] underline transition inline-flex items-center gap-1.5 text-[#8B7180]"
-            >
-              <Instagram className="w-3.5 h-3.5 text-[#8B7180]" />
-              <span>Dev: @dhikasatriaaa</span>
             </a>
           </div>
         </footer>

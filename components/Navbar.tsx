@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Sparkles, Camera, Volume2, VolumeX, Home, Info, Heart, ShieldCheck, Menu, X, ArrowRight } from "lucide-react";
+import { Sparkles, Camera, Home, Info, Heart, ShieldCheck, Menu, X, ArrowRight } from "lucide-react";
 
 type NavbarProps = {
   isAudioOn?: boolean;
@@ -124,22 +124,6 @@ export default function Navbar({
             </button>
           )}
 
-          {/* Audio BGM Toggle */}
-          {onToggleAudio && (
-            <button
-              type="button"
-              onClick={onToggleAudio}
-              className={`p-2 rounded-full border transition flex items-center justify-center cursor-pointer ${isAudioOn
-                ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
-                : "bg-stone-100 border-stone-200 text-stone-400"
-                }`}
-              title={isAudioOn ? "Matikan Efek Suara Kamera" : "Nyalakan Efek Suara Kamera"}
-              aria-label={isAudioOn ? "Matikan Efek Suara Kamera" : "Nyalakan Efek Suara Kamera"}
-            >
-              {isAudioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
-          )}
-
           {/* Main CTA: Start Creating */}
           {onStartStudio && (
             <button
@@ -155,20 +139,6 @@ export default function Navbar({
 
         {/* Mobile Action Controls & Hamburger Toggle */}
         <div className="flex md:hidden items-center gap-2">
-          {onToggleAudio && (
-            <button
-              type="button"
-              onClick={onToggleAudio}
-              className={`p-2 rounded-full border text-xs cursor-pointer ${isAudioOn
-                ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
-                : "bg-stone-100 border-stone-200 text-stone-400"
-                }`}
-              aria-label={isAudioOn ? "Matikan Efek Suara Kamera" : "Nyalakan Efek Suara Kamera"}
-            >
-              {isAudioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
-          )}
-
           {onStartStudio && (
             <button
               type="button"

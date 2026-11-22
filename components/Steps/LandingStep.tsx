@@ -985,16 +985,6 @@ export default function LandingStep({
             <TikTokIcon className="w-3.5 h-3.5 text-[#E84D91]" />
             <span>@riellybooth_</span>
           </a>
-          <span className="text-[#E9B8CA]">·</span>
-          <a
-            href="https://instagram.com/dhikasatriaaa"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-[#E84D91] underline transition inline-flex items-center gap-1.5 text-[#8B7180]"
-          >
-            <Instagram className="w-3.5 h-3.5 text-[#8B7180]" />
-            <span>Dev: @dhikasatriaaa</span>
-          </a>
         </div>
 
         <div className="text-[10px] text-[#8B7180] font-sans">
