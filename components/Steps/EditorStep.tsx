@@ -1209,8 +1209,8 @@ export default function EditorStep({
           {/* Card 1: PNG HD Photo Strip */}
           <div className="scrapbook-paper p-4 flex flex-col justify-between gap-3 shadow-paper">
             <div className="space-y-1">
-              <span className="text-xs font-heading font-bold text-[#E84D91] uppercase tracking-wider flex items-center gap-1">
-                <Download className="w-3.5 h-3.5" /> Foto Statis
+              <span className="text-[10px] font-heading font-bold text-[#E84D91] uppercase tracking-wider inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF0F4] border border-[#E9B8CA]">
+                <Download className="w-3 h-3" /> Foto Statis
               </span>
               <h4 className="text-sm font-heading font-bold text-[#392633]">Simpan Foto (PNG HD)</h4>
               <p className="text-[11px] text-[#8B7180] font-sans font-medium">Resolusi tinggi tajam tanpa watermark, siap cetak 4R.</p>
@@ -1220,45 +1220,48 @@ export default function EditorStep({
               onClick={onDownloadPng}
               className="w-full py-2.5 scrapbook-btn text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer text-center"
             >
-              <span>Simpan PNG ⬇️</span>
+              <Download className="w-4 h-4" />
+              <span>Simpan PNG HD</span>
             </button>
           </div>
 
-          {/* Card 2: Live Video (MP4 / REELS 🎥) */}
+          {/* Card 2: Live Video (MP4 / REELS) */}
           <div className="scrapbook-paper p-4 flex flex-col justify-between gap-3 shadow-paper">
             <div className="space-y-1">
-              <span className="text-xs font-heading font-bold text-purple-600 uppercase tracking-wider flex items-center gap-1">
-                <Video className="w-3.5 h-3.5" /> Moving Video
+              <span className="text-[10px] font-heading font-bold text-purple-700 uppercase tracking-wider inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200">
+                <Video className="w-3 h-3" /> Moving Video
               </span>
-              <h4 className="text-sm font-heading font-bold text-[#392633]">Live Video (MP4 / REELS 🎥)</h4>
+              <h4 className="text-sm font-heading font-bold text-[#392633]">Live Video (MP4 / Reels)</h4>
               <p className="text-[11px] text-[#8B7180] font-sans font-medium">Video gerak klip pendek boomerang siap share ke Story.</p>
             </div>
             <button
               type="button"
               onClick={onDownloadVideo}
               disabled={isExportingVideo || !isLivePhotoOn}
-              className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-heading font-bold text-xs sm:text-sm rounded-full shadow-paper transition disabled:opacity-50 cursor-pointer text-center"
+              className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-heading font-bold text-xs sm:text-sm rounded-full shadow-paper transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <span>{isExportingVideo ? "Exporting MP4..." : "Simpan MP4 🎥"}</span>
+              <Video className="w-4 h-4" />
+              <span>{isExportingVideo ? "Exporting MP4..." : "Simpan MP4"}</span>
             </button>
           </div>
 
-          {/* Card 3: Animated GIF (GIF Animasi 🎞️) */}
+          {/* Card 3: Animated GIF */}
           <div className="scrapbook-paper p-4 flex flex-col justify-between gap-3 shadow-paper">
             <div className="space-y-1">
-              <span className="text-xs font-heading font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" /> Loop Animasi
+              <span className="text-[10px] font-heading font-bold text-emerald-700 uppercase tracking-wider inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
+                <Sparkles className="w-3 h-3" /> Loop Animasi
               </span>
-              <h4 className="text-sm font-heading font-bold text-[#392633]">Simpan GIF Animasi 🎞️</h4>
+              <h4 className="text-sm font-heading font-bold text-[#392633]">Simpan GIF Animasi</h4>
               <p className="text-[11px] text-[#8B7180] font-sans font-medium">Format GIF gerak looping tanpa henti, cocok buat WhatsApp & Telegram.</p>
             </div>
             <button
               type="button"
               onClick={onDownloadGif}
               disabled={isExportingGif || !isLivePhotoOn}
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-xs sm:text-sm rounded-full shadow-paper transition disabled:opacity-50 cursor-pointer text-center"
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-xs sm:text-sm rounded-full shadow-paper transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <span>{isExportingGif ? "Membuat GIF..." : "Simpan GIF 🎞️"}</span>
+              <Sparkles className="w-4 h-4" />
+              <span>{isExportingGif ? "Membuat GIF..." : "Simpan GIF"}</span>
             </button>
           </div>
         </div>
@@ -1271,7 +1274,7 @@ export default function EditorStep({
             className="px-6 py-3 scrapbook-btn text-xs sm:text-sm flex items-center gap-2 cursor-pointer"
           >
             <Share2 className="w-4 h-4" />
-            <span>Bagikan ke Story / Sosmed 📲</span>
+            <span>Bagikan ke Story / Sosmed</span>
           </button>
 
           <button
@@ -1280,7 +1283,7 @@ export default function EditorStep({
             className="px-6 py-3 scrapbook-btn-secondary text-xs sm:text-sm flex items-center gap-2 cursor-pointer"
           >
             <RefreshCcw className="w-4 h-4 text-[#8B7180]" />
-            <span>Foto Ulang / Ganti Pose 🔄</span>
+            <span>Foto Ulang / Ganti Pose</span>
           </button>
         </div>
       </div>

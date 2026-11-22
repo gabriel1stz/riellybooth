@@ -6,13 +6,7 @@ import confetti from "canvas-confetti";
 import { Instagram, Mail, Music, Heart, Sparkles, X, Coffee, ShieldCheck, Camera, Video, Wand2, Share2, Download, Copy, Check, MessageCircle, Twitter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import LandingStep from "@/components/Steps/LandingStep";
-import CaptureStep from "@/components/Steps/CaptureStep";
-import ReviewStep from "@/components/Steps/ReviewStep";
-import EditorStep from "@/components/Steps/EditorStep";
 import InAppBrowserBanner from "@/components/InAppBrowserBanner";
-import LDRRemoteModal from "@/components/LDRRemoteModal";
-import PrivacyModal from "@/components/PrivacyModal";
-import WhatsNewModal from "@/components/WhatsNewModal";
 import { createGifFromCanvas } from "@/lib/gifUtils";
 import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet, revokeBlobUrl } from "@/lib/cameraUtils";
 import { drawPhotoStrip, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
@@ -20,8 +14,16 @@ import { playShutterSound } from "@/lib/audioUtils";
 import QRCode from "qrcode";
 import { LDRPeerManager, LDRSessionState, LDRMessage, normalizeRoomCode } from "@/lib/ldrPeerManager";
 import { P2PStripSender, P2PStripReceiver } from "@/lib/p2pStripTransfer";
-import LDRAmissionModal from "@/components/LDRAmissionModal";
-import P2PTransferReceiverModal from "@/components/P2PTransferReceiverModal";
+
+// Lazy-load heavy studio steps & modals so initial landing page opens instantly without parsing MediaPipe/Editor
+const CaptureStep = dynamic(() => import("@/components/Steps/CaptureStep"), { ssr: false });
+const ReviewStep = dynamic(() => import("@/components/Steps/ReviewStep"), { ssr: false });
+const EditorStep = dynamic(() => import("@/components/Steps/EditorStep"), { ssr: false });
+const LDRRemoteModal = dynamic(() => import("@/components/LDRRemoteModal"), { ssr: false });
+const LDRAmissionModal = dynamic(() => import("@/components/LDRAmissionModal"), { ssr: false });
+const P2PTransferReceiverModal = dynamic(() => import("@/components/P2PTransferReceiverModal"), { ssr: false });
+const PrivacyModal = dynamic(() => import("@/components/PrivacyModal"), { ssr: false });
+const WhatsNewModal = dynamic(() => import("@/components/WhatsNewModal"), { ssr: false });
 
 type Step = "landing" | "capture" | "review" | "editor";
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
@@ -58,6 +60,7 @@ export default function RiellyBooth() {
 
   // FX & Audio State
   const [flashFx, setFlashFx] = useState(false);
+  const [isFlashOn, setIsFlashOn] = useState(true);
   const [isAudioOn, setIsAudioOn] = useState(true);
 
   // Modals State
@@ -71,8 +74,8 @@ export default function RiellyBooth() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCaption, setCopiedCaption] = useState(false);
 
-  // Live Photo, Custom Logo & Editor State
-  const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
+  // Live Photo (off by default to prevent mobile camera lag & missing frames), Custom Logo & Editor State
+  const [isLivePhotoOn, setIsLivePhotoOn] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(null);
   const [customLogoImg, setCustomLogoImg] = useState<HTMLImageElement | null>(null);
@@ -99,6 +102,39 @@ export default function RiellyBooth() {
 
   // Session Mode: Standard 4 Shots vs Korean Haru Film (Ambil 6, Pilih 4)
   const [sessionMode, setSessionMode] = useState<"standard_4" | "korean_6">("standard_4");
+  const sessionModeRef = useRef<"standard_4" | "korean_6">("standard_4");
+  useEffect(() => {
+    sessionModeRef.current = sessionMode;
+  }, [sessionMode]);
+
+  // Singleton camera initialization promise to prevent double getUserMedia race conditions in LDR mode
+  const cameraInitPromiseRef = useRef<Promise<MediaStream> | null>(null);
+
+  const ensureCameraStream = useCallback(async (mode: "user" | "environment"): Promise<MediaStream> => {
+    if (
+      mediaStreamRef.current &&
+      mediaStreamRef.current.active &&
+      mediaStreamRef.current.getVideoTracks().length > 0
+    ) {
+      return mediaStreamRef.current;
+    }
+    if (cameraInitPromiseRef.current) {
+      return cameraInitPromiseRef.current;
+    }
+    const p = startCameraStream(mode)
+      .then((s) => {
+        mediaStreamRef.current = s;
+        if (videoRef.current && videoRef.current.srcObject !== s) {
+          videoRef.current.srcObject = s;
+        }
+        return s;
+      })
+      .finally(() => {
+        cameraInitPromiseRef.current = null;
+      });
+    cameraInitPromiseRef.current = p;
+    return p;
+  }, []);
 
   // Remote LDR Photobooth Mode State
   const [showLDRModal, setShowLDRModal] = useState(false);
@@ -162,6 +198,11 @@ export default function RiellyBooth() {
   const handleStartCapture = (initialPreset?: string) => {
     if (initialPreset) {
       setPreset(initialPreset as FramePreset);
+      if (initialPreset === "newspaper") {
+        setLayout("newspaper_grid");
+      } else {
+        setLayout("strip_1x4");
+      }
     }
     shots.forEach((s) => revokeBlobUrl(s.videoBlobUrl));
     setShots([]);
@@ -223,19 +264,18 @@ export default function RiellyBooth() {
     setIsLDRHost(isHost);
     handleStartCapture();
 
-    // Pastikan camera stream siap
-    let stream = mediaStreamRef.current;
-    if (!stream || !stream.active || stream.getVideoTracks().length === 0) {
-      try {
-        stream = await startCameraStream(facingMode);
-        mediaStreamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
-      } catch (err: any) {
-        console.warn("LDR Camera start error:", err);
-        setCameraError(err.message || "Gagal mengoneksikan kamera.");
-        setLdrStatusMessage("Kamera belum aktif. Berikan izin kamera di browser kamu lalu coba lagi.");
-        return;
+    // Pastikan camera stream siap (via singleton lock agar tidak bentrok dengan useEffect)
+    let stream: MediaStream | null = null;
+    try {
+      stream = await ensureCameraStream(facingMode);
+      if (videoRef.current && videoRef.current.srcObject !== stream) {
+        videoRef.current.srcObject = stream;
       }
+    } catch (err: any) {
+      console.warn("LDR Camera start error:", err);
+      setCameraError(err.message || "Gagal mengoneksikan kamera.");
+      setLdrStatusMessage("Kamera belum aktif. Berikan izin kamera di browser kamu lalu coba lagi.");
+      return;
     }
 
     if (!stream) return;
@@ -274,7 +314,7 @@ export default function RiellyBooth() {
             videoBlobUrl: undefined,
           };
           setShots((prevShots) => {
-            const maxShots = sessionMode === "korean_6" ? 6 : 4;
+            const maxShots = sessionModeRef.current === "korean_6" ? 6 : 4;
             const updated = [...prevShots, newShot];
             syncShots(updated);
             if (updated.length < maxShots) {
@@ -412,26 +452,10 @@ export default function RiellyBooth() {
     if (step === "capture") {
       setCameraError(null);
 
-      // Avoid double requesting camera if stream is already actively running
-      if (
-        mediaStreamRef.current &&
-        mediaStreamRef.current.active &&
-        mediaStreamRef.current.getVideoTracks().length > 0
-      ) {
-        if (videoRef.current && videoRef.current.srcObject !== mediaStreamRef.current) {
-          videoRef.current.srcObject = mediaStreamRef.current;
-        }
-        return;
-      }
-
-      startCameraStream(facingMode)
+      ensureCameraStream(facingMode)
         .then((stream) => {
-          if (!isActive) {
-            stopCameraStream(stream);
-            return;
-          }
-          mediaStreamRef.current = stream;
-          if (videoRef.current) {
+          if (!isActive) return;
+          if (videoRef.current && videoRef.current.srcObject !== stream) {
             videoRef.current.srcObject = stream;
           }
           if (ldrManagerRef.current) {
@@ -457,7 +481,7 @@ export default function RiellyBooth() {
     return () => {
       isActive = false;
     };
-  }, [step, facingMode]);
+  }, [step, facingMode, ensureCameraStream]);
 
   // Handle Upload 4 Photos from Device
   const handleUploadPhotos = (files: FileList) => {
@@ -525,9 +549,13 @@ export default function RiellyBooth() {
 
   // Trigger Flash FX & Camera Shutter Sound
   const triggerSnapshotFx = () => {
-    playShutterSound();
-    setFlashFx(true);
-    setTimeout(() => setFlashFx(false), 250);
+    if (isAudioOn) {
+      playShutterSound();
+    }
+    if (isFlashOn) {
+      setFlashFx(true);
+      setTimeout(() => setFlashFx(false), 300);
+    }
   };
 
   const shotsRef = useRef<Shot[]>([]);
@@ -578,7 +606,27 @@ export default function RiellyBooth() {
     }
 
     if (videoRef.current) {
-      triggerSnapshotFx();
+      // If Flash ON: illuminate screen (Retina Flash) & optional rear torch briefly BEFORE snapshot so face is lit
+      let torchTrack: MediaStreamTrack | null = null;
+      if (isFlashOn) {
+        setFlashFx(true);
+        const vTrack = mediaStreamRef.current?.getVideoTracks()?.[0];
+        if (vTrack && typeof vTrack.getCapabilities === "function") {
+          const caps = vTrack.getCapabilities() as MediaTrackCapabilities & { torch?: boolean };
+          if (caps.torch) {
+            torchTrack = vTrack;
+            try {
+              await vTrack.applyConstraints({ advanced: [{ torch: true } as MediaTrackConstraintSet] });
+            } catch (e) {}
+          }
+        }
+        await new Promise((r) => setTimeout(r, 160));
+      }
+
+      if (isAudioOn) {
+        playShutterSound();
+      }
+
       const activeRemoteEl =
         remoteVideoEl ||
         (remoteStream && remoteVideoRef.current && remoteVideoRef.current.readyState >= 2
@@ -592,38 +640,54 @@ export default function RiellyBooth() {
         filters,
         activeRemoteEl
       );
+
+      if (isFlashOn) {
+        setTimeout(() => setFlashFx(false), 180);
+        if (torchTrack) {
+          try {
+            await torchTrack.applyConstraints({ advanced: [{ torch: false } as MediaTrackConstraintSet] });
+          } catch (e) {}
+        }
+      }
       const shotId = Date.now() + Math.random();
       const streamToRecord = mediaStreamRef.current;
       const maxShots = sessionMode === "korean_6" ? 6 : 4;
 
-      // Composite canvas stream source for recording Live Photos with AR Face Filters & Split LDR
-      let livePhotoSource: MediaStream | HTMLCanvasElement = streamToRecord!;
-      if (videoRef.current) {
+      // Only allocate composite canvas recording loop when Live Photo is explicitly enabled
+      let livePhotoSource: MediaStream | HTMLCanvasElement | null = null;
+      if (isLivePhotoOn && videoRef.current) {
         const compCanvas = document.createElement("canvas");
-        compCanvas.width = videoRef.current.videoWidth || 1280;
-        compCanvas.height = videoRef.current.videoHeight || 720;
+        compCanvas.width = 640;
+        compCanvas.height = 360;
         const compCtx = compCanvas.getContext("2d");
         if (compCtx) {
           let recActive = true;
+          let lastDraw = 0;
           const drawFrame = () => {
             if (!recActive || !videoRef.current) return;
-            if (activeRemoteEl) {
-              const halfW = compCanvas.width / 2;
-              compCtx.drawImage(videoRef.current, 0, 0, halfW, compCanvas.height);
-              compCtx.drawImage(activeRemoteEl, halfW, 0, halfW, compCanvas.height);
-            } else {
-              compCtx.drawImage(videoRef.current, 0, 0, compCanvas.width, compCanvas.height);
-            }
-            if (arCanvasRef.current) {
-              compCtx.drawImage(arCanvasRef.current, 0, 0, compCanvas.width, compCanvas.height);
+            const now = performance.now();
+            if (now - lastDraw >= 50) {
+              lastDraw = now;
+              if (activeRemoteEl) {
+                const halfW = compCanvas.width / 2;
+                compCtx.drawImage(videoRef.current, 0, 0, halfW, compCanvas.height);
+                compCtx.drawImage(activeRemoteEl, halfW, 0, halfW, compCanvas.height);
+              } else {
+                compCtx.drawImage(videoRef.current, 0, 0, compCanvas.width, compCanvas.height);
+              }
+              if (arCanvasRef.current) {
+                compCtx.drawImage(arCanvasRef.current, 0, 0, compCanvas.width, compCanvas.height);
+              }
             }
             requestAnimationFrame(drawFrame);
           };
           drawFrame();
           setTimeout(() => {
             recActive = false;
-          }, 2000);
+          }, 1800);
           livePhotoSource = compCanvas;
+        } else {
+          livePhotoSource = streamToRecord;
         }
       }
 
@@ -765,13 +829,13 @@ export default function RiellyBooth() {
 
   // Render HTML5 Canvas Output (Instant Flicker-Free Sync Render via Image Cache)
   const renderCanvas = useCallback(
-    (videoElements?: HTMLVideoElement[]) => {
+    (mediaElements?: (HTMLImageElement | HTMLVideoElement)[]) => {
       if (!canvasRef.current || shots.length === 0) return;
 
-      if (isLivePhotoOn && videoElements && videoElements.length > 0) {
+      if (isLivePhotoOn && mediaElements && mediaElements.length > 0) {
         drawPhotoStrip(
           canvasRef.current,
-          videoElements,
+          mediaElements,
           layout,
           frameColor,
           textColor,
@@ -826,41 +890,72 @@ export default function RiellyBooth() {
     }
   }, [renderCanvas]);
 
-  // Video Animation Loop for Live Photo Canvas Rendering
+  // Video Animation Loop for Live Photo Canvas Rendering (with static image fallback so ALL 4 shots always show)
   useEffect(() => {
     let animId: number;
-    let videoElements: HTMLVideoElement[] = [];
+    let cancelled = false;
+    const videoElements: (HTMLVideoElement | null)[] = [];
 
     if (step === "editor" && isLivePhotoOn && shots.some((s) => s.videoBlobUrl)) {
-      videoElements = shots.map((shot) => {
-        const vid = document.createElement("video");
-        vid.src = shot.videoBlobUrl || shot.dataUrl;
-        vid.autoplay = true;
-        vid.loop = true;
-        vid.muted = true;
-        vid.playsInline = true;
-        vid.play().catch(() => { });
-        return vid;
-      });
+      const targetCount = layout === "strip_2" ? 2 : layout === "strip_3" ? 3 : 4;
+      const targetShots = shots.slice(0, targetCount);
 
-      const loop = () => {
-        renderCanvas(videoElements);
-        animId = requestAnimationFrame(loop);
-      };
-      loop();
+      loadCanvasImages(targetShots).then((fallbackImages) => {
+        if (cancelled) return;
+
+        targetShots.forEach((shot, i) => {
+          if (shot.videoBlobUrl) {
+            const vid = document.createElement("video");
+            vid.src = shot.videoBlobUrl;
+            vid.autoplay = true;
+            vid.loop = true;
+            vid.muted = true;
+            vid.playsInline = true;
+            vid.play().catch(() => { });
+            videoElements[i] = vid;
+          } else {
+            videoElements[i] = null;
+          }
+        });
+
+        let lastFrameTime = 0;
+        const loop = () => {
+          if (cancelled) return;
+          const now = performance.now();
+          if (now - lastFrameTime >= 50) {
+            lastFrameTime = now;
+            const hybridMedia = targetShots.map((_, i) => {
+              const vid = videoElements[i];
+              if (vid && vid.readyState >= 2 && vid.videoWidth > 0) {
+                return vid;
+              }
+              return fallbackImages[i];
+            }).filter(Boolean) as (HTMLImageElement | HTMLVideoElement)[];
+
+            if (hybridMedia.length > 0) {
+              renderCanvas(hybridMedia);
+            }
+          }
+          animId = requestAnimationFrame(loop);
+        };
+        loop();
+      });
     } else if (step === "editor") {
       renderCanvas();
     }
 
     return () => {
+      cancelled = true;
       if (animId) cancelAnimationFrame(animId);
       videoElements.forEach((v) => {
-        v.pause();
-        v.removeAttribute("src");
-        v.load();
+        if (v) {
+          v.pause();
+          v.removeAttribute("src");
+          v.load();
+        }
       });
     };
-  }, [step, isLivePhotoOn, shots, renderCanvas]);
+  }, [step, isLivePhotoOn, shots, layout, renderCanvas]);
 
   // Helper for Mobile Device Detection
   const isMobileDevice = useCallback(() => {
@@ -1144,6 +1239,8 @@ export default function RiellyBooth() {
             onUploadPhotos={handleUploadPhotos}
             cameraError={cameraError}
             flashFx={flashFx}
+            isFlashOn={isFlashOn}
+            onToggleFlash={() => setIsFlashOn((v) => !v)}
             isAudioOn={isAudioOn}
             onToggleAudio={() => setIsAudioOn((v) => !v)}
             facingMode={facingMode}

@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import FramePreviewThumb from "@/components/UI/FramePreviewThumb";
+import type { FramePreset, LayoutMode } from "@/lib/canvasUtils";
 import {
   Camera,
   ArrowRight,
@@ -44,115 +46,143 @@ const SAMPLE_POSES = [
     local: "/samples/pose1.jpg",
     fallback: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     label: "pose 01 · smile",
-    note: "peace pose! ✌️",
+    note: "peace pose",
   },
   {
     local: "/samples/pose2.jpg",
     fallback: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
     label: "pose 02 · wink",
-    note: "aesthetic blush ♡",
+    note: "aesthetic blush",
   },
   {
     local: "/samples/pose3.jpg",
     fallback: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80",
     label: "pose 03 · cute",
-    note: "sunny day ☀️",
+    note: "sunny day",
   },
   {
     local: "/samples/pose4.jpg",
     fallback: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
     label: "pose 04 · heart",
-    note: "best memory ✨",
+    note: "best memory",
   },
 ];
 
-const FEATURED_FRAMES = [
+const FEATURED_FRAMES: Array<{
+  id: FramePreset;
+  layout: LayoutMode;
+  frameColor: string;
+  textColor: string;
+  title: string;
+  badge: string;
+  tagColor: string;
+  cardBg: string;
+  description: string;
+  tags: string[];
+  format: string;
+}> = [
   {
     id: "coquette",
+    layout: "strip_1x4",
+    frameColor: "#fce7f3",
+    textColor: "#db2777",
     title: "Coquette Ribbon",
-    badge: "Viral Gen Z 🎀",
+    badge: "VIRAL GEN Z",
     tagColor: "bg-[#E84D91] text-white",
     cardBg: "bg-[#FFF9F0] border-[#E9B8CA] text-[#392633]",
     description: "Pita satin lembut, pearl borders, dan tone blush pink estetik favorit TikTok.",
-    sampleUrl: "/samples/frames/coquette.jpg",
     tags: ["Coquette", "Aesthetic", "Soft Pink"],
-    format: "2×6 Strip / 4×6",
+    format: "2×6 Strip",
+  },
+  {
+    id: "newspaper",
+    layout: "newspaper_grid",
+    frameColor: "#f4f0e6",
+    textColor: "#1c1917",
+    title: "The Rielly Times",
+    badge: "4-PHOTO NEWS",
+    tagColor: "bg-[#1c1917] text-white",
+    cardBg: "bg-[#FAF7F0] border-[#392633] text-[#1c1917]",
+    description: "Koran broadsheet 4-foto lengkap dengan 3 kolom artikel, drop cap, pull-quote, dan spesifikasi cetak.",
+    tags: ["Editorial", "Broadsheet", "4-Photo"],
+    format: "4×6 Broadsheet",
   },
   {
     id: "daily_rielly",
+    layout: "strip_1x4",
+    frameColor: "#FAF7F0",
+    textColor: "#121212",
     title: "The Daily Rielly",
-    badge: "Editorial Archive 🗞️",
+    badge: "EDITORIAL",
     tagColor: "bg-[#392633] text-white",
     cardBg: "bg-[#FFF9F0] border-[#392633] text-[#392633]",
-    description: "Koran broadsheet vintage 90-an dengan masthead RIELLYBOOTH & barcode editorial.",
-    sampleUrl: "/samples/frames/daily_rielly.jpg",
-    tags: ["Editorial", "Vintage 90s", "Newspaper"],
-    format: "2×6 Strip / Double 4R",
+    description: "Koran editorial vintage 90-an dengan masthead RIELLYBOOTH, prangko arsip, dan barcode.",
+    tags: ["Editorial", "Vintage 90s", "Archive"],
+    format: "2-Photo Poster",
   },
   {
     id: "riellmatics_news",
+    layout: "strip_1x4",
+    frameColor: "#ffffff",
+    textColor: "#111111",
     title: "Riellmatics Daily News",
-    badge: "Trending 🔥",
+    badge: "TRENDING",
     tagColor: "bg-stone-900 text-white",
     cardBg: "bg-stone-50 border-stone-400 text-stone-900",
-    description: "Headline koran editorial retro hitam-putih ala majalah vintage khas RiellyBooth.",
-    sampleUrl: "/samples/frames/riellmatics.jpg",
+    description: "Headline koran editorial retro hitam-putih ala Photomatic Korea dengan metadata edisi.",
     tags: ["Editorial", "Monochrome", "Vintage"],
     format: "2×6 Strip",
   },
   {
-    id: "cyber_y2k",
+    id: "y2k",
+    layout: "strip_1x4",
+    frameColor: "#1e112a",
+    textColor: "#f0abfc",
     title: "Cyber Y2K Sparkle",
-    badge: "Retro Cyber ✨",
+    badge: "RETRO CYBER",
     tagColor: "bg-purple-700 text-white",
     cardBg: "bg-[#1E112A] border-purple-400 text-purple-100",
-    description: "Sparkle bintang 4 sudut, chrome metallic & vibe arcade tahun 2000-an.",
-    sampleUrl: "/samples/frames/cyber_y2k.jpg",
-    tags: ["Y2K", "Cyber", "Sparkles"],
+    description: "Sparkle bintang 4 sudut, aksen chrome metallic, dan nuansa digital tahun 2000-an.",
+    tags: ["Y2K", "Cyber", "Metallic"],
     format: "2×6 Strip",
   },
   {
-    id: "cafe_receipt",
+    id: "receipt",
+    layout: "strip_1x4",
+    frameColor: "#fffbeb",
+    textColor: "#292524",
     title: "Struk Cafe Vintage",
-    badge: "Cozy Mood ☕",
+    badge: "COZY MOOD",
     tagColor: "bg-amber-800 text-white",
     cardBg: "bg-[#FFFBEB] border-amber-300 text-amber-950",
-    description: "Thermal receipt struk kopi estetik lengkap barcode & rincian pesanan santai.",
-    sampleUrl: "/samples/frames/cafe_receipt.jpg",
+    description: "Thermal receipt struk kopi estetik lengkap barcode dan rincian pesanan santai.",
     tags: ["Receipt", "Cafe", "Thermal"],
     format: "2×6 Strip",
   },
   {
-    id: "pestapora_pass",
+    id: "concert_ticket",
+    layout: "strip_1x4",
+    frameColor: "#062419",
+    textColor: "#a7f3d0",
     title: "Musikfest VIP Pass",
-    badge: "Festival 🎫",
+    badge: "FESTIVAL",
     tagColor: "bg-emerald-700 text-white",
     cardBg: "bg-[#062419] border-emerald-400 text-emerald-100",
-    description: "Tiket festival backstage VIP pass dengan lanyard clip digital & lampu konser neon.",
-    sampleUrl: "/samples/frames/festival_vip.jpg",
+    description: "Tiket festival backstage VIP pass dengan lanyard clip digital dan nuansa panggung konser.",
     tags: ["Concert", "VIP Pass", "Festival"],
     format: "2×6 Strip",
   },
   {
-    id: "photocard_bias",
-    title: "Photocard Idol K-Pop",
-    badge: "Hallyu 📸",
-    tagColor: "bg-rose-600 text-white",
-    cardBg: "bg-[#FFF0F4] border-rose-300 text-rose-950",
-    description: "Sudut rounded layaknya official photocard album idol K-Pop dengan stiker cute.",
-    sampleUrl: "/samples/frames/kpop_photocard.jpg",
-    tags: ["K-Pop", "Photocard", "Polaroid"],
-    format: "4×6 Card",
-  },
-  {
     id: "halloween_spooky",
+    layout: "strip_1x4",
+    frameColor: "#14081e",
+    textColor: "#fb923c",
     title: "Halloween Spooky",
-    badge: "Limited 🎃",
+    badge: "LIMITED",
     tagColor: "bg-orange-600 text-white",
     cardBg: "bg-[#14081E] border-orange-500 text-orange-200",
-    description: "Labu jack-o'-lantern menyala, topi witch mistis & pose peace khas photobooth spooky.",
-    sampleUrl: "/samples/frames/halloween.jpg",
-    tags: ["Halloween", "Spooky", "Limited 🎃"],
+    description: "Bingkai edisi terbatas dengan border neon ungu-oranye dan ornamen malam mistis.",
+    tags: ["Halloween", "Spooky", "Limited"],
     format: "2×6 Strip",
   },
 ];
@@ -162,7 +192,7 @@ const TESTIMONIALS = [
     user: "@nayla.aest",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
     role: "TikTok Creator",
-    comment: "Frame Coquette sama Editorial-nya gemes bangettt 😭🎀 auto jepret pose peace tanpa ribet, langsung save HD buat IG Story.",
+    comment: "Frame Coquette sama Editorial-nya gemes banget, auto jepret pose peace tanpa ribet, langsung save HD buat IG Story.",
     rating: 5,
   },
   {
@@ -235,7 +265,7 @@ export default function LandingStep({
     },
     {
       q: "Bisa pakai foto yang sudah ada di galeri HP?",
-      a: "Bisa banget! Klik tombol 'Upload Galeri 🖼️' di hero atau saat sesi capture untuk langsung memilih foto favoritmu tanpa perlu menyalakan kamera.",
+      a: "Bisa banget! Klik tombol 'Upload Galeri' di hero atau saat sesi capture untuk langsung memilih foto favoritmu tanpa perlu menyalakan kamera.",
     },
     {
       q: "Bagaimana cara cetak format 4R (Double Strip 2x4)?",
@@ -243,11 +273,17 @@ export default function LandingStep({
     },
   ];
 
-  const todayDateStr = new Date().toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  const [todayDateStr, setTodayDateStr] = useState("2026");
+
+  useEffect(() => {
+    setTodayDateStr(
+      new Date().toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    );
+  }, []);
 
   return (
     <div className="w-full max-w-6xl px-4 sm:px-6 py-6 sm:py-10 flex flex-col items-center gap-14 sm:gap-20 text-[#392633] animate-in fade-in duration-300">
@@ -272,8 +308,9 @@ export default function LandingStep({
               onClick={onOpenWhatsNew}
               className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#FFF0F4] hover:bg-[#F8D8E3] border-2 border-[#F48FB1] text-[#E84D91] rounded-full text-xs font-heading font-bold shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer group"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#E84D91] animate-bounce" />
-              <span>What&apos;s New in v2.5 🔥</span>
+              <Sparkles className="w-3.5 h-3.5 text-[#E84D91]" />
+              <span>What&apos;s New</span>
+              <span className="px-1.5 py-0.5 bg-[#E84D91] text-white text-[9px] rounded-full uppercase tracking-wider">v2.5</span>
               <ArrowRight className="w-3 h-3 text-[#E84D91] transition-transform group-hover:translate-x-0.5" />
             </button>
           )}
@@ -344,7 +381,7 @@ export default function LandingStep({
             className="w-full sm:w-auto px-5 py-3.5 bg-white hover:bg-[#FFF0F4] border-2 border-[#E9B8CA] text-[#392633] rounded-full text-xs font-heading font-semibold shadow-xs hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Upload className="w-4 h-4 text-[#F48FB1]" />
-            <span>Upload Galeri 🖼️</span>
+            <span>Upload Galeri</span>
           </button>
 
           {onOpenLDR && (
@@ -354,7 +391,8 @@ export default function LandingStep({
               className="w-full sm:w-auto px-5 py-3.5 bg-[#FFF0F4] hover:bg-[#F8D8E3] border-2 border-[#F48FB1] text-[#E84D91] rounded-full text-xs font-heading font-bold shadow-xs hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Users className="w-4 h-4" />
-              <span>Foto Jarak Jauh (LDR) 👯‍♀️</span>
+              <span>Foto Jarak Jauh</span>
+              <span className="px-1.5 py-0.5 bg-[#E84D91] text-white text-[9px] rounded-full uppercase tracking-wider">LDR</span>
             </button>
           )}
         </div>
@@ -370,13 +408,13 @@ export default function LandingStep({
         <div className="relative w-full max-w-4xl mt-4 sm:mt-8 flex justify-center items-center py-6 px-2 select-none">
           {/* Handwritten Annotation 1 */}
           <div className="absolute top-2 left-4 sm:left-12 z-30 font-handwriting text-lg sm:text-2xl text-[#E84D91] rotate-[-8deg] hidden md:block">
-            <span>say cheese! ✌️</span>
+            <span>say cheese!</span>
             <div className="text-xs font-sans text-[#8B7180] tracking-normal">peace pose auto-take</div>
           </div>
 
           {/* Handwritten Annotation 2 */}
           <div className="absolute top-8 right-4 sm:right-10 z-30 font-handwriting text-lg sm:text-2xl text-[#E84D91] rotate-[10deg] hidden md:block">
-            <span>little memories ♡</span>
+            <span>little memories</span>
             <div className="text-xs font-sans text-[#8B7180] tracking-normal">free without watermark</div>
           </div>
 
@@ -418,8 +456,8 @@ export default function LandingStep({
                   />
                 </div>
                 <div className="pt-1 flex items-center justify-between text-xs font-handwriting text-[#392633]">
-                  <span className="font-bold text-sm text-[#E84D91]">with bestie ♡</span>
-                  <span className="text-[11px] text-[#8B7180]">forever ✨</span>
+                  <span className="font-bold text-sm text-[#E84D91]">with bestie</span>
+                  <span className="text-[11px] text-[#8B7180]">forever</span>
                 </div>
               </div>
             </div>
@@ -431,8 +469,8 @@ export default function LandingStep({
 
               <div className="bg-white border-2 border-[#E9B8CA] p-3 sm:p-3.5 rounded-2xl shadow-polaroid w-48 sm:w-56 space-y-2 text-center">
                 {/* Header ribbon */}
-                <div className="flex items-center justify-center gap-1 text-[11px] font-heading font-bold text-[#E84D91] border-b border-[#F8D8E3] pb-1.5">
-                  <span>🎀 RiellyBooth 🎀</span>
+                <div className="flex items-center justify-center gap-1.5 text-[11px] font-heading font-bold text-[#E84D91] border-b border-[#F8D8E3] pb-1.5 tracking-wide uppercase">
+                  <span>RiellyBooth Studio</span>
                 </div>
 
                 {/* 4 Photos Stacked */}
@@ -450,7 +488,7 @@ export default function LandingStep({
                           (e.currentTarget as HTMLImageElement).src = pose.fallback;
                         }}
                       />
-                      <span className="absolute bottom-1 right-1 bg-black/40 text-white text-[9px] font-mono px-1 rounded backdrop-blur-xs">
+                      <span className="absolute bottom-1 right-1 bg-black/50 text-white text-[9px] font-mono px-1 rounded">
                         0{idx + 1}
                       </span>
                     </div>
@@ -459,14 +497,14 @@ export default function LandingStep({
 
                 {/* Footer of photo strip */}
                 <div className="pt-2 border-t border-[#F8D8E3] flex items-center justify-between px-1 text-[10px] text-[#392633]">
-                  <span className="font-heading font-bold text-[#E84D91]">riellybooth ♡</span>
+                  <span className="font-heading font-bold text-[#E84D91]">riellybooth</span>
                   <span className="font-mono text-[9px] text-[#8B7180]">{todayDateStr}</span>
                 </div>
               </div>
 
               {/* Little Stamp Badge */}
-              <div className="absolute -bottom-3 -right-3 z-30 bg-[#FFF9F0] border-2 border-[#E84D91] text-[#E84D91] text-[10px] font-heading font-black px-2.5 py-1 rounded-full shadow-stamp rotate-[8deg]">
-                100% FREE ✨
+              <div className="absolute -bottom-3 -right-3 z-30 bg-[#FFF9F0] border-2 border-[#E84D91] text-[#E84D91] text-[10px] font-heading font-black px-2.5 py-1 rounded-full shadow-stamp rotate-[8deg] tracking-wider uppercase">
+                100% FREE
               </div>
             </div>
           </div>
@@ -478,8 +516,9 @@ export default function LandingStep({
           ======================================================== */}
       <section className="w-full py-4 text-center space-y-8">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFF9F0] border border-[#E9B8CA] text-[#E84D91] rounded-full text-xs font-heading font-bold">
-            <span>✨ Tiga Langkah Mudah</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFF9F0] border border-[#E9B8CA] text-[#E84D91] rounded-full text-xs font-heading font-bold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-[#E84D91]" />
+            <span>Tiga Langkah Mudah</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-[#392633]">
             How It Works
@@ -583,19 +622,19 @@ export default function LandingStep({
                   </span>
                 </div>
 
-                {/* Preview Image Thumbnail */}
-                <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden border border-black/10 bg-black/5 relative">
-                  <img
-                    src={f.sampleUrl}
-                    alt={f.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-2.5">
-                    <span className="text-white text-xs font-heading font-bold drop-shadow-md">
-                      {f.title}
-                    </span>
-                  </div>
-                </div>
+                {/* Live Rendered Frame Preview matching the exact real frame */}
+                <FramePreviewThumb
+                  preset={f.id}
+                  layout={f.layout}
+                  frameColor={f.frameColor}
+                  textColor={f.textColor}
+                  title={f.title}
+                />
+
+                {/* Title */}
+                <h3 className="text-sm font-heading font-bold tracking-tight">
+                  {f.title}
+                </h3>
 
                 {/* Description */}
                 <p className="text-xs font-sans font-medium leading-relaxed opacity-90">
@@ -682,7 +721,7 @@ export default function LandingStep({
               Live Camera & Peace Gesture
             </h3>
             <p className="text-xs text-[#8B7180] leading-relaxed font-sans font-medium">
-              Preview kamera langsung dengan AI deteksi gesture peace ✌️ untuk jepret otomatis tanpa menyentuh tombol.
+              Preview kamera langsung dengan AI deteksi gesture peace untuk jepret otomatis tanpa menyentuh tombol.
             </p>
           </div>
 
@@ -783,7 +822,7 @@ export default function LandingStep({
         <div className="pt-8 space-y-4">
           <div className="text-center space-y-1">
             <h3 className="text-xl sm:text-2xl font-heading font-bold text-[#392633]">
-              Dicintai Pengguna di TikTok & Instagram 💖
+              Dicintai Pengguna di TikTok & Instagram
             </h3>
           </div>
 
@@ -910,9 +949,10 @@ export default function LandingStep({
               <button
                 type="button"
                 onClick={onOpenPrivacy}
-                className="hover:text-[#E84D91] transition underline cursor-pointer text-[#E84D91]"
+                className="hover:text-[#E84D91] transition underline cursor-pointer text-[#E84D91] inline-flex items-center gap-1"
               >
-                <span>Kebijakan Privasi 🔒</span>
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Kebijakan Privasi</span>
               </button>
               <span className="text-[#E9B8CA]">·</span>
             </>

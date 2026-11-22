@@ -79,11 +79,11 @@ export default function LDRRemoteModal({
           <div className="inline-flex p-3 bg-[#FFF0F4] rounded-full border border-[#E9B8CA] text-[#E84D91] mb-1">
             <Users className="w-7 h-7 animate-bounce" />
           </div>
-          <div className="inline-block px-3 py-0.5 bg-[#E84D91] text-white text-[11px] font-heading font-bold rounded-full uppercase tracking-wider shadow-xs">
-            🔥 Fitur Eksklusif #1
+          <div className="inline-block px-3 py-0.5 bg-[#E84D91] text-white text-[10px] font-heading font-bold rounded-full uppercase tracking-wider shadow-xs">
+            EXCLUSIVE FEATURE · P2P LIVE
           </div>
           <h3 className="text-2xl sm:text-3xl font-heading font-bold text-[#392633]">
-            Mode Jarak Jauh (LDR) 👯‍♀️
+            Mode Jarak Jauh (LDR)
           </h3>
           <p className="text-xs text-[#8B7180] font-sans font-medium max-w-sm mx-auto leading-relaxed">
             Kalian terpisah jarak? Kirim link ke pacar atau bestie kamu, lalu jepret foto bareng di <strong>1 photo strip</strong> yang sama secara realtime!
@@ -100,7 +100,7 @@ export default function LDRRemoteModal({
                 : "text-[#8B7180] hover:text-[#392633]"
               }`}
           >
-            ✨ Buat Room Baru (Host)
+            <span>Buat Room Baru (Host)</span>
           </button>
           <button
             type="button"
@@ -110,7 +110,7 @@ export default function LDRRemoteModal({
                 : "text-[#8B7180] hover:text-[#392633]"
               }`}
           >
-            🔑 Gabung Room Teman
+            <span>Gabung Room Teman</span>
           </button>
         </div>
 
@@ -180,7 +180,7 @@ export default function LDRRemoteModal({
               className="w-full py-3.5 scrapbook-btn text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               <Camera className="w-4 h-4" />
-              <span>Buka Kamera & Tunggu Teman Join 📸</span>
+              <span>Buka Kamera & Tunggu Teman Join</span>
             </button>
           </div>
         ) : (
@@ -207,7 +207,7 @@ export default function LDRRemoteModal({
               disabled={!inputRoomId.trim()}
               className="w-full py-3.5 scrapbook-btn disabled:opacity-50 text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Gabung ke Room 🚀</span>
+              <span>Gabung ke Room</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

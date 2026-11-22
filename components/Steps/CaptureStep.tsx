@@ -10,18 +10,12 @@ import {
   SwitchCamera,
   Sliders,
   SlidersHorizontal,
-  Lightbulb,
   HelpCircle,
-  Smile,
   X,
   Zap,
-  Volume2,
-  VolumeX,
-  Check,
+  ZapOff,
 } from "lucide-react";
 import { getHandLandmarker, isPeaceSignGesture } from "@/lib/gestureUtils";
-import { getFaceLandmarker, drawARFaceFilter, ARFaceFilterPreset } from "@/lib/faceFilterUtils";
-import PoseIdeasModal from "@/components/PoseIdeasModal";
 import CameraPermissionGuide from "@/components/CameraPermissionGuide";
 
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
@@ -46,6 +40,8 @@ type CaptureStepProps = {
   ) => void;
   onUploadPhotos: (files: FileList) => void;
   flashFx: boolean;
+  isFlashOn?: boolean;
+  onToggleFlash?: () => void;
   isAudioOn: boolean;
   onToggleAudio: () => void;
   facingMode?: "user" | "environment";
@@ -54,22 +50,6 @@ type CaptureStepProps = {
   maxShots?: number;
   onToggleSessionMode?: (mode: "standard_4" | "korean_6") => void;
 };
-
-const AR_FILTER_OPTIONS: Array<{
-  id: ARFaceFilterPreset;
-  label: string;
-  emoji: string;
-}> = [
-  { id: "none", label: "Polos", emoji: "❌" },
-  { id: "coquette", label: "Coquette Blush", emoji: "🎀" },
-  { id: "pixel", label: "Pixel Y2K", emoji: "🕶️" },
-  { id: "cat", label: "Kucing", emoji: "🐱" },
-  { id: "dog", label: "Puppy", emoji: "🐶" },
-  { id: "strawberry", label: "Strawberry", emoji: "🍓" },
-  { id: "chef", label: "Chef Hat", emoji: "👨‍🍳" },
-  { id: "diving", label: "Diving Mask", emoji: "🤿" },
-  { id: "santa", label: "Santa Beard", emoji: "🎅" },
-];
 
 export default function CaptureStep({
   videoRef,
@@ -87,8 +67,8 @@ export default function CaptureStep({
   onTakeSingleShot,
   onUploadPhotos,
   flashFx,
-  isAudioOn,
-  onToggleAudio,
+  isFlashOn = true,
+  onToggleFlash,
   facingMode = "user",
   onToggleFacingMode,
   retakeIndex = null,
@@ -108,26 +88,20 @@ export default function CaptureStep({
     }
   }, [remoteStream, activeRemoteVideoRef]);
 
-  // Shutter & Timer Trigger Mode: "gesture" | "timer_3" | "timer_5" | "instant"
-  const [triggerMode, setTriggerMode] = useState<"gesture" | "timer_3" | "timer_5" | "instant">("gesture");
+  // Shutter & Timer Trigger Mode: "timer_3" default (zero ML lag on camera open)
+  const [triggerMode, setTriggerMode] = useState<"gesture" | "timer_3" | "timer_5" | "instant">("timer_3");
 
-  // Camera Tuning Sliders State (Kecerahan ☀️ & Beauty Glow ✨)
+  // Camera Tuning Sliders State (Kecerahan & Beauty Glow)
   const [cameraBrightness, setCameraBrightness] = useState(105);
   const [cameraContrast, setCameraContrast] = useState(105);
   const [beautyGlow, setBeautyGlow] = useState(0);
   const [showTuning, setShowTuning] = useState(false);
 
-  // AR Face Filter State
-  const [arFilterPreset, setArFilterPreset] = useState<ARFaceFilterPreset>("none");
-  const [showFilterPicker, setShowFilterPicker] = useState(false);
-
   // Modals
-  const [showPoseIdeas, setShowPoseIdeas] = useState(false);
   const [showPermissionGuide, setShowPermissionGuide] = useState(false);
-  const [isLowPowerMode, setIsLowPowerMode] = useState(false);
 
-  // Gesture Detection State
-  const [gestureEnabled, setGestureEnabled] = useState(true);
+  // Gesture Detection State (opt-in via Gesture tab so camera opens at smooth 60fps)
+  const [gestureEnabled, setGestureEnabled] = useState(false);
   const [gestureStatus, setGestureStatus] = useState<string | null>(null);
   const [peaceProgress, setPeaceProgress] = useState(0);
 
@@ -141,7 +115,7 @@ export default function CaptureStep({
     }
   }, [remoteStream, remoteVideoRef]);
 
-  // Real-time MediaPipe Hand Detection Loop (Peace Gesture ✌️)
+  // Real-time MediaPipe Hand Detection Loop (Throttled to ~10 FPS to prevent CPU lag)
   useEffect(() => {
     let animFrameId: number;
     let active = true;
@@ -153,13 +127,14 @@ export default function CaptureStep({
       return;
     }
 
-    let frameSkip = 0;
+    let lastDetectTime = 0;
     const runDetection = async () => {
-      frameSkip++;
-      if (isLowPowerMode && frameSkip % 3 !== 0) {
+      const now = performance.now();
+      if (now - lastDetectTime < 110) {
         if (active) animFrameId = requestAnimationFrame(runDetection);
         return;
       }
+      lastDetectTime = now;
 
       const landmarker = await getHandLandmarker();
       if (!landmarker || !videoRef.current || !active) return;
@@ -175,7 +150,7 @@ export default function CaptureStep({
             const isPeace = isPeaceSignGesture(handLandmarks);
 
             if (isPeace && !isLockedRef.current) {
-              setGestureStatus("Pose Peace Terdeteksi! Tahan 1 detik ✌️");
+              setGestureStatus("Pose Peace Terdeteksi! Tahan 1 detik");
 
               if (!peaceStartTimeRef.current) {
                 peaceStartTimeRef.current = performance.now();
@@ -188,7 +163,7 @@ export default function CaptureStep({
               if (elapsed >= 1000) {
                 isLockedRef.current = true;
                 setPeaceProgress(100);
-                setGestureStatus("Jepret! 📸");
+                setGestureStatus("Jepret!");
                 const remoteEl = remoteStream && remoteVideoRef?.current ? remoteVideoRef.current : null;
                 onTakeSingleShot(
                   0,
@@ -239,72 +214,7 @@ export default function CaptureStep({
     cameraBrightness,
     cameraContrast,
     beautyGlow,
-    isLowPowerMode,
   ]);
-
-  // Real-time MediaPipe 3D Face Mesh AR Filter Loop
-  useEffect(() => {
-    let animId: number;
-    let active = true;
-
-    if (arFilterPreset === "none" || !videoRef.current || !activeArCanvasRef.current || cameraError) {
-      if (activeArCanvasRef.current) {
-        const ctx = activeArCanvasRef.current.getContext("2d");
-        if (ctx) ctx.clearRect(0, 0, activeArCanvasRef.current.width, activeArCanvasRef.current.height);
-      }
-      return;
-    }
-
-    let faceSkip = 0;
-    const runFaceMesh = async () => {
-      faceSkip++;
-      if (isLowPowerMode && faceSkip % 2 !== 0) {
-        if (active) animId = requestAnimationFrame(runFaceMesh);
-        return;
-      }
-
-      const landmarker = await getFaceLandmarker();
-      if (!landmarker || !videoRef.current || !activeArCanvasRef.current || !active) return;
-      const video = videoRef.current;
-      const canvas = activeArCanvasRef.current;
-
-      if (video.readyState >= 2) {
-        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-          canvas.width = video.videoWidth || 1280;
-          canvas.height = video.videoHeight || 720;
-        }
-
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          try {
-            const results = landmarker.detectForVideo(video, performance.now());
-            if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-              drawARFaceFilter(
-                ctx,
-                results.faceLandmarks[0],
-                arFilterPreset,
-                canvas.width,
-                canvas.height,
-                facingMode === "user"
-              );
-            }
-          } catch (e) {
-            console.warn("Face mesh loop error:", e);
-          }
-        }
-      }
-
-      if (active) animId = requestAnimationFrame(runFaceMesh);
-    };
-
-    runFaceMesh();
-
-    return () => {
-      active = false;
-      if (animId) cancelAnimationFrame(animId);
-    };
-  }, [arFilterPreset, facingMode, cameraError, activeArCanvasRef, videoRef, isLowPowerMode]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -315,10 +225,10 @@ export default function CaptureStep({
   const getButtonLabel = () => {
     if (countdown !== null) return `Capturing (${countdown}s)...`;
     if (isCapturing) return "Memproses...";
-    if (triggerMode === "gesture") return "Jepret Manual (3s) 📸";
-    if (triggerMode === "timer_3") return "Mulai Timer 3s ⏱️";
-    if (triggerMode === "timer_5") return "Mulai Timer 5s ⏱️";
-    return "Jepret Instan ⚡";
+    if (triggerMode === "gesture") return "Jepret Manual (3s)";
+    if (triggerMode === "timer_3") return "Mulai Timer 3s";
+    if (triggerMode === "timer_5") return "Mulai Timer 5s";
+    return "Jepret Instan";
   };
 
   const handleShutterClick = () => {
@@ -354,7 +264,7 @@ export default function CaptureStep({
               <span className="relative inline-flex rounded-full h-3 w-3 bg-white" />
             </span>
             <span className="text-xs sm:text-sm font-heading font-bold tracking-wide">
-              {ldrStatusMessage || "Mode Jarak Jauh (LDR) Aktif 💖 Dua Perangkat Terhubung!"}
+              {ldrStatusMessage || "Mode Jarak Jauh (LDR) Aktif · Dua Perangkat Terhubung"}
             </span>
           </div>
           {onDisconnectLDR && (
@@ -373,11 +283,10 @@ export default function CaptureStep({
       <div className="w-full flex flex-wrap justify-between items-center gap-3 scrapbook-paper p-3.5 sm:p-4 shadow-paper">
         <div className="flex items-center gap-2.5">
           <span
-            className={`px-3.5 py-1 font-heading font-bold text-xs sm:text-sm rounded-full shadow-xs tracking-wider ${
-              retakeIndex !== null && retakeIndex !== undefined
+            className={`px-3.5 py-1 font-heading font-bold text-xs sm:text-sm rounded-full shadow-xs tracking-wider ${retakeIndex !== null && retakeIndex !== undefined
                 ? "bg-amber-500 text-white animate-pulse"
                 : "bg-[#E84D91] text-white"
-            }`}
+              }`}
           >
             {retakeIndex !== null && retakeIndex !== undefined
               ? `RETAKE #${retakeIndex + 1}`
@@ -386,69 +295,44 @@ export default function CaptureStep({
 
           <h3 className="text-sm sm:text-base font-heading font-bold text-[#392633]">
             {retakeIndex !== null && retakeIndex !== undefined
-              ? `Ulang Pose #${retakeIndex + 1} ✨`
+              ? `Ulang Pose #${retakeIndex + 1}`
               : shotsCount < maxShots
-              ? `Jepret Foto #${currentShotIndex}`
-              : `Selesai ${maxShots} Pose! ✨`}
+                ? `Jepret Foto #${currentShotIndex}`
+                : `Selesai ${maxShots} Pose`}
           </h3>
         </div>
 
-        {/* Quick Toolbar: Pose Ideas, Face Filter, Tuning, Low Power, Switch Camera */}
+        {/* Quick Toolbar: Flash, Tuning, Switch Camera, Peace Gesture */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Pose Ideas Guide Trigger */}
-          <button
-            type="button"
-            onClick={() => setShowPoseIdeas(true)}
-            className="px-3 py-1.5 rounded-xl text-xs font-heading font-bold bg-[#FFF0F4] hover:bg-[#F8D8E3] text-[#E84D91] border border-[#E9B8CA] transition flex items-center gap-1.5 shadow-xs cursor-pointer"
-            title="Lihat Ide Pose"
-          >
-            <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-            <span>Ide Pose</span>
-          </button>
-
-          {/* AR Face Filter Toggle Trigger */}
-          <button
-            type="button"
-            onClick={() => setShowFilterPicker((v) => !v)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${
-              arFilterPreset !== "none"
-                ? "bg-[#E84D91] text-white border-[#E84D91]"
-                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
-            }`}
-            title="Filter Wajah AR Props"
-          >
-            <Smile className="w-3.5 h-3.5" />
-            <span>Props Wajah 🎭</span>
-          </button>
+          {/* Screen / Hardware Flash Toggle */}
+          {onToggleFlash && (
+            <button
+              type="button"
+              onClick={onToggleFlash}
+              disabled={isCapturing}
+              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${isFlashOn
+                  ? "bg-amber-400 text-[#392633] border-amber-500"
+                  : "bg-white text-[#8B7180] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                }`}
+              title={isFlashOn ? "Matikan Flash Kamera" : "Nyalakan Flash Kamera"}
+            >
+              {isFlashOn ? <Zap className="w-3.5 h-3.5 fill-current" /> : <ZapOff className="w-3.5 h-3.5" />}
+              <span>Flash {isFlashOn ? "ON" : "OFF"}</span>
+            </button>
+          )}
 
           {/* Camera Tuning Dropdown Trigger */}
           <button
             type="button"
             onClick={() => setShowTuning((v) => !v)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${
-              showTuning
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${showTuning
                 ? "bg-[#E84D91] text-white border-[#E84D91]"
                 : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
-            }`}
+              }`}
             title="Tuning Kecerahan & Glow"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Tuning ☀️</span>
-          </button>
-
-          {/* Low Power Mode Toggle */}
-          <button
-            type="button"
-            onClick={() => setIsLowPowerMode((v) => !v)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${
-              isLowPowerMode
-                ? "bg-amber-400 text-[#392633] border-amber-500"
-                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-amber-50"
-            }`}
-            title="Mode Hemat: Meringankan kerja kamera biar lancar"
-          >
-            <Zap className="w-3.5 h-3.5 text-amber-600" />
-            <span>{isLowPowerMode ? "Hemat ON ⚡" : "Hemat"}</span>
+            <span>Tuning</span>
           </button>
 
           {/* Front/Back Camera Switcher */}
@@ -461,7 +345,7 @@ export default function CaptureStep({
               title="Ganti Kamera Depan / Belakang"
             >
               <SwitchCamera className="w-3.5 h-3.5 text-[#E84D91]" />
-              <span>{facingMode === "user" ? "Depan 🤳" : "Belakang 📷"}</span>
+              <span>{facingMode === "user" ? "Depan" : "Belakang"}</span>
             </button>
           )}
 
@@ -477,54 +361,16 @@ export default function CaptureStep({
               }
             }}
             disabled={isCapturing}
-            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${
-              triggerMode === "gesture" && gestureEnabled
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${triggerMode === "gesture" && gestureEnabled
                 ? "bg-[#E84D91] text-white border-[#E84D91]"
                 : "bg-stone-100 text-stone-500 border-stone-300"
-            }`}
+              }`}
           >
             <Hand className="w-3.5 h-3.5" />
-            <span>Peace ✌️ {triggerMode === "gesture" && gestureEnabled ? "ON" : "OFF"}</span>
+            <span>Peace {triggerMode === "gesture" && gestureEnabled ? "ON" : "OFF"}</span>
           </button>
         </div>
       </div>
-
-      {/* AR FACE PROPS FILTER DRAWER */}
-      {showFilterPicker && (
-        <div className="w-full bg-[#FFF9F0] p-3 rounded-2xl border-2 border-[#E9B8CA] shadow-paper space-y-2 animate-in slide-in-from-top-2 duration-200 text-left">
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-heading font-bold text-[#E84D91] flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-[#E84D91]" />
-              <span>Pilih Filter / Props Wajah Real-Time 🎭:</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowFilterPicker(false)}
-              className="p-1 text-[#8B7180] hover:text-[#392633] cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-1.5">
-            {AR_FILTER_OPTIONS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setArFilterPreset(f.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                  arFilterPreset === f.id
-                    ? "bg-[#E84D91] text-white shadow-xs"
-                    : "bg-[#FFF0F4] text-[#392633] border border-[#E9B8CA] hover:bg-[#F8D8E3]"
-                }`}
-              >
-                <span>{f.emoji}</span>
-                <span>{f.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* CAMERA TUNING DRAWER (BRIGHTNESS & BEAUTY GLOW) */}
       {showTuning && (
@@ -602,49 +448,45 @@ export default function CaptureStep({
               setTriggerMode("gesture");
               setGestureEnabled(true);
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
-              triggerMode === "gesture"
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${triggerMode === "gesture"
                 ? "bg-[#E84D91] text-white shadow-xs"
                 : "text-[#8B7180] hover:bg-[#FFF0F4]"
-            }`}
+              }`}
           >
-            <span>✌️ Auto Peace</span>
+            <span>Auto Peace</span>
           </button>
 
           <button
             type="button"
             onClick={() => setTriggerMode("timer_3")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
-              triggerMode === "timer_3"
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${triggerMode === "timer_3"
                 ? "bg-[#E84D91] text-white shadow-xs"
                 : "text-[#8B7180] hover:bg-[#FFF0F4]"
-            }`}
+              }`}
           >
-            <span>⏱️ Timer 3s</span>
+            <span>Timer 3s</span>
           </button>
 
           <button
             type="button"
             onClick={() => setTriggerMode("timer_5")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
-              triggerMode === "timer_5"
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${triggerMode === "timer_5"
                 ? "bg-[#E84D91] text-white shadow-xs"
                 : "text-[#8B7180] hover:bg-[#FFF0F4]"
-            }`}
+              }`}
           >
-            <span>⏱️ Timer 5s</span>
+            <span>Timer 5s</span>
           </button>
 
           <button
             type="button"
             onClick={() => setTriggerMode("instant")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
-              triggerMode === "instant"
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${triggerMode === "instant"
                 ? "bg-[#E84D91] text-white shadow-xs"
                 : "text-[#8B7180] hover:bg-[#FFF0F4]"
-            }`}
+              }`}
           >
-            <span>⚡ Instan</span>
+            <span>Instan</span>
           </button>
         </div>
 
@@ -654,25 +496,24 @@ export default function CaptureStep({
             <button
               type="button"
               onClick={() => onToggleSessionMode("standard_4")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer ${
-                maxShots === 4
+              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer ${maxShots === 4
                   ? "bg-[#E84D91] text-white shadow-xs"
                   : "text-[#8B7180] hover:bg-[#FFF0F4]"
-              }`}
+                }`}
             >
               <span>4 Pose</span>
             </button>
             <button
               type="button"
               onClick={() => onToggleSessionMode("korean_6")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer ${
-                maxShots === 6
+              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer flex items-center gap-1.5 ${maxShots === 6
                   ? "bg-[#E84D91] text-white shadow-xs"
                   : "text-[#8B7180] hover:bg-[#FFF0F4]"
-              }`}
+                }`}
               title="Gaya photobooth Korea: ambil 6 foto lalu pilih 4 terbaik"
             >
-              <span>🇰🇷 Ambil 6 (Pilih 4)</span>
+              <span>Ambil 6 (Pilih 4)</span>
+              <span className="px-1.5 py-0.2 bg-white/20 rounded text-[9px] uppercase">KR</span>
             </button>
           </div>
         )}
@@ -726,9 +567,8 @@ export default function CaptureStep({
             {/* Live Camera Stream View */}
             <div className="w-full h-full flex items-center justify-center relative">
               <div
-                className={`${
-                  remoteStream ? "w-1/2" : "w-full"
-                } h-full relative overflow-hidden bg-black flex items-center justify-center`}
+                className={`${remoteStream ? "w-1/2" : "w-full"
+                  } h-full relative overflow-hidden bg-black flex items-center justify-center`}
               >
                 <video
                   ref={videoRef}
@@ -782,9 +622,8 @@ export default function CaptureStep({
             {/* Real-time AR Face Filter Overlay Canvas */}
             <canvas
               ref={activeArCanvasRef}
-              className={`absolute inset-0 w-full h-full object-cover pointer-events-none z-20 ${
-                facingMode === "user" ? "-scale-x-100" : ""
-              }`}
+              className={`absolute inset-0 w-full h-full object-cover pointer-events-none z-20 ${facingMode === "user" ? "-scale-x-100" : ""
+                }`}
             />
 
             {/* Gesture Progress Overlay */}
@@ -829,15 +668,14 @@ export default function CaptureStep({
           return (
             <div key={idx} className="flex flex-col items-center gap-1">
               <div
-                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 flex items-center justify-center overflow-hidden transition-all duration-300 shadow-paper ${
-                  isRetakeTarget
+                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 flex items-center justify-center overflow-hidden transition-all duration-300 shadow-paper ${isRetakeTarget
                     ? "border-amber-500 bg-amber-100 ring-4 ring-amber-300 animate-pulse scale-105"
                     : shot
-                    ? "border-[#E84D91] bg-white scale-105"
-                    : isActive
-                    ? "border-[#F48FB1] bg-[#FFF0F4] ring-4 ring-[#F8D8E3] animate-pulse"
-                    : "border-[#E9B8CA] bg-[#FFF9F0] text-[#8B7180]"
-                }`}
+                      ? "border-[#E84D91] bg-white scale-105"
+                      : isActive
+                        ? "border-[#F48FB1] bg-[#FFF0F4] ring-4 ring-[#F8D8E3] animate-pulse"
+                        : "border-[#E9B8CA] bg-[#FFF9F0] text-[#8B7180]"
+                  }`}
               >
                 {shot ? (
                   <img src={shot.dataUrl} alt={`Thumb #${idx + 1}`} className="w-full h-full object-cover" />
@@ -846,13 +684,12 @@ export default function CaptureStep({
                 )}
               </div>
               <span
-                className={`text-[10px] font-heading font-semibold ${
-                  isRetakeTarget
+                className={`text-[10px] font-heading font-semibold ${isRetakeTarget
                     ? "text-amber-600 font-bold"
                     : shot
-                    ? "text-[#E84D91]"
-                    : "text-[#8B7180]"
-                }`}
+                      ? "text-[#E84D91]"
+                      : "text-[#8B7180]"
+                  }`}
               >
                 #{idx + 1} {isRetakeTarget ? "(Ulang)" : ""}
               </span>
@@ -889,27 +726,21 @@ export default function CaptureStep({
           className="w-full sm:w-auto px-5 py-3.5 scrapbook-btn-secondary text-xs rounded-2xl flex items-center justify-center gap-2 shrink-0 cursor-pointer"
         >
           <ImageIcon className="w-4 h-4 text-[#E84D91]" />
-          <span>Upload Galeri 🖼️</span>
+          <span>Upload Galeri</span>
         </button>
       </div>
 
       {/* Helpful Hint */}
       <p className="text-xs text-[#8B7180] font-sans font-medium text-center max-w-md">
-        💡 <strong className="text-[#E84D91]">Tips:</strong>{" "}
+        <strong className="text-[#E84D91]">Tips:</strong>{" "}
         {triggerMode === "gesture"
-          ? "Tunjukkan pose Peace (✌️) selama 1 detik di depan kamera untuk otomatis jepret!"
+          ? "Tunjukkan pose Peace selama 1 detik di depan kamera untuk otomatis jepret."
           : triggerMode === "timer_3"
-          ? "Timer 3 detik siap! Tekan tombol lalu berpose estetik."
-          : triggerMode === "timer_5"
-          ? "Timer 5 detik memberikan waktu ekstra buat atur posisi bareng bestie!"
-          : "Mode instan akan langsung mengambil foto tanpa countdown."}
+            ? "Timer 3 detik siap. Tekan tombol lalu berpose estetik."
+            : triggerMode === "timer_5"
+              ? "Timer 5 detik memberikan waktu ekstra buat atur posisi bareng bestie."
+              : "Mode instan akan langsung mengambil foto tanpa countdown."}
       </p>
-
-      {/* POSE IDEAS MODAL */}
-      <PoseIdeasModal
-        isOpen={showPoseIdeas}
-        onClose={() => setShowPoseIdeas(false)}
-      />
 
       {/* CAMERA PERMISSION GUIDE MODAL */}
       <CameraPermissionGuide

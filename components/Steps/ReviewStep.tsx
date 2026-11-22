@@ -61,7 +61,7 @@ export default function ReviewStep({
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FFF9F0] rounded-full border-2 border-[#E9B8CA] text-[#E84D91] text-xs font-heading font-bold shadow-xs">
           <Sparkles className="w-3.5 h-3.5 text-[#E84D91]" />
           <span>
-            {isKoreanMode ? "🇰🇷 Mode Photobooth Korea (Ambil 6, Pilih 4)" : "Review Pose Foto Kamu"}
+            {isKoreanMode ? "Mode Photobooth Korea (Ambil 6, Pilih 4)" : "Review Pose Foto Kamu"}
           </span>
         </div>
 
@@ -86,8 +86,8 @@ export default function ReviewStep({
                 : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
             }`}
           >
-            <Video className="w-4 h-4 text-[#E84D91]" />
-            <span>Live Photo 🎥 (Moving Video) : {isLivePhotoOn ? "AKTIF 🔥" : "MATI"}</span>
+            <Video className="w-4 h-4" />
+            <span>Live Photo (Moving Video): {isLivePhotoOn ? "AKTIF" : "MATI"}</span>
           </button>
         </div>
       </div>
@@ -194,7 +194,7 @@ export default function ReviewStep({
         >
           <span>
             {isKoreanMode
-              ? `Pakai 4 Pose Terpilih (${selectedIndices.length}/4) 🎀`
+              ? `Pakai 4 Pose Terpilih (${selectedIndices.length}/4)`
               : "Lanjut ke Studio Hias"}
           </span>
           <ArrowRight className="w-4 h-4" />

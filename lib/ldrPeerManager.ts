@@ -6,11 +6,9 @@
  *    - Strict 2-participant limit (Host + 1 Guest)
  *    - Instant Auto-Admission on valid room code + bi-directional status feedback
  *    - Bi-directional MediaStream video streaming (side-by-side composite)
- *    - Synchronized countdown & snapshot triggers across devices
- *    - Synchronized photo strip data across devices (SYNC_SHOT)
- *    - Carrier-grade NAT traversal with multi-provider STUN and Metered OpenRelay TURN servers
- *    - Resilient reconnection & session lifecycle
- * 2. Transfer Hasil Strip Laptop -> HP (Scan QR)
+ *    - Synchronized countdown & chunked snapshot transfer (SYNC_SHOT_CHUNK) safe for all WebRTC SCTP limits
+ *    - Carrier-grade NAT traversal with multi-provider STUN and TURN servers
+ *    - Automatic guest retry & resilient host persistence
  */
 
 export type LDRMessage =
@@ -20,6 +18,14 @@ export type LDRMessage =
   | { type: "START_COUNTDOWN"; seconds: number }
   | { type: "TRIGGER_SNAPSHOT"; shotIndex: number }
   | { type: "SYNC_SHOT"; shotIndex: number; dataUrl: string }
+  | {
+    type: "SYNC_SHOT_CHUNK";
+    transferId: string;
+    shotIndex: number;
+    chunkIndex: number;
+    totalChunks: number;
+    chunk: string;
+  }
   | { type: "SESSION_ENDED" }
   | { type: "TRANSFER_STRIP"; dataUrl: string; filename: string };
 
@@ -40,6 +46,8 @@ const PEER_CONFIG = {
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
       { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun3.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:19302" },
       { urls: "stun:stun.cloudflare.com:3478" },
       { urls: "stun:global.stun.twilio.com:3478" },
       {
@@ -62,6 +70,8 @@ const PEER_CONFIG = {
   },
 };
 
+const CHUNK_SIZE = 16000; // 16KB safe for all WebRTC SCTP implementations (Chrome, Safari iOS, Firefox)
+
 // Generate 6-char random alphanumeric room code excluding confusing chars (0, O, 1, I)
 export function generateLDRRoomCode(): string {
   const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -77,7 +87,6 @@ export function normalizeRoomCode(input: string): string {
   if (!input) return "";
   let clean = input.trim();
 
-  // If input is a URL (e.g. https://riellybooth.my.id/?ldr=RLY-8X2M9K or ?room=...)
   if (clean.includes("?ldr=") || clean.includes("&ldr=")) {
     const match = clean.match(/[?&]ldr=([^&#\s]+)/i);
     if (match && match[1]) clean = match[1];
@@ -86,12 +95,9 @@ export function normalizeRoomCode(input: string): string {
     if (match && match[1]) clean = match[1];
   }
 
-  // Strip protocol and domain if present
   clean = clean.replace(/^https?:\/\/[^\/]+\/?/i, "");
-  // Keep only uppercase alphanumeric and hyphens
   clean = clean.toUpperCase().replace(/[^A-Z0-9-]/g, "");
 
-  // Ensure standard RLY- prefix
   if (!clean.startsWith("RLY-")) {
     if (clean.startsWith("RLY")) {
       clean = "RLY-" + clean.substring(3);
@@ -111,7 +117,11 @@ export class LDRPeerManager {
   private remoteStream: MediaStream | null = null;
   private onStateChange: ((state: Partial<LDRSessionState>) => void) | null = null;
   private onMessageReceived: ((msg: LDRMessage) => void) | null = null;
-  private sessionTimeoutTimer: NodeJS.Timeout | null = null;
+  private sessionTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private chunkBuffers: Map<string, { shotIndex: number; total: number; parts: string[]; received: number }> =
+    new Map();
+  private isDestroyed: boolean = false;
   public roomCode: string = "";
   public isHost: boolean = false;
 
@@ -142,16 +152,49 @@ export class LDRPeerManager {
     }
   }
 
+  private handleIncomingData(data: LDRMessage) {
+    if (data.type === "SYNC_SHOT_CHUNK") {
+      let entry = this.chunkBuffers.get(data.transferId);
+      if (!entry) {
+        entry = {
+          shotIndex: data.shotIndex,
+          total: data.totalChunks,
+          parts: new Array(data.totalChunks),
+          received: 0,
+        };
+        this.chunkBuffers.set(data.transferId, entry);
+      }
+      if (!entry.parts[data.chunkIndex]) {
+        entry.parts[data.chunkIndex] = data.chunk;
+        entry.received++;
+      }
+      if (entry.received === entry.total) {
+        const fullDataUrl = entry.parts.join("");
+        this.chunkBuffers.delete(data.transferId);
+        this.onMessageReceived?.({
+          type: "SYNC_SHOT",
+          shotIndex: entry.shotIndex,
+          dataUrl: fullDataUrl,
+        });
+      }
+      return;
+    }
+
+    this.onMessageReceived?.(data);
+  }
+
   // Initialize Host Room (e.g. peer id: riellybooth-host-RLY-8X2M9K)
   public async initHostRoom(roomCode: string, localStream: MediaStream) {
+    this.cleanup();
+    this.isDestroyed = false;
     this.roomCode = normalizeRoomCode(roomCode);
     this.isHost = true;
     this.localStream = localStream;
-    this.cleanup();
 
     const { default: Peer } = await import("peerjs");
-    const hostPeerId = `riellybooth-host-${this.roomCode}`;
+    if (this.isDestroyed) return;
 
+    const hostPeerId = `riellybooth-host-${this.roomCode}`;
     this.peer = new Peer(hostPeerId, PEER_CONFIG);
 
     this.peer.on("open", () => {
@@ -165,30 +208,34 @@ export class LDRPeerManager {
     });
 
     this.peer.on("connection", (conn: any) => {
-      // If already connected to an active open guest connection, reject 3rd party
-      if (this.connection && this.connection.open) {
-        conn.on("open", () => {
-          conn.send({ type: "JOIN_REJECTED", reason: "Room sudah penuh (Maksimal 2 orang)." });
+      if (this.connection && this.connection.open && this.connection.peer !== conn.peer) {
+        const rejectExtra = () => {
+          try {
+            conn.send({ type: "JOIN_REJECTED", reason: "Room sudah penuh (Maksimal 2 orang)." });
+          } catch (e) { }
           setTimeout(() => {
             try {
               conn.close();
-            } catch (e) {}
+            } catch (e) { }
           }, 500);
-        });
+        };
+        if (conn.open) rejectExtra();
+        else conn.on("open", rejectExtra);
         return;
       }
 
       conn.on("data", (data: LDRMessage) => {
         if (data.type === "JOIN_REQUEST") {
-          // Automatic seamless admission for holders of the private room code
           this.acceptGuest(conn, data.guestPeerId, data.guestName);
         } else {
-          this.onMessageReceived?.(data);
+          this.handleIncomingData(data);
         }
       });
 
       conn.on("close", () => {
-        this.disconnectGuest("Ayang / bestie keluar dari sesi.");
+        if (this.connection === conn) {
+          this.disconnectGuest("Ayang / bestie keluar dari sesi.");
+        }
       });
 
       conn.on("error", (err: any) => {
@@ -196,8 +243,13 @@ export class LDRPeerManager {
       });
     });
 
-    // Also listen for incoming calls in case guest calls host
+    // Answer incoming media call from guest
     this.peer.on("call", (call: any) => {
+      if (this.call && this.call !== call) {
+        try {
+          this.call.close();
+        } catch (e) { }
+      }
       this.call = call;
       call.answer(this.localStream);
 
@@ -211,161 +263,212 @@ export class LDRPeerManager {
       });
 
       call.on("close", () => {
-        this.disconnectGuest("Panggilan video selesai.");
+        if (this.call === call) {
+          this.disconnectGuest("Panggilan video selesai.");
+        }
       });
     });
 
     this.peer.on("disconnected", () => {
-      // Reconnect to signaling server if disconnected
       try {
-        if (this.peer && !this.peer.destroyed) {
+        if (this.peer && !this.peer.destroyed && !this.isDestroyed) {
           this.peer.reconnect();
         }
-      } catch (e) {}
+      } catch (e) { }
     });
 
     this.peer.on("error", (err: any) => {
       console.warn("PeerJS Host Error:", err);
       if (err.type === "unavailable-id") {
         this.onStateChange?.({
-          statusMessage: "Kode room sedang aktif digunakan. Silakan gunakan kode baru.",
+          statusMessage: "Kode room sedang aktif digunakan. Silakan buat kode baru.",
         });
       }
     });
   }
 
-  // Host approves incoming guest
+  // Host approves incoming guest safely (ensuring conn.open before sending)
   private acceptGuest(conn: any, guestPeerId: string, guestName?: string) {
     this.connection = conn;
-    conn.send({ type: "JOIN_ACCEPTED", roomCode: this.roomCode });
 
-    this.onStateChange?.({
-      guestRequest: null,
-      isConnected: true,
-      statusMessage: `💖 ${guestName || "Partner LDR"} terhubung! Menghubungkan kamera...`,
-    });
+    const sendAcceptedAndCall = () => {
+      try {
+        conn.send({ type: "JOIN_ACCEPTED", roomCode: this.roomCode });
+      } catch (e) { }
 
-    // Initiate WebRTC video call to guest
-    if (this.localStream && this.peer) {
-      setTimeout(() => {
-        try {
-          const call = this.peer.call(guestPeerId, this.localStream);
-          this.call = call;
+      this.onStateChange?.({
+        guestRequest: null,
+        isConnected: true,
+        statusMessage: `💖 ${guestName || "Partner LDR"} terhubung! Menghubungkan kamera...`,
+      });
 
-          call.on("stream", (remoteMediaStream: MediaStream) => {
-            this.remoteStream = remoteMediaStream;
-            this.onStateChange?.({
-              remoteStream: remoteMediaStream,
-              isConnected: true,
-              statusMessage: "🟢 Kamera berdua aktif! Pose bareng sekarang! 💖",
+      // Initiate WebRTC video call to guest
+      if (this.localStream && this.peer && !this.peer.destroyed) {
+        setTimeout(() => {
+          if (this.remoteStream || this.isDestroyed || !this.peer || this.peer.destroyed) return;
+          try {
+            const call = this.peer.call(guestPeerId, this.localStream);
+            if (!call) return;
+            this.call = call;
+
+            call.on("stream", (remoteMediaStream: MediaStream) => {
+              this.remoteStream = remoteMediaStream;
+              this.onStateChange?.({
+                remoteStream: remoteMediaStream,
+                isConnected: true,
+                statusMessage: "🟢 Kamera berdua aktif! Pose bareng sekarang! 💖",
+              });
             });
-          });
 
-          call.on("close", () => {
-            this.disconnectGuest("Ayang / bestie mengakhiri panggilan.");
-          });
+            call.on("close", () => {
+              if (this.call === call) {
+                this.disconnectGuest("Ayang / bestie mengakhiri panggilan.");
+              }
+            });
 
-          call.on("error", (callErr: any) => {
-            console.warn("PeerJS Call Error:", callErr);
-          });
-        } catch (callInitErr) {
-          console.warn("Failed to initiate call to guest:", callInitErr);
-        }
-      }, 300);
+            call.on("error", (callErr: any) => {
+              console.warn("PeerJS Call Error:", callErr);
+            });
+          } catch (callInitErr) {
+            console.warn("Failed to initiate call to guest:", callInitErr);
+          }
+        }, 250);
+      }
+    };
+
+    if (conn.open) {
+      sendAcceptedAndCall();
+    } else {
+      conn.once("open", sendAcceptedAndCall);
     }
   }
 
-  // Guest joins Host Room
+  // Guest joins Host Room with automatic retry if Host isn't ready yet
   public async joinRoom(roomCode: string, localStream: MediaStream, guestName: string = "Ayang") {
+    this.cleanup();
+    this.isDestroyed = false;
     this.roomCode = normalizeRoomCode(roomCode);
     this.isHost = false;
     this.localStream = localStream;
-    this.cleanup();
 
     const { default: Peer } = await import("peerjs");
+    if (this.isDestroyed) return;
+
     const guestPeerId = `riellybooth-guest-${this.roomCode}-${Math.random().toString(36).substring(2, 7)}`;
     const hostPeerId = `riellybooth-host-${this.roomCode}`;
 
     this.peer = new Peer(guestPeerId, PEER_CONFIG);
 
-    this.peer.on("open", () => {
+    let attempts = 0;
+    const maxAttempts = 4;
+    let handshakeOpened = false;
+
+    const attemptConnect = () => {
+      if (this.isDestroyed || !this.peer || this.peer.destroyed || handshakeOpened) return;
+      attempts++;
+
       this.onStateChange?.({
         roomCode: this.roomCode,
         isHost: false,
         isConnected: false,
-        statusMessage: `Menghubungkan ke room ${this.roomCode}...`,
+        statusMessage:
+          attempts === 1
+            ? `Menghubungkan ke room ${this.roomCode}...`
+            : `Mencoba menghubungkan ke ${this.roomCode} (${attempts}/${maxAttempts})...`,
       });
 
-      const connectToHost = () => {
-        try {
-          const conn = this.peer.connect(hostPeerId, { reliable: true });
-          this.connection = conn;
+      try {
+        const conn = this.peer.connect(hostPeerId, { reliable: true });
+        this.connection = conn;
 
-          conn.on("open", () => {
-            this.onStateChange?.({
-              statusMessage: "Terhubung! Menunggu handshake kamera host...",
-            });
-            conn.send({
-              type: "JOIN_REQUEST",
-              guestName,
-              guestPeerId,
-            });
+        conn.on("open", () => {
+          handshakeOpened = true;
+          if (this.retryTimer) {
+            clearTimeout(this.retryTimer);
+            this.retryTimer = null;
+          }
+          this.onStateChange?.({
+            statusMessage: "Terhubung! Mengaktifkan kamera dua arah...",
           });
+          conn.send({
+            type: "JOIN_REQUEST",
+            guestName,
+            guestPeerId,
+          });
+        });
 
-          conn.on("data", (data: LDRMessage) => {
-            if (data.type === "JOIN_ACCEPTED") {
-              this.onStateChange?.({
-                isConnected: true,
-                statusMessage: "Disetujui! Mengaktifkan kamera dua arah...",
-              });
+        conn.on("data", (data: LDRMessage) => {
+          if (data.type === "JOIN_ACCEPTED") {
+            this.onStateChange?.({
+              isConnected: true,
+              statusMessage: "Disetujui! Menghubungkan kamera...",
+            });
 
-              // Also prepare to call host if host call doesn't arrive within 2 seconds
-              setTimeout(() => {
-                if (!this.remoteStream && this.peer && this.localStream) {
-                  try {
-                    const fallbackCall = this.peer.call(hostPeerId, this.localStream);
-                    this.call = fallbackCall;
-                    fallbackCall.on("stream", (remoteMediaStream: MediaStream) => {
-                      this.remoteStream = remoteMediaStream;
-                      this.onStateChange?.({
-                        remoteStream: remoteMediaStream,
-                        isConnected: true,
-                        statusMessage: "🟢 Kamera berdua aktif! Pose bareng! 💖",
-                      });
+            // Fallback: if Host's media call hasn't arrived in 1.5s, Guest initiates the call
+            setTimeout(() => {
+              if (!this.remoteStream && !this.isDestroyed && this.peer && !this.peer.destroyed && this.localStream) {
+                try {
+                  const fallbackCall = this.peer.call(hostPeerId, this.localStream);
+                  if (!fallbackCall) return;
+                  this.call = fallbackCall;
+                  fallbackCall.on("stream", (remoteMediaStream: MediaStream) => {
+                    this.remoteStream = remoteMediaStream;
+                    this.onStateChange?.({
+                      remoteStream: remoteMediaStream,
+                      isConnected: true,
+                      statusMessage: "🟢 Kamera berdua aktif! Pose bareng! 💖",
                     });
-                  } catch (e) {}
-                }
-              }, 2000);
-            } else if (data.type === "JOIN_REJECTED") {
-              this.onStateChange?.({
-                isConnected: false,
-                statusMessage: `Gagal gabung: ${data.reason}`,
-              });
-              this.cleanup();
-            } else {
-              this.onMessageReceived?.(data);
-            }
-          });
-
-          conn.on("close", () => {
-            this.handleDisconnect("Host menutup sesi photobooth.");
-          });
-
-          conn.on("error", (connErr: any) => {
-            console.warn("Guest connection error:", connErr);
+                  });
+                } catch (e) { }
+              }
+            }, 1500);
+          } else if (data.type === "JOIN_REJECTED") {
             this.onStateChange?.({
-              statusMessage: "Koneksi ke host terganggu. Menghubungkan ulang...",
+              isConnected: false,
+              statusMessage: `Gagal gabung: ${data.reason}`,
             });
-          });
-        } catch (connectErr) {
-          console.warn("Error calling peer.connect:", connectErr);
-        }
-      };
+            this.cleanup();
+          } else {
+            this.handleIncomingData(data);
+          }
+        });
 
-      connectToHost();
+        conn.on("close", () => {
+          if (handshakeOpened) {
+            this.handleDisconnect("Host menutup sesi photobooth.");
+          }
+        });
+
+        conn.on("error", (connErr: any) => {
+          console.warn("Guest connection error:", connErr);
+        });
+
+        // Schedule retry if connection didn't open within 3.5 seconds
+        if (this.retryTimer) clearTimeout(this.retryTimer);
+        this.retryTimer = setTimeout(() => {
+          if (!handshakeOpened && !this.isDestroyed) {
+            try {
+              conn.close();
+            } catch (e) { }
+            if (attempts < maxAttempts) {
+              attemptConnect();
+            } else {
+              this.onStateChange?.({
+                statusMessage: `Gagal terhubung ke ${this.roomCode}. Pastikan Host sudah membuka kamera & kode benar.`,
+              });
+            }
+          }
+        }, 3500);
+      } catch (connectErr) {
+        console.warn("Error calling peer.connect:", connectErr);
+      }
+    };
+
+    this.peer.on("open", () => {
+      attemptConnect();
     });
 
-    // Answer incoming call from host
+    // Answer incoming media call from host
     this.peer.on("call", (call: any) => {
       this.call = call;
       call.answer(this.localStream);
@@ -380,7 +483,9 @@ export class LDRPeerManager {
       });
 
       call.on("close", () => {
-        this.handleDisconnect("Host mengakhiri sesi panggilan.");
+        if (this.call === call) {
+          this.handleDisconnect("Host mengakhiri sesi panggilan.");
+        }
       });
 
       call.on("error", (callErr: any) => {
@@ -390,21 +495,17 @@ export class LDRPeerManager {
 
     this.peer.on("disconnected", () => {
       try {
-        if (this.peer && !this.peer.destroyed) {
+        if (this.peer && !this.peer.destroyed && !this.isDestroyed) {
           this.peer.reconnect();
         }
-      } catch (e) {}
+      } catch (e) { }
     });
 
     this.peer.on("error", (err: any) => {
       console.warn("PeerJS Guest Error:", err);
-      if (err.type === "peer-unavailable") {
+      if (err.type === "peer-unavailable" && attempts >= maxAttempts) {
         this.onStateChange?.({
-          statusMessage: `Room ${this.roomCode} tidak ditemukan atau Host belum membuka kamera. Pastikan kode benar.`,
-        });
-      } else {
-        this.onStateChange?.({
-          statusMessage: "Gagal menghubungkan ke room. Periksa jaringan internet kamu.",
+          statusMessage: `Room ${this.roomCode} tidak ditemukan atau Host belum membuka kamera.`,
         });
       }
     });
@@ -426,9 +527,27 @@ export class LDRPeerManager {
     this.sendMessage({ type: "START_COUNTDOWN", seconds });
   }
 
-  // Broadcast captured shot so both devices stay 100% in sync
+  // Broadcast captured shot in safe 16KB chunks so WebRTC SCTP DataChannel never drops
   public syncShot(shotIndex: number, dataUrl: string) {
-    this.sendMessage({ type: "SYNC_SHOT", shotIndex, dataUrl });
+    if (!this.connection || !this.connection.open) return;
+    if (dataUrl.length <= CHUNK_SIZE) {
+      this.sendMessage({ type: "SYNC_SHOT", shotIndex, dataUrl });
+      return;
+    }
+
+    const transferId = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const totalChunks = Math.ceil(dataUrl.length / CHUNK_SIZE);
+    for (let i = 0; i < totalChunks; i++) {
+      const chunk = dataUrl.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+      this.sendMessage({
+        type: "SYNC_SHOT_CHUNK",
+        transferId,
+        shotIndex,
+        chunkIndex: i,
+        totalChunks,
+        chunk,
+      });
+    }
   }
 
   // When guest disconnects, Host resets connection state but KEEPS the room alive
@@ -437,20 +556,20 @@ export class LDRPeerManager {
       if (this.call) {
         try {
           this.call.close();
-        } catch (e) {}
+        } catch (e) { }
         this.call = null;
       }
       if (this.connection) {
         try {
           this.connection.close();
-        } catch (e) {}
+        } catch (e) { }
         this.connection = null;
       }
       this.remoteStream = null;
       this.onStateChange?.({
         isConnected: false,
         remoteStream: null,
-        statusMessage: `${msg} Menunggu teman bergabung kembali...`,
+        statusMessage: `${msg} Menunggu teman bergabung kembali ke ${this.roomCode}...`,
       });
     } else {
       this.handleDisconnect(msg);
@@ -468,7 +587,6 @@ export class LDRPeerManager {
 
   private startSessionTimeout() {
     if (this.sessionTimeoutTimer) clearTimeout(this.sessionTimeoutTimer);
-    // 30 minutes = 1800000 ms
     this.sessionTimeoutTimer = setTimeout(() => {
       this.sendMessage({ type: "SESSION_ENDED" });
       this.handleDisconnect("Sesi 30 menit telah berakhir secara otomatis.");
@@ -476,6 +594,12 @@ export class LDRPeerManager {
   }
 
   public cleanup() {
+    this.isDestroyed = true;
+    this.chunkBuffers.clear();
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
     if (this.sessionTimeoutTimer) {
       clearTimeout(this.sessionTimeoutTimer);
       this.sessionTimeoutTimer = null;
@@ -483,19 +607,19 @@ export class LDRPeerManager {
     if (this.call) {
       try {
         this.call.close();
-      } catch (e) {}
+      } catch (e) { }
       this.call = null;
     }
     if (this.connection) {
       try {
         this.connection.close();
-      } catch (e) {}
+      } catch (e) { }
       this.connection = null;
     }
     if (this.peer) {
       try {
         this.peer.destroy();
-      } catch (e) {}
+      } catch (e) { }
       this.peer = null;
     }
     this.remoteStream = null;

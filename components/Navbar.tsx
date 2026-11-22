@@ -31,26 +31,26 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="border-b-2 border-[#E9B8CA] px-4 sm:px-8 py-3 bg-[#FFF9F0]/95 backdrop-blur-md sticky top-0 z-50 transition-all duration-300 shadow-paper">
+    <header className="border-b-2 border-[#E9B8CA] px-4 sm:px-8 py-2.5 bg-[#FFF9F0] sticky top-0 z-50 transition-all duration-300 shadow-paper">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         {/* Brand Logo & Tagline */}
         <div
           onClick={onGoHome}
           className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer select-none"
         >
-          <div className="p-1.5 rounded-2xl bg-[#FFF0F4] border-2 border-[#E9B8CA] group-hover:rotate-[-3deg] transition-transform duration-200 flex items-center justify-center shadow-xs">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 p-1 rounded-2xl bg-[#FFF0F4] border-2 border-[#E9B8CA] group-hover:rotate-[-3deg] transition-transform duration-200 flex items-center justify-center shadow-xs shrink-0">
             {!logoFailed ? (
               <Image
                 src="/logo.png"
                 alt="RiellyBooth logo"
-                width={150}
-                height={42}
+                width={64}
+                height={64}
                 priority
                 onError={() => setLogoFailed(true)}
-                className="h-7 sm:h-8 w-auto object-contain"
+                className="w-full h-full object-contain"
               />
             ) : (
-              <Camera className="w-5 h-5 text-[#E84D91]" />
+              <Camera className="w-6 h-6 text-[#E84D91]" />
             )}
           </div>
           <div className="flex flex-col">
@@ -58,7 +58,6 @@ export default function Navbar({
               <span className="text-xl sm:text-2xl font-heading font-bold tracking-tight text-[#E84D91]">
                 RiellyBooth
               </span>
-              <span className="text-xs text-[#F48FB1] animate-pulse">♡</span>
             </div>
             <span className="hidden sm:inline text-[11px] font-handwriting text-[#8B7180] tracking-wide -mt-1">
               Little Moments, Big Memories.
@@ -120,7 +119,7 @@ export default function Navbar({
               className="px-3 py-1.5 rounded-full bg-[#FFF0F4] border border-[#E9B8CA] hover:bg-[#F8D8E3] text-[#E84D91] transition flex items-center gap-1.5 cursor-pointer"
               title="Support developer"
             >
-              <Heart className="w-3.5 h-3.5 fill-[#E84D91] text-[#E84D91] animate-bounce" />
+              <Heart className="w-3.5 h-3.5 fill-[#E84D91] text-[#E84D91]" />
               <span>Support</span>
             </button>
           )}
@@ -131,8 +130,8 @@ export default function Navbar({
               type="button"
               onClick={onToggleAudio}
               className={`p-2 rounded-full border transition flex items-center justify-center cursor-pointer ${isAudioOn
-                  ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
-                  : "bg-stone-100 border-stone-200 text-stone-400"
+                ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
+                : "bg-stone-100 border-stone-200 text-stone-400"
                 }`}
               title={isAudioOn ? "Matikan Efek Suara Kamera" : "Nyalakan Efek Suara Kamera"}
               aria-label={isAudioOn ? "Matikan Efek Suara Kamera" : "Nyalakan Efek Suara Kamera"}
@@ -161,8 +160,8 @@ export default function Navbar({
               type="button"
               onClick={onToggleAudio}
               className={`p-2 rounded-full border text-xs cursor-pointer ${isAudioOn
-                  ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
-                  : "bg-stone-100 border-stone-200 text-stone-400"
+                ? "bg-[#FFF0F4] border-[#E9B8CA] text-[#E84D91]"
+                : "bg-stone-100 border-stone-200 text-stone-400"
                 }`}
               aria-label={isAudioOn ? "Matikan Efek Suara Kamera" : "Nyalakan Efek Suara Kamera"}
             >
