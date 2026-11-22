@@ -74,8 +74,8 @@ export default function RiellyBooth() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCaption, setCopiedCaption] = useState(false);
 
-  // Live Photo (off by default to prevent mobile camera lag & missing frames), Custom Logo & Editor State
-  const [isLivePhotoOn, setIsLivePhotoOn] = useState(false);
+  // Live Photo (ON by default with lightweight 640x360 recording & hybrid fallback so all 4 shots always show)
+  const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
   const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(null);
   const [customLogoImg, setCustomLogoImg] = useState<HTMLImageElement | null>(null);
@@ -469,12 +469,18 @@ export default function RiellyBooth() {
           }
         });
     } else {
-      if (mediaStreamRef.current) {
-        stopCameraStream(mediaStreamRef.current);
-        mediaStreamRef.current = null;
-      }
+      // Delay camera track shutdown slightly when moving from capture -> review so Shot #4 finishes its Live Photo clip
+      const streamToStop = mediaStreamRef.current;
+      mediaStreamRef.current = null;
       if (videoRef.current) {
         videoRef.current.srcObject = null;
+      }
+      if (streamToStop) {
+        if (step === "review" && isLivePhotoOn) {
+          setTimeout(() => stopCameraStream(streamToStop), 1700);
+        } else {
+          stopCameraStream(streamToStop);
+        }
       }
     }
 

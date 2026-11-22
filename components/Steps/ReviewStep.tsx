@@ -22,7 +22,7 @@ export default function ReviewStep({
   onRetakeAll,
   onNextToEditor,
 }: ReviewStepProps) {
-  const [isLivePhotoOn, setIsLivePhotoOn] = useState(false);
+  const [isLivePhotoOn, setIsLivePhotoOn] = useState(true);
   // Default selected indices for Korean 6-shot mode (first 4 shots selected by default)
   const [selectedIndices, setSelectedIndices] = useState<number[]>([0, 1, 2, 3]);
 
