@@ -659,62 +659,62 @@ export default function RiellyBooth() {
       const streamToRecord = mediaStreamRef.current;
       const maxShots = sessionMode === "korean_6" ? 6 : 4;
 
-      // Only allocate composite canvas recording loop when Live Photo is explicitly enabled
+      // Record Live Photo directly from MediaStream (immune to CaptureStep unmounting on Shot #4 & 100% native aspect ratio!)
+      // Use composite canvas only when LDR split-screen is active
       let livePhotoSource: MediaStream | HTMLCanvasElement | null = null;
-      if (isLivePhotoOn && videoRef.current) {
-        const vw = videoRef.current.videoWidth || 640;
-        const vh = videoRef.current.videoHeight || 480;
-        const scale = Math.min(1, 640 / Math.max(vw, vh));
-        const compCanvas = document.createElement("canvas");
-        // Preserve exact native camera aspect ratio (even dimensions required for MP4/H.264 encoder)
-        compCanvas.width = Math.max(2, Math.round((vw * scale) / 2) * 2);
-        compCanvas.height = Math.max(2, Math.round((vh * scale) / 2) * 2);
-        const compCtx = compCanvas.getContext("2d");
-        if (compCtx) {
-          let recActive = true;
-          let lastDraw = 0;
-          const drawCoverToHalf = (
-            vid: HTMLVideoElement,
-            dx: number,
-            dy: number,
-            dw: number,
-            dh: number
-          ) => {
-            const svw = vid.videoWidth || dw;
-            const svh = vid.videoHeight || dh;
-            const srcRatio = svw / svh;
-            const dstRatio = dw / dh;
-            let sx = 0, sy = 0, sw = svw, sh = svh;
-            if (srcRatio > dstRatio) {
-              sw = svh * dstRatio;
-              sx = (svw - sw) / 2;
-            } else {
-              sh = svw / dstRatio;
-              sy = (svh - sh) / 2;
-            }
-            compCtx.drawImage(vid, sx, sy, sw, sh, dx, dy, dw, dh);
-          };
+      if (isLivePhotoOn) {
+        if (activeRemoteEl && videoRef.current) {
+          const vw = videoRef.current.videoWidth || 640;
+          const vh = videoRef.current.videoHeight || 480;
+          const scale = Math.min(1, 640 / Math.max(vw, vh));
+          const compCanvas = document.createElement("canvas");
+          compCanvas.width = Math.max(2, Math.round((vw * scale) / 2) * 2);
+          compCanvas.height = Math.max(2, Math.round((vh * scale) / 2) * 2);
+          const compCtx = compCanvas.getContext("2d");
+          if (compCtx) {
+            let recActive = true;
+            let lastDraw = 0;
+            const drawCoverToHalf = (
+              vid: HTMLVideoElement,
+              dx: number,
+              dy: number,
+              dw: number,
+              dh: number
+            ) => {
+              const svw = vid.videoWidth || dw;
+              const svh = vid.videoHeight || dh;
+              const srcRatio = svw / svh;
+              const dstRatio = dw / dh;
+              let sx = 0, sy = 0, sw = svw, sh = svh;
+              if (srcRatio > dstRatio) {
+                sw = svh * dstRatio;
+                sx = (svw - sw) / 2;
+              } else {
+                sh = svw / dstRatio;
+                sy = (svh - sh) / 2;
+              }
+              compCtx.drawImage(vid, sx, sy, sw, sh, dx, dy, dw, dh);
+            };
 
-          const drawFrame = () => {
-            if (!recActive || !videoRef.current) return;
-            const now = performance.now();
-            if (now - lastDraw >= 50) {
-              lastDraw = now;
-              if (activeRemoteEl) {
+            const drawFrame = () => {
+              if (!recActive || !videoRef.current) return;
+              const now = performance.now();
+              if (now - lastDraw >= 50) {
+                lastDraw = now;
                 const halfW = compCanvas.width / 2;
                 drawCoverToHalf(videoRef.current, 0, 0, halfW, compCanvas.height);
                 drawCoverToHalf(activeRemoteEl, halfW, 0, halfW, compCanvas.height);
-              } else {
-                compCtx.drawImage(videoRef.current, 0, 0, compCanvas.width, compCanvas.height);
               }
-            }
-            requestAnimationFrame(drawFrame);
-          };
-          drawFrame();
-          setTimeout(() => {
-            recActive = false;
-          }, 1800);
-          livePhotoSource = compCanvas;
+              requestAnimationFrame(drawFrame);
+            };
+            drawFrame();
+            setTimeout(() => {
+              recActive = false;
+            }, 1800);
+            livePhotoSource = compCanvas;
+          } else {
+            livePhotoSource = streamToRecord;
+          }
         } else {
           livePhotoSource = streamToRecord;
         }
@@ -910,16 +910,28 @@ export default function RiellyBooth() {
     [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped, customLogoImg, customFrameOverlayImg]
   );
 
-  // Trigger re-render when Google Web Fonts finish loading
+  const renderCanvasRef = useRef(renderCanvas);
+  renderCanvasRef.current = renderCanvas;
+
+  // Trigger re-render once when Google Web Fonts finish loading
   useEffect(() => {
     if (typeof document !== "undefined" && document.fonts) {
       document.fonts.ready.then(() => {
-        renderCanvas();
+        if (step === "editor" && !isLivePhotoOn) {
+          renderCanvasRef.current();
+        }
       });
     }
-  }, [renderCanvas]);
+  }, [step, isLivePhotoOn]);
 
-  // Video Animation Loop for Live Photo Canvas Rendering (with static image fallback so ALL 4 shots always show)
+  // Static redraw when frame/filter/text/stickers change while Live Photo is OFF
+  useEffect(() => {
+    if (step === "editor" && (!isLivePhotoOn || !shots.some((s) => s.videoBlobUrl))) {
+      renderCanvas();
+    }
+  }, [step, isLivePhotoOn, shots, renderCanvas]);
+
+  // Persistent Video Animation Loop for Live Photo (NEVER destroys <video> elements when switching frames or filters!)
   useEffect(() => {
     let animId: number;
     let cancelled = false;
@@ -962,15 +974,13 @@ export default function RiellyBooth() {
             }).filter(Boolean) as (HTMLImageElement | HTMLVideoElement)[];
 
             if (hybridMedia.length > 0) {
-              renderCanvas(hybridMedia);
+              renderCanvasRef.current(hybridMedia);
             }
           }
           animId = requestAnimationFrame(loop);
         };
         loop();
       });
-    } else if (step === "editor") {
-      renderCanvas();
     }
 
     return () => {
@@ -984,7 +994,7 @@ export default function RiellyBooth() {
         }
       });
     };
-  }, [step, isLivePhotoOn, shots, layout, renderCanvas]);
+  }, [step, isLivePhotoOn, shots, layout]);
 
   // Helper for Mobile Device Detection
   const isMobileDevice = useCallback(() => {
