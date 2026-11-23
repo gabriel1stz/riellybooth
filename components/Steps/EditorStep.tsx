@@ -447,8 +447,8 @@ export default function EditorStep({
                 : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
               }`}
           >
-            <Video className="w-4 h-4 text-[#E84D91]" />
-            <span>Live Photo 🎥 {isLivePhotoOn ? "ON" : "OFF"}</span>
+            <Video className="w-4 h-4" />
+            <span>Live Photo {isLivePhotoOn ? "ON" : "OFF"}</span>
           </button>
         </div>
       </div>
@@ -457,13 +457,51 @@ export default function EditorStep({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
         {/* Left Interactive Canvas Preview Container */}
         <div className="lg:col-span-6 flex flex-col items-center gap-2 sticky top-16 z-30 bg-[#FFF0F4] p-2 rounded-2xl shadow-paper lg:static lg:bg-transparent lg:p-0 lg:shadow-none w-full">
-          <div className="w-full flex items-center justify-between px-2 py-1">
+          <div className="w-full flex items-center justify-between px-2 py-1 gap-2">
             <span className="text-[11px] font-heading font-bold text-[#E84D91] uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-[#E84D91]" /> KANVAS PRATINJAU STUDIO
+              <Sparkles className="w-3.5 h-3.5 text-[#E84D91]" /> KANVAS PRATINJAU
             </span>
-            <span className="text-[10px] font-mono font-semibold text-[#8B7180]">
-              Live: {isLivePhotoOn ? "ON 🎥" : "OFF"}
-            </span>
+            <div className="flex items-center gap-1.5">
+              {(() => {
+                const isTwoSlot =
+                  layout === "strip_2" ||
+                  preset === "daily_rielly" ||
+                  preset === "student_kalcer" ||
+                  preset === "rielly_archive" ||
+                  preset === "after_hours" ||
+                  preset === "sunday_edition" ||
+                  preset === "contact_sheet" ||
+                  preset === "valorant_id" ||
+                  preset === "cupids_letter";
+                const isThreeSlot =
+                  layout === "strip_3cut" ||
+                  layout === "strip_3" ||
+                  preset === "hut_ri_81_3strip" ||
+                  preset === "supermarket_crate";
+                const isOneSlot = preset === "student_id";
+                const slotLabel = isOneSlot
+                  ? "1-Photo Slot"
+                  : isTwoSlot
+                    ? "2-Photo Slot"
+                    : isThreeSlot
+                      ? "3-Photo Slot"
+                      : "4-Photo Slot";
+                return (
+                  <span className="px-2 py-0.5 rounded-full bg-[#FFF9F0] border border-[#E9B8CA] text-[10px] font-mono font-bold text-[#392633]">
+                    {slotLabel}
+                  </span>
+                );
+              })()}
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                  isLivePhotoOn
+                    ? "bg-[#E84D91] text-white border-[#E84D91]"
+                    : "bg-white text-[#8B7180] border-[#E9B8CA]"
+                }`}
+              >
+                LIVE {isLivePhotoOn ? "ON" : "OFF"}
+              </span>
+            </div>
           </div>
 
           <div
@@ -523,7 +561,7 @@ export default function EditorStep({
           </div>
 
           <p className="hidden lg:block text-[11px] font-sans font-medium text-[#8B7180] text-center">
-            💡 <span className="text-[#E84D91] font-bold">Geser / Drag</span> stiker langsung di atas kanvas pratinjau!
+            <span className="text-[#E84D91] font-bold">Tips:</span> Geser / drag stiker langsung di atas kanvas pratinjau.
           </p>
         </div>
 
@@ -580,16 +618,16 @@ export default function EditorStep({
                 <label className="text-xs font-heading font-bold text-[#392633]">Pilih Layout Potongan Foto (10 Options):</label>
                 <div className="max-h-48 overflow-y-auto p-2 border border-[#E9B8CA] rounded-2xl bg-white grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin">
                   {[
-                    { id: "strip_2x4", label: "Double Strip 2x4 👯" },
-                    { id: "newspaper_grid", label: "Newspaper Grid 📰" },
-                    { id: "strip_1x4", label: "Strip 1x4 🎞️" },
-                    { id: "strip_3cut", label: "Strip 3-Cut ✂️" },
-                    { id: "grid_2x2", label: "Grid 2x2 🏁" },
-                    { id: "purikura_4cut", label: "Purikura 4-Cut 💖" },
-                    { id: "y2k_checker", label: "Y2K Checker Strip ✨" },
-                    { id: "scrapbook", label: "Scrapbook Washi 🎨" },
-                    { id: "spotlight", label: "Spotlight Grid 🌟" },
-                    { id: "editorial_vogue", label: "Vogue Magazine 💄" },
+                    { id: "strip_2x4", label: "Double Strip 2x4" },
+                    { id: "newspaper_grid", label: "Newspaper Grid" },
+                    { id: "strip_1x4", label: "Strip 1x4" },
+                    { id: "strip_3cut", label: "Strip 3-Cut" },
+                    { id: "grid_2x2", label: "Grid 2x2" },
+                    { id: "purikura_4cut", label: "Purikura 4-Cut" },
+                    { id: "y2k_checker", label: "Y2K Checker Strip" },
+                    { id: "scrapbook", label: "Scrapbook Washi" },
+                    { id: "spotlight", label: "Spotlight Grid" },
+                    { id: "editorial_vogue", label: "Vogue Magazine" },
                   ].map((item) => (
                     <button
                       key={item.id}
@@ -643,19 +681,19 @@ export default function EditorStep({
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-heading font-bold text-[#392633]">Pilihan Bingkai & Koleksi:</label>
-                  <span className="text-[10px] font-heading font-bold text-[#E84D91] bg-[#FFF0F4] px-2.5 py-0.5 rounded-full border border-[#E9B8CA]">
-                    Gen Z Scrapbook 🎀
+                  <span className="text-[10px] font-heading font-bold text-[#E84D91] bg-[#FFF0F4] px-2.5 py-0.5 rounded-full border border-[#E9B8CA] uppercase tracking-wider">
+                    Scrapbook Edition
                   </span>
                 </div>
 
                 {/* Preset Category Pills Filter */}
                 <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                   {[
-                    { id: "all", label: "✨ Semua" },
-                    { id: "editorial", label: "🗞️ Editorial Archive" },
-                    { id: "coquette", label: "🎀 Coquette" },
-                    { id: "retro", label: "👾 Y2K & Retro" },
-                    { id: "pop", label: "🎫 Event & Pop" },
+                    { id: "all", label: "Semua" },
+                    { id: "editorial", label: "Editorial Archive" },
+                    { id: "coquette", label: "Coquette" },
+                    { id: "retro", label: "Y2K & Retro" },
+                    { id: "pop", label: "Event & Pop" },
                   ].map((cat) => (
                     <button
                       key={cat.id}
@@ -674,54 +712,54 @@ export default function EditorStep({
                 <div className="max-h-56 overflow-y-auto p-2 border border-[#E9B8CA] rounded-2xl bg-white grid grid-cols-2 sm:grid-cols-3 gap-2 scrollbar-thin">
                   {[
                     // Editorial Archive Collection
-                    { id: "daily_rielly", label: "🗞️ The Daily Rielly", category: "editorial" },
-                    { id: "riellmatics_news", label: "📰 Riellmatics News", category: "editorial" },
+                    { id: "newspaper", label: "The Rielly Times (4-Photo)", category: "editorial" },
+                    { id: "daily_rielly", label: "The Daily Rielly (2-Photo)", category: "editorial" },
+                    { id: "riellmatics_news", label: "Riellmatics News", category: "editorial" },
 
                     // Coquette Collection
-                    { id: "coquette", label: "Coquette Ribbon 🎀", category: "coquette" },
-                    { id: "coquette_black", label: "Coquette Black 🖤", category: "coquette" },
-                    { id: "skena_coquette", label: "🎀 Skena Coquette", category: "coquette" },
-                    { id: "cupids_letter", label: "💌 Cupid's Letter", category: "coquette" },
-                    { id: "heart_washi_tape", label: "Heart Washi Tape 💌", category: "coquette" },
-                    { id: "cute_cat_paw", label: "Cute Cat Paw 🐾", category: "coquette" },
-                    { id: "pastel_floral", label: "Pastel Floral 🌸", category: "coquette" },
-                    { id: "kawaii_boba", label: "Kawaii Boba 🧋", category: "coquette" },
-                    { id: "polkadot", label: "Polkadot Cute 💖", category: "coquette" },
+                    { id: "coquette", label: "Coquette Ribbon", category: "coquette" },
+                    { id: "coquette_black", label: "Coquette Black", category: "coquette" },
+                    { id: "skena_coquette", label: "Skena Coquette", category: "coquette" },
+                    { id: "cupids_letter", label: "Cupid's Letter", category: "coquette" },
+                    { id: "heart_washi_tape", label: "Heart Washi Tape", category: "coquette" },
+                    { id: "cute_cat_paw", label: "Cute Cat Paw", category: "coquette" },
+                    { id: "pastel_floral", label: "Pastel Floral", category: "coquette" },
+                    { id: "kawaii_boba", label: "Kawaii Boba", category: "coquette" },
+                    { id: "polkadot", label: "Polkadot Cute", category: "coquette" },
 
                     // Y2K & Retro Collection
-                    { id: "y2k", label: "Y2K Cyber ✨", category: "retro" },
-                    { id: "y2k_bubbles", label: "Y2K Bubbles 🫧", category: "retro" },
-                    { id: "cyber_y2k_pink", label: "Cyber Pink Y2K 💖", category: "retro" },
-                    { id: "retro_manga", label: "Komik Strip 💥", category: "retro" },
-                    { id: "retro_cassette", label: "Retro Cassette 📼", category: "retro" },
-                    { id: "film", label: "35mm Film 🎞️", category: "retro" },
-                    { id: "polaroid_vintage", label: "Polaroid Vintage 📸", category: "retro" },
-                    { id: "goth_grunge", label: "Goth Grunge 🖤", category: "retro" },
-                    { id: "vintage_newspaper_dark", label: "Dark Newspaper 🗞️", category: "retro" },
-                    { id: "newspaper", label: "Newspaper 📰", category: "retro" },
+                    { id: "y2k", label: "Y2K Cyber", category: "retro" },
+                    { id: "y2k_bubbles", label: "Y2K Bubbles", category: "retro" },
+                    { id: "cyber_y2k_pink", label: "Cyber Pink Y2K", category: "retro" },
+                    { id: "retro_manga", label: "Komik Strip", category: "retro" },
+                    { id: "retro_cassette", label: "Retro Cassette", category: "retro" },
+                    { id: "film", label: "35mm Film", category: "retro" },
+                    { id: "polaroid_vintage", label: "Polaroid Vintage", category: "retro" },
+                    { id: "goth_grunge", label: "Goth Grunge", category: "retro" },
+                    { id: "vintage_newspaper_dark", label: "Dark Newspaper", category: "retro" },
 
                     // Event & Pop Culture Collection
-                    { id: "halloween_spooky", label: "🎃 Halloween Spooky 🕸️", category: "pop" },
-                    { id: "hut_ri_81_3strip", label: "🇮🇩 HUT RI 81 (3-Strip)", category: "pop" },
-                    { id: "hut_ri_81_4strip", label: "🇮🇩 HUT RI 81 (4-Strip)", category: "pop" },
-                    { id: "student_id", label: "🪪 Student ID Card", category: "pop" },
-                    { id: "school_4cut", label: "🏫 Manner High (4-Cut)", category: "pop" },
-                    { id: "supermarket_crate", label: "🥦 Fruit Market Crate", category: "pop" },
-                    { id: "valorant_id", label: "🎯 Tactical Agent ID", category: "pop" },
-                    { id: "pestapora_pass", label: "🎫 Musikfest VIP Pass", category: "pop" },
-                    { id: "struk_jaksel", label: "🧾 Struk Cafe Jaksel", category: "pop" },
-                    { id: "photocard_bias", label: "📸 Photocard Idol Bias", category: "pop" },
-                    { id: "passport", label: "✈️ Passport Memories", category: "pop" },
-                    { id: "toy_story", label: "🤠 Space Cowboy", category: "pop" },
-                    { id: "spongebob", label: "🧽 Yellow Sponge", category: "pop" },
-                    { id: "among_us", label: "📮 Space Impostor", category: "pop" },
-                    { id: "happy_birthday", label: "🎂 Happy Birthday", category: "pop" },
-                    { id: "galau_club", label: "💅 Gen Z Galau Club", category: "pop" },
-                    { id: "receipt", label: "Struk Belanja 🧾", category: "pop" },
-                    { id: "photocard", label: "K-Pop Photocard 💖", category: "pop" },
-                    { id: "concert_ticket", label: "Tiket Konser 🎟️", category: "pop" },
-                    { id: "galau_quote", label: "Quote Galau ☕", category: "pop" },
-                    { id: "clean", label: "Classic Clean 🤍", category: "pop" },
+                    { id: "halloween_spooky", label: "Halloween Spooky", category: "pop" },
+                    { id: "hut_ri_81_3strip", label: "HUT RI 81 (3-Strip)", category: "pop" },
+                    { id: "hut_ri_81_4strip", label: "HUT RI 81 (4-Strip)", category: "pop" },
+                    { id: "student_id", label: "Student ID Card", category: "pop" },
+                    { id: "school_4cut", label: "Manner High (4-Cut)", category: "pop" },
+                    { id: "supermarket_crate", label: "Fruit Market Crate", category: "pop" },
+                    { id: "valorant_id", label: "Tactical Agent ID", category: "pop" },
+                    { id: "pestapora_pass", label: "Musikfest VIP Pass", category: "pop" },
+                    { id: "struk_jaksel", label: "Struk Cafe Jaksel", category: "pop" },
+                    { id: "photocard_bias", label: "Photocard Idol Bias", category: "pop" },
+                    { id: "passport", label: "Passport Memories", category: "pop" },
+                    { id: "toy_story", label: "Space Cowboy", category: "pop" },
+                    { id: "spongebob", label: "Yellow Sponge", category: "pop" },
+                    { id: "among_us", label: "Space Impostor", category: "pop" },
+                    { id: "happy_birthday", label: "Happy Birthday", category: "pop" },
+                    { id: "galau_club", label: "Gen Z Galau Club", category: "pop" },
+                    { id: "receipt", label: "Struk Belanja", category: "pop" },
+                    { id: "photocard", label: "K-Pop Photocard", category: "pop" },
+                    { id: "concert_ticket", label: "Tiket Konser", category: "pop" },
+                    { id: "galau_quote", label: "Quote Galau", category: "pop" },
+                    { id: "clean", label: "Classic Clean", category: "pop" },
                   ]
                     .filter((item) => presetCategory === "all" || item.category === presetCategory)
                     .map((item) => (
@@ -778,15 +816,15 @@ export default function EditorStep({
                 <label className="text-xs font-heading font-bold text-[#392633]">Webcam Toy & Cute Filters:</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { id: "none", label: "Original ✨" },
-                    { id: "soft_pink", label: "Soft Pink 🌸" },
-                    { id: "warm_cafe", label: "Warm Cafe ☕" },
-                    { id: "cyber_glow", label: "Cyber Glow ⚡" },
-                    { id: "vintage_90s", label: "90s Vintage 🎞️" },
-                    { id: "pixel", label: "Pixel Art 👾" },
-                    { id: "thermal", label: "Thermal Heat 🌈" },
-                    { id: "pop_art", label: "Vivid Pop Art 🎨" },
-                    { id: "vhs", label: "VHS Retro CRT 📺" },
+                    { id: "none", label: "Original" },
+                    { id: "soft_pink", label: "Soft Pink" },
+                    { id: "warm_cafe", label: "Warm Cafe" },
+                    { id: "cyber_glow", label: "Cyber Glow" },
+                    { id: "vintage_90s", label: "90s Vintage" },
+                    { id: "pixel", label: "Pixel Art" },
+                    { id: "thermal", label: "Thermal Heat" },
+                    { id: "pop_art", label: "Vivid Pop Art" },
+                    { id: "vhs", label: "VHS Retro CRT" },
                   ].map((item) => (
                     <button
                       key={item.id}
@@ -805,21 +843,21 @@ export default function EditorStep({
 
               <div className="space-y-3 pt-2">
                 <Slider
-                  label="Intensitas Filter 🎨 (Blend)"
+                  label="Intensitas Filter (Blend)"
                   min={0}
                   max={100}
                   value={filter.filterIntensity ?? 100}
                   onChange={(val) => setFilter((prev) => ({ ...prev, filterIntensity: val }))}
                 />
                 <Slider
-                  label="Film Grain 🎞️ (Analog Noise)"
+                  label="Film Grain (Analog Noise)"
                   min={0}
                   max={100}
                   value={filter.grain || 0}
                   onChange={(val) => setFilter((prev) => ({ ...prev, grain: val }))}
                 />
                 <Slider
-                  label="Soft Beauty Glow ✨ (Bloom Effect)"
+                  label="Soft Beauty Glow (Bloom)"
                   min={0}
                   max={100}
                   value={filter.beautyGlow || 0}

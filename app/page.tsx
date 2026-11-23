@@ -206,6 +206,10 @@ export default function RiellyBooth() {
     }
     shots.forEach((s) => revokeBlobUrl(s.videoBlobUrl));
     setShots([]);
+    shotsRef.current = [];
+    try {
+      sessionStorage.removeItem("riellybooth_shots_backup");
+    } catch (e) {}
     setCurrentShotIndex(1);
     setRetakeIndex(null);
     setStep("capture");
@@ -303,30 +307,38 @@ export default function RiellyBooth() {
       },
       (msg: LDRMessage) => {
         if (msg.type === "START_COUNTDOWN") {
+          // Lock local shutter while remote partner's countdown is running to prevent double-capture
+          setIsCapturing(true);
           runCountdown(msg.seconds).then(() => {
             triggerSnapshotFx();
+            setTimeout(() => setIsCapturing(false), 1200);
           });
         } else if (msg.type === "SYNC_SHOT") {
-          // Synchronize shot captured by remote partner
+          // Deduplicate by shotIndex (1-based) so duplicate packets or simultaneous clicks NEVER double-count shots
+          const maxShots = sessionModeRef.current === "korean_6" ? 6 : 4;
+          const targetIdx = Math.max(0, Math.min((msg.shotIndex || shotsRef.current.length + 1) - 1, maxShots - 1));
           const newShot: Shot = {
             id: Date.now() + Math.random(),
             dataUrl: msg.dataUrl,
             videoBlobUrl: undefined,
           };
-          setShots((prevShots) => {
-            const maxShots = sessionModeRef.current === "korean_6" ? 6 : 4;
-            const updated = [...prevShots, newShot];
-            syncShots(updated);
-            if (updated.length < maxShots) {
-              setCurrentShotIndex(updated.length + 1);
-            } else {
-              setStep("review");
-            }
-            return updated;
-          });
+
+          const current = Array.from(shotsRef.current);
+          current[targetIdx] = newShot;
+          const cleanUpdated = current.filter(Boolean).slice(0, maxShots);
+          syncShots(cleanUpdated);
+          setShots(cleanUpdated);
+          setIsCapturing(false);
+
+          if (cleanUpdated.length < maxShots) {
+            setCurrentShotIndex(cleanUpdated.length + 1);
+          } else {
+            setStep("review");
+          }
         } else if (msg.type === "SESSION_ENDED") {
           setLdrStatusMessage("Sesi LDR telah berakhir.");
           setRemoteStream(null);
+          setIsCapturing(false);
         }
       }
     );
@@ -765,20 +777,21 @@ export default function RiellyBooth() {
           videoBlobUrl: undefined,
         };
 
-        setShots((prevShots) => {
-          const updatedShots = [...prevShots, newShot];
-          syncShots(updatedShots);
-          if (updatedShots.length < maxShots) {
-            setCurrentShotIndex(updatedShots.length + 1);
-          } else {
-            setStep("review");
-          }
-          return updatedShots;
-        });
+        // Pure state update outside updater (immune to React StrictMode double-invocation)
+        const updatedShots = [...shotsRef.current, newShot].slice(0, maxShots);
+        const capturedShotNumber = updatedShots.length;
+        syncShots(updatedShots);
+        setShots(updatedShots);
 
-        // Broadcast captured snapshot to LDR partner
+        if (capturedShotNumber < maxShots) {
+          setCurrentShotIndex(capturedShotNumber + 1);
+        } else {
+          setStep("review");
+        }
+
+        // Broadcast captured snapshot with exact 1-based shot number to LDR partner
         if (ldrManagerRef.current && remoteStream) {
-          ldrManagerRef.current.syncShot(currentShotIndex, dataUrl);
+          ldrManagerRef.current.syncShot(capturedShotNumber, dataUrl);
         }
 
         // Non-blocking background video snippet compilation
@@ -813,6 +826,10 @@ export default function RiellyBooth() {
   const handleRetakeAll = () => {
     shots.forEach((s) => revokeBlobUrl(s.videoBlobUrl));
     setShots([]);
+    shotsRef.current = [];
+    try {
+      sessionStorage.removeItem("riellybooth_shots_backup");
+    } catch (e) {}
     setCurrentShotIndex(1);
     setRetakeIndex(null);
     setStep("capture");

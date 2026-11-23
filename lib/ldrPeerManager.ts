@@ -378,6 +378,13 @@ export class LDRPeerManager {
       });
 
       try {
+        // Close any stale previous attempt connection before opening a new one
+        if (this.connection) {
+          try {
+            this.connection.close();
+          } catch (e) {}
+          this.connection = null;
+        }
         const conn = this.peer.connect(hostPeerId, { reliable: true });
         this.connection = conn;
 
