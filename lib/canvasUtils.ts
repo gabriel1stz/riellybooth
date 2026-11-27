@@ -7353,3 +7353,273 @@ export const drawPhotoStrip = (
     ctx.restore();
   }
 };
+
+// ==========================================
+// AESTHETIC OUTER BACKDROP (PREVIEW + EXPORT)
+// ==========================================
+export type ExportBackdrop =
+  | "none"
+  | "pink_dots"
+  | "cream_grid"
+  | "pastel_sunset"
+  | "lavender_dream"
+  | "sage_gingham"
+  | "sky_cloud"
+  | "dark_studio";
+
+export type BackdropRatio = "feed" | "story";
+
+export interface BackdropOption {
+  id: ExportBackdrop;
+  label: string;
+  swatchStyle: string;
+  stageStyle: React.CSSProperties;
+  isDark?: boolean;
+}
+
+export const BACKDROP_OPTIONS: BackdropOption[] = [
+  {
+    id: "none",
+    label: "Strip Polos",
+    swatchStyle: "repeating-conic-gradient(#f3e8ee 0% 25%, #ffffff 0% 50%) 50% / 10px 10px",
+    stageStyle: {
+      backgroundColor: "#FFF7FA",
+      backgroundImage: "radial-gradient(#F3D5E1 1px, transparent 1px)",
+      backgroundSize: "16px 16px",
+    },
+  },
+  {
+    id: "pink_dots",
+    label: "Blush Dots",
+    swatchStyle: "radial-gradient(#F48FB1 1.5px, #FFEBF2 1.5px) 0 0 / 10px 10px",
+    stageStyle: {
+      backgroundColor: "#FFEAF2",
+      backgroundImage:
+        "radial-gradient(rgba(232, 77, 145, 0.22) 2px, transparent 2px), linear-gradient(180deg, #FFE4EE 0%, #FFF5F8 100%)",
+      backgroundSize: "20px 20px, 100% 100%",
+    },
+  },
+  {
+    id: "cream_grid",
+    label: "Scrapbook",
+    swatchStyle:
+      "linear-gradient(to right, rgba(233,184,202,0.45) 1px, transparent 1px) 0 0 / 10px 10px, linear-gradient(to bottom, rgba(233,184,202,0.45) 1px, #FFF9F0 1px) 0 0 / 10px 10px",
+    stageStyle: {
+      backgroundColor: "#FFF9F0",
+      backgroundImage:
+        "linear-gradient(to right, rgba(233, 184, 202, 0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(233, 184, 202, 0.35) 1px, transparent 1px)",
+      backgroundSize: "22px 22px",
+    },
+  },
+  {
+    id: "pastel_sunset",
+    label: "Peach Glow",
+    swatchStyle: "linear-gradient(135deg, #FFD6E8 0%, #FFE6C7 55%, #FFF6E3 100%)",
+    stageStyle: {
+      backgroundImage: "linear-gradient(145deg, #FFD6E8 0%, #FFE8CC 52%, #FFF5E4 100%)",
+    },
+  },
+  {
+    id: "lavender_dream",
+    label: "Lavender",
+    swatchStyle: "linear-gradient(135deg, #E9D5FF 0%, #FCE7F3 100%)",
+    stageStyle: {
+      backgroundImage:
+        "radial-gradient(rgba(255,255,255,0.65) 1.5px, transparent 1.5px), linear-gradient(145deg, #EDE9FE 0%, #FCE7F3 100%)",
+      backgroundSize: "24px 24px, 100% 100%",
+    },
+  },
+  {
+    id: "sage_gingham",
+    label: "Matcha",
+    swatchStyle: "linear-gradient(135deg, #DCFCE7 0%, #ECFDF5 100%)",
+    stageStyle: {
+      backgroundColor: "#EDF9F0",
+      backgroundImage:
+        "linear-gradient(90deg, rgba(134, 239, 172, 0.25) 50%, transparent 50%), linear-gradient(rgba(134, 239, 172, 0.25) 50%, transparent 50%)",
+      backgroundSize: "26px 26px",
+    },
+  },
+  {
+    id: "sky_cloud",
+    label: "Sky Blue",
+    swatchStyle: "linear-gradient(135deg, #DBEAFE 0%, #F0F9FF 100%)",
+    stageStyle: {
+      backgroundImage: "linear-gradient(160deg, #D6E9FF 0%, #EEF6FF 55%, #FFFFFF 100%)",
+    },
+  },
+  {
+    id: "dark_studio",
+    label: "Dark Velvet",
+    swatchStyle: "linear-gradient(135deg, #1C1917 0%, #3F333B 100%)",
+    stageStyle: {
+      backgroundColor: "#1E191D",
+      backgroundImage:
+        "radial-gradient(rgba(244, 143, 177, 0.16) 1.2px, transparent 1.2px), linear-gradient(160deg, #1C1917 0%, #2D222A 100%)",
+      backgroundSize: "22px 22px, 100% 100%",
+    },
+    isDark: true,
+  },
+];
+
+/**
+ * Composites a rendered photobooth strip canvas centered inside an aesthetic outer backdrop
+ * (4:5 Feed card or 9:16 IG Story) with realistic paper drop-shadow for PNG, MP4, and GIF export.
+ */
+export function drawBackdropComposite(
+  sourceCanvas: HTMLCanvasElement,
+  targetCanvas: HTMLCanvasElement,
+  backdrop: ExportBackdrop,
+  ratio: BackdropRatio = "feed",
+  scaleFactor: number = 1
+): void {
+  const baseW = 1080;
+  const baseH = ratio === "story" ? 1920 : 1350;
+  const outW = Math.max(2, Math.round((baseW * scaleFactor) / 2) * 2);
+  const outH = Math.max(2, Math.round((baseH * scaleFactor) / 2) * 2);
+
+  if (targetCanvas.width !== outW) targetCanvas.width = outW;
+  if (targetCanvas.height !== outH) targetCanvas.height = outH;
+
+  const ctx = targetCanvas.getContext("2d");
+  if (!ctx) return;
+
+  ctx.save();
+
+  // 1. Paint Aesthetic Backdrop
+  if (backdrop === "pink_dots") {
+    const grad = ctx.createLinearGradient(0, 0, 0, outH);
+    grad.addColorStop(0, "#FFE4EE");
+    grad.addColorStop(1, "#FFF5F8");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, outW, outH);
+
+    ctx.fillStyle = "rgba(232, 77, 145, 0.18)";
+    const step = Math.round(36 * scaleFactor);
+    const r = Math.max(1.5, 3.2 * scaleFactor);
+    for (let y = step / 2; y < outH; y += step) {
+      for (let x = step / 2; x < outW; x += step) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else if (backdrop === "cream_grid") {
+    ctx.fillStyle = "#FFF9F0";
+    ctx.fillRect(0, 0, outW, outH);
+
+    ctx.strokeStyle = "rgba(233, 184, 202, 0.38)";
+    ctx.lineWidth = Math.max(1, 1.5 * scaleFactor);
+    const step = Math.round(42 * scaleFactor);
+    ctx.beginPath();
+    for (let x = 0; x <= outW; x += step) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, outH);
+    }
+    for (let y = 0; y <= outH; y += step) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(outW, y);
+    }
+    ctx.stroke();
+  } else if (backdrop === "pastel_sunset") {
+    const grad = ctx.createLinearGradient(0, 0, outW, outH);
+    grad.addColorStop(0, "#FFD6E8");
+    grad.addColorStop(0.52, "#FFE8CC");
+    grad.addColorStop(1, "#FFF5E4");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, outW, outH);
+  } else if (backdrop === "lavender_dream") {
+    const grad = ctx.createLinearGradient(0, 0, outW, outH);
+    grad.addColorStop(0, "#EDE9FE");
+    grad.addColorStop(1, "#FCE7F3");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, outW, outH);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    const step = Math.round(46 * scaleFactor);
+    const r = Math.max(1.5, 2.8 * scaleFactor);
+    for (let y = step / 2; y < outH; y += step) {
+      for (let x = step / 2; x < outW; x += step) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else if (backdrop === "sage_gingham") {
+    ctx.fillStyle = "#EDF9F0";
+    ctx.fillRect(0, 0, outW, outH);
+
+    ctx.fillStyle = "rgba(134, 239, 172, 0.24)";
+    const size = Math.round(48 * scaleFactor);
+    for (let x = 0; x < outW; x += size * 2) {
+      ctx.fillRect(x, 0, size, outH);
+    }
+    for (let y = 0; y < outH; y += size * 2) {
+      ctx.fillRect(0, y, outW, size);
+    }
+  } else if (backdrop === "sky_cloud") {
+    const grad = ctx.createLinearGradient(0, 0, outW * 0.6, outH);
+    grad.addColorStop(0, "#D6E9FF");
+    grad.addColorStop(0.55, "#EEF6FF");
+    grad.addColorStop(1, "#FFFFFF");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, outW, outH);
+  } else if (backdrop === "dark_studio") {
+    const grad = ctx.createLinearGradient(0, 0, outW * 0.5, outH);
+    grad.addColorStop(0, "#1C1917");
+    grad.addColorStop(1, "#2D222A");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, outW, outH);
+
+    ctx.fillStyle = "rgba(244, 143, 177, 0.14)";
+    const step = Math.round(40 * scaleFactor);
+    const r = Math.max(1, 2 * scaleFactor);
+    for (let y = step / 2; y < outH; y += step) {
+      for (let x = step / 2; x < outW; x += step) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else {
+    ctx.fillStyle = "#FFF7FA";
+    ctx.fillRect(0, 0, outW, outH);
+  }
+
+  // 2. Fit & Center the Photo Strip inside the Backdrop with generous aesthetic padding
+  const sw = sourceCanvas.width || 600;
+  const sh = sourceCanvas.height || 1800;
+  const padX = outW * 0.11;
+  const padY = outH * 0.085;
+  const maxW = outW - padX * 2;
+  const maxH = outH - padY * 2;
+
+  const fitScale = Math.min(maxW / sw, maxH / sh);
+  const drawW = sw * fitScale;
+  const drawH = sh * fitScale;
+  const dx = (outW - drawW) / 2;
+  const dy = (outH - drawH) / 2;
+  const cornerR = Math.round(18 * scaleFactor);
+
+  // 3. Draw Realistic Paper Drop Shadow
+  ctx.save();
+  ctx.shadowColor = backdrop === "dark_studio" ? "rgba(0, 0, 0, 0.55)" : "rgba(57, 38, 51, 0.22)";
+  ctx.shadowBlur = Math.round(44 * scaleFactor);
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = Math.round(18 * scaleFactor);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.beginPath();
+  ctx.roundRect(dx, dy, drawW, drawH, cornerR);
+  ctx.fill();
+  ctx.restore();
+
+  // 4. Clip Rounded Strip & Draw Source Canvas
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(dx, dy, drawW, drawH, cornerR);
+  ctx.clip();
+  ctx.drawImage(sourceCanvas, 0, 0, sw, sh, dx, dy, drawW, drawH);
+  ctx.restore();
+
+  ctx.restore();
+}

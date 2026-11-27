@@ -32,46 +32,69 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://riellybooth.my.id"),
-  title: "RiellyBooth ♡ Little Moments, Big Memories · Online Photobooth",
+  title: {
+    default: "RiellyBooth — Photobooth Online Gratis Tanpa Watermark | Photo Strip & Live Photo",
+    template: "%s | RiellyBooth",
+  },
   description:
-    "Your own little photo studio. Capture cute moments, create aesthetic photo strips, and keep memories forever. 100% free, private in-browser, no watermark.",
+    "Photobooth online gratis langsung dari kamera HP & laptop. Buat photo strip Korea, Live Photo video MP4/GIF, frame estetik, background IG Story, dan foto bareng LDR tanpa watermark. 100% privat di browser.",
   keywords: [
+    "photobooth online",
     "photobooth online gratis",
+    "photobooth online tanpa watermark",
+    "photobooth online di hp",
     "photo strip online",
+    "buat photo strip online",
+    "photobooth korea online",
+    "web photobooth estetik",
+    "photobooth ldr online",
+    "live photo photobooth",
+    "frame photobooth estetik",
+    "self photo studio online",
+    "cetak photobooth 4r",
     "riellybooth",
     "riellmatics online",
-    "aesthetic photobooth",
-    "korean photobooth online",
-    "scrapbook photobooth",
-    "virtual photobooth",
-    "aesthetic photo strip",
-    "live photo photobooth",
-    "cetak photobooth 4r",
-    "little moments big memories",
   ],
   authors: [{ name: "RiellyBooth" }],
+  creator: "RiellyBooth",
+  publisher: "RiellyBooth",
+  category: "photography",
+  alternates: {
+    canonical: "https://riellybooth.my.id",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   openGraph: {
     type: "website",
     locale: "id_ID",
     url: "https://riellybooth.my.id",
     siteName: "RiellyBooth",
-    title: "RiellyBooth ♡ Little Moments, Big Memories",
+    title: "RiellyBooth — Photobooth Online Gratis Tanpa Watermark",
     description:
-      "Your own little photo studio. Capture cute moments, create aesthetic photo strips, and keep memories forever.",
+      "Buat photo strip Korea, Live Photo MP4/GIF, frame estetik, dan foto bareng LDR langsung di browser. 100% gratis, privat, tanpa watermark.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "RiellyBooth - Little Moments, Big Memories",
+        alt: "RiellyBooth - Photobooth Online Gratis Tanpa Watermark",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "RiellyBooth ♡ Little Moments, Big Memories",
+    title: "RiellyBooth — Photobooth Online Gratis Tanpa Watermark",
     description:
-      "Your own little photo studio. Capture cute moments, create photo strips, and keep memories forever.",
+      "Buat photo strip Korea, Live Photo MP4/GIF, dan frame estetik langsung dari HP & laptop. Gratis & privat di browser.",
     images: ["/opengraph-image"],
     creator: "@riellybooth_",
   },
@@ -87,19 +110,79 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "RiellyBooth",
-  url: "https://riellybooth.my.id",
-  description:
-    "Your own little photo studio. Capture cute moments, create aesthetic photo strips, and keep memories forever. 100% in-browser, private, and free.",
-  applicationCategory: "MultimediaApplication",
-  operatingSystem: "All",
-  browserRequirements: "Requires WebRTC and HTML5 Canvas",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "IDR",
-  },
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      name: "RiellyBooth",
+      alternateName: "RiellyBooth Photobooth Online",
+      url: "https://riellybooth.my.id",
+      inLanguage: "id-ID",
+      description:
+        "Photobooth online gratis langsung dari kamera HP & laptop. Buat photo strip estetik, Live Photo video MP4/GIF, dan foto bareng LDR tanpa watermark. 100% privat di browser.",
+      applicationCategory: "MultimediaApplication",
+      operatingSystem: "All",
+      browserRequirements: "Requires WebRTC and HTML5 Canvas",
+      screenshot: "https://riellybooth.my.id/opengraph-image",
+      featureList: [
+        "Live Camera Filter & Mirror Mode",
+        "Pilihan 2, 3, 4, dan 6 Pose Photo Strip",
+        "Live Photo Boomerang Export MP4 & GIF",
+        "Background Estetik 4:5 Feed & 9:16 IG Story",
+        "Foto Bareng Jarak Jauh (LDR) Real-Time",
+        "100% Privat di Browser Tanpa Watermark",
+      ],
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "IDR",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "Apakah foto saya disimpan di server RiellyBooth?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Tidak sama sekali. Seluruh pemrosesan photo strip, Live Photo, filter, dan stiker berjalan 100% lokal di browser menggunakan HTML5 Canvas & WebRTC.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Apakah RiellyBooth gratis dan tanpa watermark?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Ya, 100% gratis selamanya tanpa watermark untuk unduhan PNG HD, Live Video MP4, maupun GIF animasi.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Bisa dipakai di HP tanpa install aplikasi?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Bisa. Cukup buka riellybooth.my.id lewat Chrome atau Safari di HP maupun laptop, izinkan kamera, lalu langsung mulai sesi foto.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Bisa pakai foto dari galeri HP atau foto bareng LDR?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Bisa keduanya. Tersedia fitur Upload Galeri dan Foto Bareng LDR real-time untuk sesi photobooth jarak jauh.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Bagaimana cara simpan untuk IG Story atau cetak 4R?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Di halaman editor tersedia pilihan Background Estetik rasio 9:16 Story atau 4:5 Feed serta layout Double Strip 2x4 untuk cetak kertas foto 4R.",
+          },
+        },
+      ],
+    },
+  ],
 };
 
 export default function RootLayout({

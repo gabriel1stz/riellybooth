@@ -6,13 +6,10 @@
 
 @layer base {
   body {
-    @apply bg-[#FFF0F4] text-[#392633] font-sans antialiased selection:bg-[#F48FB1] selection:text-white min-h-screen;
-    background-color: #FFF0F4;
-    background-image:
-      radial-gradient(#F8D8E3 1px, transparent 1px),
-      radial-gradient(#F48FB1 0.7px, transparent 0.7px);
-    background-size: 24px 24px, 48px 48px;
-    background-position: 0 0, 12px 12px;
+    @apply bg-[#FFF4F7] text-[#392633] font-sans antialiased selection:bg-[#F48FB1] selection:text-white min-h-screen;
+    background-color: #FFF4F7;
+    background-image: radial-gradient(rgba(233, 184, 202, 0.45) 1px, transparent 1px);
+    background-size: 26px 26px;
   }
 
   h1,

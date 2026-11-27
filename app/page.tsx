@@ -9,7 +9,7 @@ import LandingStep from "@/components/Steps/LandingStep";
 import InAppBrowserBanner from "@/components/InAppBrowserBanner";
 import { createGifFromCanvas } from "@/lib/gifUtils";
 import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet, revokeBlobUrl } from "@/lib/cameraUtils";
-import { drawPhotoStrip, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker, PhotoShape, FramePattern } from "@/lib/canvasUtils";
+import { drawPhotoStrip, drawBackdropComposite, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker, PhotoShape, FramePattern, ExportBackdrop, BackdropRatio } from "@/lib/canvasUtils";
 import { playShutterSound } from "@/lib/audioUtils";
 import QRCode from "qrcode";
 import { LDRPeerManager, LDRSessionState, LDRMessage, normalizeRoomCode } from "@/lib/ldrPeerManager";
@@ -172,6 +172,10 @@ export default function RiellyBooth() {
   // Custom Full Frame Overlay (User PNG Transparency)
   const [customFrameOverlayUrl, setCustomFrameOverlayUrl] = useState<string | null>(null);
   const [customFrameOverlayImg, setCustomFrameOverlayImg] = useState<HTMLImageElement | null>(null);
+
+  // Aesthetic Outer Backdrop (Preview Stage + Optional Export Composite)
+  const [exportBackdrop, setExportBackdrop] = useState<ExportBackdrop>("pink_dots");
+  const [backdropRatio, setBackdropRatio] = useState<BackdropRatio>("feed");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const arCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1049,13 +1053,24 @@ export default function RiellyBooth() {
     return window.innerWidth < 768 || navigator.maxTouchPoints > 0;
   }, []);
 
+  // Helper: Get final export canvas (with or without aesthetic outer backdrop)
+  const buildExportPngDataUrl = useCallback((): string | null => {
+    if (!canvasRef.current) return null;
+    if (exportBackdrop === "none") {
+      return canvasRef.current.toDataURL("image/png");
+    }
+    const outCanvas = document.createElement("canvas");
+    drawBackdropComposite(canvasRef.current, outCanvas, exportBackdrop, backdropRatio, 1);
+    return outCanvas.toDataURL("image/png");
+  }, [exportBackdrop, backdropRatio]);
+
   // Direct PNG Download Trigger with Branded Random Filename
   const handleDownloadPng = async () => {
-    if (!canvasRef.current) return;
+    const dataUrl = buildExportPngDataUrl();
+    if (!dataUrl) return;
     const randomHash = Math.random().toString(36).substring(2, 8);
     const filename = `riellybooth-${randomHash}.png`;
 
-    const dataUrl = canvasRef.current.toDataURL("image/png");
     setDownloadedDataUrl(dataUrl);
 
     // Native Web Share API for Mobile Devices
@@ -1112,8 +1127,25 @@ export default function RiellyBooth() {
     if (!canvasRef.current || isExportingVideo) return;
     setIsExportingVideo(true);
 
+    let compRafId: number | null = null;
     try {
-      const canvasStream = canvasRef.current.captureStream(30);
+      let recordTarget: HTMLCanvasElement = canvasRef.current;
+
+      if (exportBackdrop !== "none") {
+        const compCanvas = document.createElement("canvas");
+        const scaleFactor = 0.67; // Crisp 720x900 or 720x1280 for smooth 30fps mobile MediaRecorder
+        drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor);
+        const syncFrame = () => {
+          if (canvasRef.current) {
+            drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor);
+          }
+          compRafId = requestAnimationFrame(syncFrame);
+        };
+        compRafId = requestAnimationFrame(syncFrame);
+        recordTarget = compCanvas;
+      }
+
+      const canvasStream = recordTarget.captureStream(30);
       let mimeType = "video/mp4;codecs=avc1";
       let extension = "mp4";
 
@@ -1137,6 +1169,10 @@ export default function RiellyBooth() {
       };
 
       recorder.onstop = async () => {
+        if (compRafId !== null) {
+          cancelAnimationFrame(compRafId);
+          compRafId = null;
+        }
         const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setDownloadedVideoUrl(url);
@@ -1182,6 +1218,7 @@ export default function RiellyBooth() {
         }
       }, 3500);
     } catch (err) {
+      if (compRafId !== null) cancelAnimationFrame(compRafId);
       console.warn("Live video export failed:", err);
       setIsExportingVideo(false);
     }
@@ -1192,8 +1229,25 @@ export default function RiellyBooth() {
     if (!canvasRef.current || isExportingGif) return;
     setIsExportingGif(true);
 
+    let compRafId: number | null = null;
     try {
-      const gifBlob = await createGifFromCanvas(canvasRef.current, {
+      let gifSource: HTMLCanvasElement = canvasRef.current;
+
+      if (exportBackdrop !== "none") {
+        const compCanvas = document.createElement("canvas");
+        const scaleFactor = 0.45;
+        drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor);
+        const syncFrame = () => {
+          if (canvasRef.current) {
+            drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor);
+          }
+          compRafId = requestAnimationFrame(syncFrame);
+        };
+        compRafId = requestAnimationFrame(syncFrame);
+        gifSource = compCanvas;
+      }
+
+      const gifBlob = await createGifFromCanvas(gifSource, {
         frameCount: 8,
         delay: 200,
         maxWidth: 380,
@@ -1212,6 +1266,7 @@ export default function RiellyBooth() {
               title: "riellybooth Animated GIF",
               text: "Animated GIF photostrip created with riellybooth ♡ ✨",
             });
+            URL.revokeObjectURL(url);
             setIsExportingGif(false);
             setTimeout(() => setShowShareModal(true), 400);
             return;
@@ -1225,6 +1280,7 @@ export default function RiellyBooth() {
       link.download = filename;
       link.href = url;
       link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
       setIsExportingGif(false);
 
       try {
@@ -1235,13 +1291,15 @@ export default function RiellyBooth() {
     } catch (err) {
       console.warn("GIF export failed:", err);
       setIsExportingGif(false);
+    } finally {
+      if (compRafId !== null) cancelAnimationFrame(compRafId);
     }
   };
 
   // NATIVE MULTI-APP SHARE HANDLER
   const handleNativeMultiAppShare = async () => {
-    if (!canvasRef.current) return;
-    const dataUrl = canvasRef.current.toDataURL("image/png");
+    const dataUrl = buildExportPngDataUrl();
+    if (!dataUrl) return;
 
     try {
       const res = await fetch(dataUrl);
@@ -1403,6 +1461,10 @@ export default function RiellyBooth() {
             setFilter={setFilter}
             isFlipped={isFlipped}
             setIsFlipped={setIsFlipped}
+            exportBackdrop={exportBackdrop}
+            setExportBackdrop={setExportBackdrop}
+            backdropRatio={backdropRatio}
+            setBackdropRatio={setBackdropRatio}
             onBack={() => setStep("review")}
             onDownloadPng={handleDownloadPng}
             onDownloadVideo={handleDownloadVideo}

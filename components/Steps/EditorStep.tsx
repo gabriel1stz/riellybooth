@@ -21,7 +21,7 @@ import {
   X,
   Heart,
 } from "lucide-react";
-import { LayoutMode, FramePreset, CuteFilter, FontFamily, FilterState, PlacedSticker, PhotoShape, FramePattern } from "@/lib/canvasUtils";
+import { LayoutMode, FramePreset, CuteFilter, FontFamily, FilterState, PlacedSticker, PhotoShape, FramePattern, ExportBackdrop, BackdropRatio, BACKDROP_OPTIONS } from "@/lib/canvasUtils";
 import ColorPicker from "../UI/ColorPicker";
 import Slider from "../UI/Slider";
 
@@ -94,6 +94,10 @@ type EditorStepProps = {
   setFilter: React.Dispatch<React.SetStateAction<FilterState>>;
   isFlipped: boolean;
   setIsFlipped: (val: boolean | ((prev: boolean) => boolean)) => void;
+  exportBackdrop?: ExportBackdrop;
+  setExportBackdrop?: (bg: ExportBackdrop) => void;
+  backdropRatio?: BackdropRatio;
+  setBackdropRatio?: (ratio: BackdropRatio) => void;
   onBack: () => void;
   onDownloadPng: () => void;
   onDownloadVideo: () => void;
@@ -147,6 +151,10 @@ export default function EditorStep({
   setFilter,
   isFlipped,
   setIsFlipped,
+  exportBackdrop = "pink_dots",
+  setExportBackdrop,
+  backdropRatio = "feed",
+  setBackdropRatio,
   onBack,
   onDownloadPng,
   onDownloadVideo,
@@ -525,78 +533,162 @@ export default function EditorStep({
             </div>
           </div>
 
-          {/* Vintage Photobooth Print Dispenser Slot */}
-          <div className="w-full flex flex-col items-center">
-            {/* Dispenser Lip (sits above the emerging strip) */}
-            <div className="relative z-20 w-56 sm:w-64 h-4 bg-[#392633] rounded-full border-2 border-[#E9B8CA] flex items-center justify-center shadow-md">
-              <div className="w-[88%] h-1.5 bg-[#120B10] rounded-full shadow-inner" />
-            </div>
-
-            {/* Print Chute Clip Mask: strip slides smoothly out of the slot */}
-            <div className="relative z-10 w-full -mt-2 pt-3 pb-3 px-2 overflow-hidden flex justify-center">
-              <div className="animate-print-drop inline-flex justify-center">
+          {/* Aesthetic Outer Backdrop Stage + Vintage Print Dispenser Slot */}
+          {(() => {
+            const activeBackdrop =
+              BACKDROP_OPTIONS.find((b) => b.id === exportBackdrop) || BACKDROP_OPTIONS[1];
+            return (
+              <div className="w-full max-w-sm sm:max-w-md mx-auto flex flex-col items-center gap-2.5">
+                {/* Outer Big Aesthetic Box (Matches Export Backdrop) */}
                 <div
-                  ref={containerRef}
-                  className="relative inline-flex items-center justify-center rounded-2xl shadow-[0_14px_34px_-6px_rgba(57,38,51,0.22)] ring-1 ring-[#E9B8CA]/80 cursor-grab active:cursor-grabbing select-none"
-                  onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
-                  onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
-                  onMouseUp={handlePointerUp}
-                  onTouchStart={(e) => {
-                    if (e.touches.length > 0) {
-                      handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
-                    }
-                  }}
-                  onTouchMove={(e) => {
-                    if (e.touches.length > 0) {
-                      handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
-                    }
-                  }}
-                  onTouchEnd={handlePointerUp}
+                  style={activeBackdrop.stageStyle}
+                  className="relative w-full rounded-3xl border-2 border-[#E9B8CA] shadow-paper px-4 pt-3.5 pb-4 flex flex-col items-center overflow-hidden transition-all duration-300"
                 >
-                  {/* Anti-Flicker Smooth Overlay Loader */}
-                  {isUpdatingCanvas && (
-                    <div className="absolute inset-0 bg-white/85 rounded-2xl z-40 flex items-center justify-center gap-2 pointer-events-none transition-opacity duration-150">
-                      <Sparkles className="w-5 h-5 text-[#E84D91] animate-spin" />
-                      <span className="text-xs font-heading font-bold text-[#392633]">Memperbarui...</span>
-                    </div>
-                  )}
+                  {/* Dispenser Lip sitting cleanly inside top of the aesthetic box */}
+                  <div className="relative z-20 w-48 sm:w-56 h-3.5 bg-[#392633] rounded-full border-2 border-[#E9B8CA]/90 flex items-center justify-center shadow-md">
+                    <div className="w-[88%] h-1.5 bg-[#120B10] rounded-full shadow-inner" />
+                  </div>
 
-                  <canvas
-                    ref={canvasRef}
-                    className="block max-w-full max-h-[50vh] sm:max-h-[540px] w-auto h-auto rounded-2xl pointer-events-none"
-                  />
-
-                  {/* DELETE (X) BADGE OVER SELECTED STICKER ON CANVAS OVERLAY */}
-                  {selectedSticker && (() => {
-                    const domPos = getDOMPos(selectedSticker.x, selectedSticker.y);
-                    if (!domPos) return null;
-                    return (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onDeleteSticker) onDeleteSticker(selectedSticker.id);
-                          setSelectedStickerId(null);
+                  {/* Print Chute Clip Mask: strip slides smoothly out of the slot into the aesthetic box */}
+                  <div className="relative z-10 w-full -mt-1.5 pt-3 pb-2 overflow-hidden flex justify-center">
+                    <div className="animate-print-drop inline-flex justify-center">
+                      <div
+                        ref={containerRef}
+                        className="relative inline-flex items-center justify-center rounded-2xl shadow-[0_14px_34px_-6px_rgba(57,38,51,0.28)] ring-1 ring-white/70 cursor-grab active:cursor-grabbing select-none"
+                        onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
+                        onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
+                        onMouseUp={handlePointerUp}
+                        onTouchStart={(e) => {
+                          if (e.touches.length > 0) {
+                            handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+                          }
                         }}
-                        style={{
-                          left: `${domPos.left + 15}px`,
-                          top: `${domPos.top - 15}px`,
+                        onTouchMove={(e) => {
+                          if (e.touches.length > 0) {
+                            handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+                          }
                         }}
-                        className="absolute z-50 p-1 bg-[#E84D91] hover:bg-[#F48FB1] text-white rounded-full shadow-lg border border-white transition transform hover:scale-110 active:scale-95 cursor-pointer"
-                        title="Hapus Stiker Ini (x)"
+                        onTouchEnd={handlePointerUp}
                       >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
+                        {/* Anti-Flicker Smooth Overlay Loader */}
+                        {isUpdatingCanvas && (
+                          <div className="absolute inset-0 bg-white/85 rounded-2xl z-40 flex items-center justify-center gap-2 pointer-events-none transition-opacity duration-150">
+                            <Sparkles className="w-5 h-5 text-[#E84D91] animate-spin" />
+                            <span className="text-xs font-heading font-bold text-[#392633]">Memperbarui...</span>
+                          </div>
+                        )}
 
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#8B7180]">
-              {isPrinting ? "Printing photo strip..." : "Printed · Ready to customize"}
-            </span>
-          </div>
+                        <canvas
+                          ref={canvasRef}
+                          className="block max-w-full max-h-[46vh] sm:max-h-[500px] w-auto h-auto rounded-2xl pointer-events-none"
+                        />
+
+                        {/* DELETE (X) BADGE OVER SELECTED STICKER ON CANVAS OVERLAY */}
+                        {selectedSticker && (() => {
+                          const domPos = getDOMPos(selectedSticker.x, selectedSticker.y);
+                          if (!domPos) return null;
+                          return (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onDeleteSticker) onDeleteSticker(selectedSticker.id);
+                                setSelectedStickerId(null);
+                              }}
+                              style={{
+                                left: `${domPos.left + 15}px`,
+                                top: `${domPos.top - 15}px`,
+                              }}
+                              className="absolute z-50 p-1 bg-[#E84D91] hover:bg-[#F48FB1] text-white rounded-full shadow-lg border border-white transition transform hover:scale-110 active:scale-95 cursor-pointer"
+                              title="Hapus Stiker Ini (x)"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Subtle Status Tag inside bottom of aesthetic stage */}
+                  <span
+                    className={`mt-1 text-[10px] font-mono uppercase tracking-widest ${
+                      activeBackdrop.isDark ? "text-pink-200/80" : "text-[#8B7180]"
+                    }`}
+                  >
+                    {isPrinting
+                      ? "Printing photo strip..."
+                      : exportBackdrop === "none"
+                        ? "Strip Polos · Ready to customize"
+                        : `${activeBackdrop.label} (${backdropRatio === "story" ? "9:16 Story" : "4:5 Feed"})`}
+                  </span>
+                </div>
+
+                {/* Quick Aesthetic Backdrop Picker (Preview + Export PNG/MP4/GIF) */}
+                {setExportBackdrop && (
+                  <div className="w-full bg-[#FFF9F0] border border-[#E9B8CA] rounded-2xl p-2.5 space-y-2 shadow-xs">
+                    <div className="flex items-center justify-between gap-2 px-0.5">
+                      <span className="text-[11px] font-heading font-bold text-[#392633]">
+                        Background Estetik File
+                      </span>
+                      {exportBackdrop !== "none" && setBackdropRatio ? (
+                        <div className="inline-flex items-center bg-[#FFF0F4] border border-[#E9B8CA] rounded-full p-0.5 gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => setBackdropRatio("feed")}
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-heading font-bold transition cursor-pointer ${
+                              backdropRatio === "feed"
+                                ? "bg-[#E84D91] text-white"
+                                : "text-[#8B7180] hover:text-[#392633]"
+                            }`}
+                          >
+                            4:5 Feed
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBackdropRatio("story")}
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-heading font-bold transition cursor-pointer ${
+                              backdropRatio === "story"
+                                ? "bg-[#E84D91] text-white"
+                                : "text-[#8B7180] hover:text-[#392633]"
+                            }`}
+                          >
+                            9:16 Story
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] font-mono text-[#8B7180]">Tanpa BG</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+                      {BACKDROP_OPTIONS.map((bg) => {
+                        const isSelected = exportBackdrop === bg.id;
+                        return (
+                          <button
+                            key={bg.id}
+                            type="button"
+                            onClick={() => setExportBackdrop(bg.id)}
+                            className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[10px] font-heading font-bold transition cursor-pointer ${
+                              isSelected
+                                ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                            }`}
+                          >
+                            <span
+                              className="w-3.5 h-3.5 rounded-full border border-black/15 shrink-0"
+                              style={{ background: bg.swatchStyle }}
+                            />
+                            <span>{bg.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           <p className="hidden lg:block text-[11px] font-sans font-medium text-[#8B7180] text-center">
             <span className="text-[#E84D91] font-bold">Tips:</span> Geser / drag stiker langsung di atas kanvas pratinjau.
