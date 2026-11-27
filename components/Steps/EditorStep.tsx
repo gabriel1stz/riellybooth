@@ -98,6 +98,7 @@ type EditorStepProps = {
   setExportBackdrop?: (bg: ExportBackdrop) => void;
   backdropRatio?: BackdropRatio;
   setBackdropRatio?: (ratio: BackdropRatio) => void;
+  onCanvasMount?: () => void;
   onBack: () => void;
   onDownloadPng: () => void;
   onDownloadVideo: () => void;
@@ -155,6 +156,7 @@ export default function EditorStep({
   setExportBackdrop,
   backdropRatio = "feed",
   setBackdropRatio,
+  onCanvasMount,
   onBack,
   onDownloadPng,
   onDownloadVideo,
@@ -267,8 +269,10 @@ export default function EditorStep({
   const [isPrinting, setIsPrinting] = useState(true);
 
   useEffect(() => {
+    onCanvasMount?.();
     const printTimer = setTimeout(() => setIsPrinting(false), 1150);
     return () => clearTimeout(printTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -609,20 +613,16 @@ export default function EditorStep({
                       </div>
                     </div>
                   </div>
-
-                  {/* Subtle Status Tag inside bottom of aesthetic stage */}
-                  <span
-                    className={`mt-1 text-[10px] font-mono uppercase tracking-widest ${
-                      activeBackdrop.isDark ? "text-pink-200/80" : "text-[#8B7180]"
-                    }`}
-                  >
-                    {isPrinting
-                      ? "Printing photo strip..."
-                      : exportBackdrop === "none"
-                        ? "Strip Polos · Ready to customize"
-                        : `${activeBackdrop.label} (${backdropRatio === "story" ? "9:16 Story" : "4:5 Feed"})`}
-                  </span>
                 </div>
+
+                {/* Subtle Status Tag outside the aesthetic backdrop box so preview stays 100% clean */}
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#8B7180]">
+                  {isPrinting
+                    ? "Printing photo strip..."
+                    : exportBackdrop === "none"
+                      ? "Strip Polos · Ready to customize"
+                      : `${activeBackdrop.label} (${backdropRatio === "story" ? "9:16 Story" : "4:5 Feed"})`}
+                </span>
 
                 {/* Quick Aesthetic Backdrop Picker (Preview + Export PNG/MP4/GIF) */}
                 {setExportBackdrop && (

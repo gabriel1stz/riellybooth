@@ -176,6 +176,7 @@ export default function RiellyBooth() {
   // Aesthetic Outer Backdrop (Preview Stage + Optional Export Composite)
   const [exportBackdrop, setExportBackdrop] = useState<ExportBackdrop>("pastel_stars");
   const [backdropRatio, setBackdropRatio] = useState<BackdropRatio>("feed");
+  const [canvasMountTick, setCanvasMountTick] = useState(0);
 
   // Preload selected HD backdrop image so PNG/MP4/GIF export is instant
   useEffect(() => {
@@ -982,12 +983,12 @@ export default function RiellyBooth() {
     }
   }, [step, isLivePhotoOn]);
 
-  // Static redraw when frame/filter/text/stickers change while Live Photo is OFF
+  // Static redraw when frame/filter/text/stickers change OR when lazy-loaded EditorStep mounts its <canvas>
   useEffect(() => {
     if (step === "editor" && (!isLivePhotoOn || !shots.some((s) => s.videoBlobUrl))) {
       renderCanvas();
     }
-  }, [step, isLivePhotoOn, shots, renderCanvas]);
+  }, [step, isLivePhotoOn, shots, renderCanvas, canvasMountTick]);
 
   // Persistent Video Animation Loop for Live Photo (NEVER destroys <video> elements when switching frames or filters!)
   useEffect(() => {
@@ -1475,6 +1476,7 @@ export default function RiellyBooth() {
             setExportBackdrop={setExportBackdrop}
             backdropRatio={backdropRatio}
             setBackdropRatio={setBackdropRatio}
+            onCanvasMount={() => setCanvasMountTick((t) => t + 1)}
             onBack={() => setStep("review")}
             onDownloadPng={handleDownloadPng}
             onDownloadVideo={handleDownloadVideo}
