@@ -14,11 +14,23 @@ import {
   X,
   Zap,
   ZapOff,
+  Grid3x3,
+  FlipHorizontal,
 } from "lucide-react";
 import { getHandLandmarker, isPeaceSignGesture } from "@/lib/gestureUtils";
 import CameraPermissionGuide from "@/components/CameraPermissionGuide";
 
 type Shot = { id: number; dataUrl: string; videoBlobUrl?: string };
+
+const LIVE_CAMERA_FILTERS = [
+  { id: "normal", label: "Normal", css: "", swatch: "linear-gradient(135deg, #FFF0F4, #F48FB1)" },
+  { id: "soft_pink", label: "Soft Pink", css: "saturate(112%) hue-rotate(-8deg) brightness(104%)", swatch: "linear-gradient(135deg, #FBCFE8, #E84D91)" },
+  { id: "digicam_ccd", label: "Digicam CCD", css: "contrast(114%) saturate(118%) sepia(14%) brightness(106%)", swatch: "linear-gradient(135deg, #FDE68A, #F59E0B)" },
+  { id: "vintage", label: "Vintage", css: "sepia(35%) contrast(108%) saturate(88%)", swatch: "linear-gradient(135deg, #D6C3A5, #92400E)" },
+  { id: "bw", label: "B&W Classic", css: "grayscale(100%) contrast(116%)", swatch: "linear-gradient(135deg, #E5E7EB, #1F2937)" },
+  { id: "film_90s", label: "90s Film", css: "sepia(18%) contrast(112%) saturate(92%) brightness(98%)", swatch: "linear-gradient(135deg, #A7F3D0, #065F46)" },
+  { id: "cool", label: "Cool Tone", css: "saturate(95%) hue-rotate(12deg) contrast(105%)", swatch: "linear-gradient(135deg, #BAE6FD, #0284C7)" },
+];
 
 type CaptureStepProps = {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -35,7 +47,7 @@ type CaptureStepProps = {
   cameraError: string | null;
   onTakeSingleShot: (
     timerDelay?: number,
-    filters?: { brightness?: number; contrast?: number; beautyGlow?: number },
+    filters?: { brightness?: number; contrast?: number; beautyGlow?: number; cssFilter?: string; mirror?: boolean },
     remoteVideoEl?: HTMLVideoElement | null
   ) => void;
   onUploadPhotos: (files: FileList) => void;
@@ -48,7 +60,7 @@ type CaptureStepProps = {
   onToggleFacingMode?: () => void;
   retakeIndex?: number | null;
   maxShots?: number;
-  onToggleSessionMode?: (mode: "standard_4" | "korean_6") => void;
+  onToggleSessionMode?: (mode: "duo_2" | "trio_3" | "standard_4" | "korean_6") => void;
 };
 
 export default function CaptureStep({
@@ -96,6 +108,12 @@ export default function CaptureStep({
   const [cameraContrast, setCameraContrast] = useState(105);
   const [beautyGlow, setBeautyGlow] = useState(0);
   const [showTuning, setShowTuning] = useState(false);
+
+  // Live Camera Filter, Mirror, and 3x3 Grid Guide
+  const [liveFilterId, setLiveFilterId] = useState<string>("normal");
+  const [isMirrored, setIsMirrored] = useState<boolean>(true);
+  const [showGrid, setShowGrid] = useState<boolean>(false);
+  const activeLiveFilter = LIVE_CAMERA_FILTERS.find((f) => f.id === liveFilterId) || LIVE_CAMERA_FILTERS[0];
 
   // Modals
   const [showPermissionGuide, setShowPermissionGuide] = useState(false);
@@ -171,6 +189,8 @@ export default function CaptureStep({
                     brightness: cameraBrightness,
                     contrast: cameraContrast,
                     beautyGlow,
+                    cssFilter: activeLiveFilter.css,
+                    mirror: facingMode === "user" ? isMirrored : false,
                   },
                   remoteEl
                 );
@@ -214,6 +234,11 @@ export default function CaptureStep({
     cameraBrightness,
     cameraContrast,
     beautyGlow,
+    activeLiveFilter.css,
+    isMirrored,
+    facingMode,
+    remoteStream,
+    remoteVideoRef,
   ]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -236,6 +261,8 @@ export default function CaptureStep({
       brightness: cameraBrightness,
       contrast: cameraContrast,
       beautyGlow,
+      cssFilter: activeLiveFilter.css,
+      mirror: facingMode === "user" ? isMirrored : false,
     };
     const remoteEl = remoteStream && remoteVideoRef?.current ? remoteVideoRef.current : null;
 
@@ -284,8 +311,8 @@ export default function CaptureStep({
         <div className="flex items-center gap-2.5">
           <span
             className={`px-3.5 py-1 font-heading font-bold text-xs sm:text-sm rounded-full shadow-xs tracking-wider ${retakeIndex !== null && retakeIndex !== undefined
-                ? "bg-amber-500 text-white animate-pulse"
-                : "bg-[#E84D91] text-white"
+              ? "bg-amber-500 text-white animate-pulse"
+              : "bg-[#E84D91] text-white"
               }`}
           >
             {retakeIndex !== null && retakeIndex !== undefined
@@ -311,8 +338,8 @@ export default function CaptureStep({
               onClick={onToggleFlash}
               disabled={isCapturing}
               className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${isFlashOn
-                  ? "bg-amber-400 text-[#392633] border-amber-500"
-                  : "bg-white text-[#8B7180] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                ? "bg-amber-400 text-[#392633] border-amber-500"
+                : "bg-white text-[#8B7180] border-[#E9B8CA] hover:bg-[#FFF0F4]"
                 }`}
               title={isFlashOn ? "Matikan Flash Kamera" : "Nyalakan Flash Kamera"}
             >
@@ -321,13 +348,42 @@ export default function CaptureStep({
             </button>
           )}
 
+          {/* Mirror Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsMirrored((v) => !v)}
+            disabled={isCapturing}
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${isMirrored
+              ? "bg-[#FFF0F4] text-[#E84D91] border-[#F48FB1]"
+              : "bg-white text-[#8B7180] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+              }`}
+            title="Mirror Kamera ON/OFF"
+          >
+            <FlipHorizontal className="w-3.5 h-3.5" />
+            <span>Mirror {isMirrored ? "ON" : "OFF"}</span>
+          </button>
+
+          {/* 3x3 Rule-of-Thirds Grid Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowGrid((v) => !v)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${showGrid
+              ? "bg-[#392633] text-white border-[#392633]"
+              : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+              }`}
+            title="Garis Bantu Grid 3x3"
+          >
+            <Grid3x3 className="w-3.5 h-3.5" />
+            <span>Grid</span>
+          </button>
+
           {/* Camera Tuning Dropdown Trigger */}
           <button
             type="button"
             onClick={() => setShowTuning((v) => !v)}
             className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${showTuning
-                ? "bg-[#E84D91] text-white border-[#E84D91]"
-                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+              ? "bg-[#E84D91] text-white border-[#E84D91]"
+              : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
               }`}
             title="Tuning Kecerahan & Glow"
           >
@@ -362,8 +418,8 @@ export default function CaptureStep({
             }}
             disabled={isCapturing}
             className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${triggerMode === "gesture" && gestureEnabled
-                ? "bg-[#E84D91] text-white border-[#E84D91]"
-                : "bg-stone-100 text-stone-500 border-stone-300"
+              ? "bg-[#E84D91] text-white border-[#E84D91]"
+              : "bg-stone-100 text-stone-500 border-stone-300"
               }`}
           >
             <Hand className="w-3.5 h-3.5" />
@@ -449,8 +505,8 @@ export default function CaptureStep({
               setGestureEnabled(true);
             }}
             className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${triggerMode === "gesture"
-                ? "bg-[#E84D91] text-white shadow-xs"
-                : "text-[#8B7180] hover:bg-[#FFF0F4]"
+              ? "bg-[#E84D91] text-white shadow-xs"
+              : "text-[#8B7180] hover:bg-[#FFF0F4]"
               }`}
           >
             <span>Auto Peace</span>
@@ -460,8 +516,8 @@ export default function CaptureStep({
             type="button"
             onClick={() => setTriggerMode("timer_3")}
             className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${triggerMode === "timer_3"
-                ? "bg-[#E84D91] text-white shadow-xs"
-                : "text-[#8B7180] hover:bg-[#FFF0F4]"
+              ? "bg-[#E84D91] text-white shadow-xs"
+              : "text-[#8B7180] hover:bg-[#FFF0F4]"
               }`}
           >
             <span>Timer 3s</span>
@@ -471,8 +527,8 @@ export default function CaptureStep({
             type="button"
             onClick={() => setTriggerMode("timer_5")}
             className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${triggerMode === "timer_5"
-                ? "bg-[#E84D91] text-white shadow-xs"
-                : "text-[#8B7180] hover:bg-[#FFF0F4]"
+              ? "bg-[#E84D91] text-white shadow-xs"
+              : "text-[#8B7180] hover:bg-[#FFF0F4]"
               }`}
           >
             <span>Timer 5s</span>
@@ -482,39 +538,39 @@ export default function CaptureStep({
             type="button"
             onClick={() => setTriggerMode("instant")}
             className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${triggerMode === "instant"
-                ? "bg-[#E84D91] text-white shadow-xs"
-                : "text-[#8B7180] hover:bg-[#FFF0F4]"
+              ? "bg-[#E84D91] text-white shadow-xs"
+              : "text-[#8B7180] hover:bg-[#FFF0F4]"
               }`}
           >
             <span>Instan</span>
           </button>
         </div>
 
-        {/* Korean Mode Switcher (4 Pose vs Ambil 6 Pilih 4) */}
+        {/* Pre-Capture Pose Count Visual Picker (2 / 3 / 4 / 6 KR) */}
         {onToggleSessionMode && (
-          <div className="inline-flex bg-[#FFF9F0] p-1 rounded-2xl border-2 border-[#E9B8CA] shadow-xs gap-1">
-            <button
-              type="button"
-              onClick={() => onToggleSessionMode("standard_4")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer ${maxShots === 4
+          <div className="inline-flex bg-[#FFF9F0] p-1 rounded-2xl border-2 border-[#E9B8CA] shadow-xs gap-1 max-w-full overflow-x-auto">
+            {[
+              { id: "duo_2", count: 2, label: "2 Pose" },
+              { id: "trio_3", count: 3, label: "3 Pose" },
+              { id: "standard_4", count: 4, label: "4 Pose" },
+              { id: "korean_6", count: 6, label: "6 Pose", badge: "KR" },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                disabled={shotsCount > 0 || isCapturing}
+                onClick={() => onToggleSessionMode(opt.id as "duo_2" | "trio_3" | "standard_4" | "korean_6")}
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer flex items-center gap-1 whitespace-nowrap disabled:opacity-50 ${maxShots === opt.count
                   ? "bg-[#E84D91] text-white shadow-xs"
                   : "text-[#8B7180] hover:bg-[#FFF0F4]"
-                }`}
-            >
-              <span>4 Pose</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onToggleSessionMode("korean_6")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition cursor-pointer flex items-center gap-1.5 ${maxShots === 6
-                  ? "bg-[#E84D91] text-white shadow-xs"
-                  : "text-[#8B7180] hover:bg-[#FFF0F4]"
-                }`}
-              title="Gaya photobooth Korea: ambil 6 foto lalu pilih 4 terbaik"
-            >
-              <span>Ambil 6 (Pilih 4)</span>
-              <span className="px-1.5 py-0.2 bg-white/20 rounded text-[9px] uppercase">KR</span>
-            </button>
+                  }`}
+              >
+                <span>{opt.label}</span>
+                {opt.badge && (
+                  <span className="px-1 py-0.2 bg-white/20 rounded text-[9px] uppercase">{opt.badge}</span>
+                )}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -576,10 +632,23 @@ export default function CaptureStep({
                   playsInline
                   muted
                   style={{
-                    filter: `brightness(${cameraBrightness}%) contrast(${cameraContrast}%)`,
+                    filter: `brightness(${cameraBrightness}%) contrast(${cameraContrast}%) ${activeLiveFilter.css}`.trim(),
                   }}
-                  className={`w-full h-full object-cover ${facingMode === "user" ? "-scale-x-100" : ""}`}
+                  className={`w-full h-full object-cover ${facingMode === "user" && isMirrored ? "-scale-x-100" : ""}`}
                 />
+                {showGrid && (
+                  <div className="absolute inset-0 pointer-events-none z-20 grid grid-cols-3 grid-rows-3">
+                    <div className="border-r border-b border-white/35" />
+                    <div className="border-r border-b border-white/35" />
+                    <div className="border-b border-white/35" />
+                    <div className="border-r border-b border-white/35" />
+                    <div className="border-r border-b border-white/35" />
+                    <div className="border-b border-white/35" />
+                    <div className="border-r border-white/35" />
+                    <div className="border-r border-white/35" />
+                    <div />
+                  </div>
+                )}
                 {remoteStream && (
                   <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/80 text-[10px] font-heading font-bold text-white rounded-md z-10">
                     Kamu 👤
@@ -622,7 +691,7 @@ export default function CaptureStep({
             {/* Real-time AR Face Filter Overlay Canvas */}
             <canvas
               ref={activeArCanvasRef}
-              className={`absolute inset-0 w-full h-full object-cover pointer-events-none z-20 ${facingMode === "user" ? "-scale-x-100" : ""
+              className={`absolute inset-0 w-full h-full object-cover pointer-events-none z-20 ${facingMode === "user" && isMirrored ? "-scale-x-100" : ""
                 }`}
             />
 
@@ -659,6 +728,35 @@ export default function CaptureStep({
         )}
       </div>
 
+      {/* LIVE CAMERA FILTER CAROUSEL */}
+      <div className="w-full max-w-3xl bg-[#FFF9F0] border-2 border-[#E9B8CA] rounded-2xl p-2.5 shadow-paper">
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+          <span className="text-[10px] font-heading font-bold uppercase tracking-wider text-[#8B7180] px-1.5 shrink-0">
+            Live Filter
+          </span>
+          {LIVE_CAMERA_FILTERS.map((flt) => {
+            const active = liveFilterId === flt.id;
+            return (
+              <button
+                key={flt.id}
+                type="button"
+                onClick={() => setLiveFilterId(flt.id)}
+                className={`px-2.5 py-1.5 rounded-full text-[11px] font-heading font-bold transition flex items-center gap-1.5 shrink-0 border cursor-pointer ${active
+                  ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                  : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                  }`}
+              >
+                <span
+                  className="w-3.5 h-3.5 rounded-full border border-white/80 shrink-0 shadow-xs"
+                  style={{ background: flt.swatch }}
+                />
+                <span>{flt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* PHOTO STRIP TRACKER THUMBNAILS */}
       <div className="flex items-center justify-center gap-2.5 py-1 select-none">
         {Array.from({ length: maxShots }).map((_, idx) => {
@@ -669,12 +767,12 @@ export default function CaptureStep({
             <div key={idx} className="flex flex-col items-center gap-1">
               <div
                 className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 flex items-center justify-center overflow-hidden transition-all duration-300 shadow-paper ${isRetakeTarget
-                    ? "border-amber-500 bg-amber-100 ring-4 ring-amber-300 animate-pulse scale-105"
-                    : shot
-                      ? "border-[#E84D91] bg-white scale-105"
-                      : isActive
-                        ? "border-[#F48FB1] bg-[#FFF0F4] ring-4 ring-[#F8D8E3] animate-pulse"
-                        : "border-[#E9B8CA] bg-[#FFF9F0] text-[#8B7180]"
+                  ? "border-amber-500 bg-amber-100 ring-4 ring-amber-300 animate-pulse scale-105"
+                  : shot
+                    ? "border-[#E84D91] bg-white scale-105"
+                    : isActive
+                      ? "border-[#F48FB1] bg-[#FFF0F4] ring-4 ring-[#F8D8E3] animate-pulse"
+                      : "border-[#E9B8CA] bg-[#FFF9F0] text-[#8B7180]"
                   }`}
               >
                 {shot ? (
@@ -685,10 +783,10 @@ export default function CaptureStep({
               </div>
               <span
                 className={`text-[10px] font-heading font-semibold ${isRetakeTarget
-                    ? "text-amber-600 font-bold"
-                    : shot
-                      ? "text-[#E84D91]"
-                      : "text-[#8B7180]"
+                  ? "text-amber-600 font-bold"
+                  : shot
+                    ? "text-[#E84D91]"
+                    : "text-[#8B7180]"
                   }`}
               >
                 #{idx + 1} {isRetakeTarget ? "(Ulang)" : ""}

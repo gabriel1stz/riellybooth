@@ -141,6 +141,22 @@
   box-shadow: 0 1px 0 #E84D91;
 }
 
+/* Photobooth Print Dispenser Drop Animation */
+@keyframes printDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-38px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-print-drop {
+  animation: printDrop 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 /* Prefers Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
 

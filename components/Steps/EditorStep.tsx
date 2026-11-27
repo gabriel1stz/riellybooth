@@ -21,7 +21,7 @@ import {
   X,
   Heart,
 } from "lucide-react";
-import { LayoutMode, FramePreset, CuteFilter, FontFamily, FilterState, PlacedSticker } from "@/lib/canvasUtils";
+import { LayoutMode, FramePreset, CuteFilter, FontFamily, FilterState, PlacedSticker, PhotoShape, FramePattern } from "@/lib/canvasUtils";
 import ColorPicker from "../UI/ColorPicker";
 import Slider from "../UI/Slider";
 
@@ -69,7 +69,12 @@ type EditorStepProps = {
   setIsLivePhotoOn: (val: boolean) => void;
   placedStickers: PlacedSticker[];
   onAddSticker: (emoji: string) => void;
+  onApplyStickerPack?: (stickers: PlacedSticker[]) => void;
   onClearStickers: () => void;
+  photoShape?: PhotoShape;
+  setPhotoShape?: (shape: PhotoShape) => void;
+  framePattern?: FramePattern;
+  setFramePattern?: (pattern: FramePattern) => void;
   onUpdateStickerPos?: (id: string, x: number, y: number) => void;
   onUpdateStickerTransform?: (id: string, scale: number, rotation: number) => void;
   onDeleteSticker?: (id: string) => void;
@@ -117,7 +122,12 @@ export default function EditorStep({
   setIsLivePhotoOn,
   placedStickers,
   onAddSticker,
+  onApplyStickerPack,
   onClearStickers,
+  photoShape = "rounded",
+  setPhotoShape,
+  framePattern = "none",
+  setFramePattern,
   onUpdateStickerPos,
   onUpdateStickerTransform,
   onDeleteSticker,
@@ -429,8 +439,8 @@ export default function EditorStep({
             type="button"
             onClick={() => setIsFlipped((v) => !v)}
             className={`px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border-2 shadow-xs cursor-pointer ${isFlipped
-                ? "bg-[#E84D91] text-white border-[#E84D91]"
-                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+              ? "bg-[#E84D91] text-white border-[#E84D91]"
+              : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
               }`}
             title="Cermin Horisontal"
           >
@@ -443,8 +453,8 @@ export default function EditorStep({
             type="button"
             onClick={() => setIsLivePhotoOn(!isLivePhotoOn)}
             className={`px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border-2 shadow-xs cursor-pointer ${isLivePhotoOn
-                ? "bg-[#E84D91] text-white border-[#E84D91]"
-                : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+              ? "bg-[#E84D91] text-white border-[#E84D91]"
+              : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
               }`}
           >
             <Video className="w-4 h-4" />
@@ -493,71 +503,81 @@ export default function EditorStep({
                 );
               })()}
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                  isLivePhotoOn
+                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${isLivePhotoOn
                     ? "bg-[#E84D91] text-white border-[#E84D91]"
                     : "bg-white text-[#8B7180] border-[#E9B8CA]"
-                }`}
+                  }`}
               >
                 LIVE {isLivePhotoOn ? "ON" : "OFF"}
               </span>
             </div>
           </div>
 
-          <div
-            ref={containerRef}
-            className="relative w-full max-w-sm sm:max-w-md mx-auto p-4 flex items-center justify-center bg-white border-2 border-[#E9B8CA] rounded-3xl shadow-polaroid overflow-hidden cursor-grab active:cursor-grabbing select-none"
-            onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
-            onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
-            onMouseUp={handlePointerUp}
-            onTouchStart={(e) => {
-              if (e.touches.length > 0) {
-                handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
-              }
-            }}
-            onTouchMove={(e) => {
-              if (e.touches.length > 0) {
-                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
-              }
-            }}
-            onTouchEnd={handlePointerUp}
-          >
-            {/* Anti-Flicker Smooth Overlay Loader */}
-            {isUpdatingCanvas && (
-              <div className="absolute inset-0 bg-white/85 z-40 flex items-center justify-center gap-2 pointer-events-none transition-opacity duration-150">
-                <Sparkles className="w-5 h-5 text-[#E84D91] animate-spin" />
-                <span className="text-xs font-heading font-bold text-[#392633]">Memperbarui Tampilan...</span>
+          {/* Vintage Photobooth Print Dispenser Slot */}
+          <div className="w-full max-w-sm sm:max-w-md mx-auto flex flex-col items-center">
+            <div className="w-4/5 h-3 bg-[#392633] rounded-t-xl border-x-2 border-t-2 border-[#E9B8CA] flex items-center justify-center shadow-inner">
+              <div className="w-3/4 h-1 bg-stone-900 rounded-full" />
+            </div>
+            <div className="w-full -mt-1">
+              <div
+                ref={containerRef}
+                className="relative w-full p-4 flex items-center justify-center bg-white border-2 border-[#E9B8CA] rounded-3xl shadow-polaroid overflow-hidden cursor-grab active:cursor-grabbing select-none animate-print-drop"
+                onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
+                onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
+                onMouseUp={handlePointerUp}
+                onTouchStart={(e) => {
+                  if (e.touches.length > 0) {
+                    handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+                  }
+                }}
+                onTouchMove={(e) => {
+                  if (e.touches.length > 0) {
+                    handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+                  }
+                }}
+                onTouchEnd={handlePointerUp}
+              >
+                {/* Anti-Flicker Smooth Overlay Loader */}
+                {isUpdatingCanvas && (
+                  <div className="absolute inset-0 bg-white/85 z-40 flex items-center justify-center gap-2 pointer-events-none transition-opacity duration-150">
+                    <Sparkles className="w-5 h-5 text-[#E84D91] animate-spin" />
+                    <span className="text-xs font-heading font-bold text-[#392633]">Memperbarui Tampilan...</span>
+                  </div>
+                )}
+
+                <canvas
+                  ref={canvasRef}
+                  className="max-w-full max-h-[40vh] sm:max-h-[500px] w-auto h-auto object-contain rounded-xl shadow-inner pointer-events-none"
+                />
+
+                {/* DELETE (X) BADGE OVER SELECTED STICKER ON CANVAS OVERLAY */}
+                {selectedSticker && (() => {
+                  const domPos = getDOMPos(selectedSticker.x, selectedSticker.y);
+                  if (!domPos) return null;
+                  return (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onDeleteSticker) onDeleteSticker(selectedSticker.id);
+                        setSelectedStickerId(null);
+                      }}
+                      style={{
+                        left: `${domPos.left + 15}px`,
+                        top: `${domPos.top - 15}px`,
+                      }}
+                      className="absolute z-50 p-1 bg-[#E84D91] hover:bg-[#F48FB1] text-white rounded-full shadow-lg border border-white transition transform hover:scale-110 active:scale-95 cursor-pointer"
+                      title="Hapus Stiker Ini (x)"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  );
+                })()}
               </div>
-            )}
-
-            <canvas
-              ref={canvasRef}
-              className="max-w-full max-h-[40vh] sm:max-h-[500px] w-auto h-auto object-contain rounded-xl shadow-inner pointer-events-none"
-            />
-
-            {/* DELETE (X) BADGE OVER SELECTED STICKER ON CANVAS OVERLAY */}
-            {selectedSticker && (() => {
-              const domPos = getDOMPos(selectedSticker.x, selectedSticker.y);
-              if (!domPos) return null;
-              return (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onDeleteSticker) onDeleteSticker(selectedSticker.id);
-                    setSelectedStickerId(null);
-                  }}
-                  style={{
-                    left: `${domPos.left + 15}px`,
-                    top: `${domPos.top - 15}px`,
-                  }}
-                  className="absolute z-50 p-1 bg-[#E84D91] hover:bg-[#F48FB1] text-white rounded-full shadow-lg border border-white transition transform hover:scale-110 active:scale-95 cursor-pointer"
-                  title="Hapus Stiker Ini (x)"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              );
-            })()}
+            </div>
+            <span className="mt-1.5 text-[10px] font-mono uppercase tracking-widest text-[#8B7180]">
+              Printed in 0.0s · Ready to customize
+            </span>
           </div>
 
           <p className="hidden lg:block text-[11px] font-sans font-medium text-[#8B7180] text-center">
@@ -573,8 +593,8 @@ export default function EditorStep({
               type="button"
               onClick={() => setActiveTab("layout")}
               className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-heading font-bold transition flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer ${activeTab === "layout"
-                  ? "bg-[#E84D91] text-white shadow-xs"
-                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
+                ? "bg-[#E84D91] text-white shadow-xs"
+                : "text-[#8B7180] hover:bg-[#FFF9F0]"
                 }`}
             >
               <Layout className="w-3.5 h-3.5" /> Layout & Swap
@@ -583,8 +603,8 @@ export default function EditorStep({
               type="button"
               onClick={() => setActiveTab("frame")}
               className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-heading font-bold transition flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer ${activeTab === "frame"
-                  ? "bg-[#E84D91] text-white shadow-xs"
-                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
+                ? "bg-[#E84D91] text-white shadow-xs"
+                : "text-[#8B7180] hover:bg-[#FFF9F0]"
                 }`}
             >
               <Palette className="w-3.5 h-3.5" /> Bingkai & Warna
@@ -593,8 +613,8 @@ export default function EditorStep({
               type="button"
               onClick={() => setActiveTab("filter")}
               className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-heading font-bold transition flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer ${activeTab === "filter"
-                  ? "bg-[#E84D91] text-white shadow-xs"
-                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
+                ? "bg-[#E84D91] text-white shadow-xs"
+                : "text-[#8B7180] hover:bg-[#FFF9F0]"
                 }`}
             >
               <Wand2 className="w-3.5 h-3.5" /> Filter Warna
@@ -603,8 +623,8 @@ export default function EditorStep({
               type="button"
               onClick={() => setActiveTab("stickers")}
               className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-heading font-bold transition flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer ${activeTab === "stickers"
-                  ? "bg-[#E84D91] text-white shadow-xs"
-                  : "text-[#8B7180] hover:bg-[#FFF9F0]"
+                ? "bg-[#E84D91] text-white shadow-xs"
+                : "text-[#8B7180] hover:bg-[#FFF9F0]"
                 }`}
             >
               <Sparkles className="w-3.5 h-3.5" /> Stiker & Logo
@@ -622,6 +642,7 @@ export default function EditorStep({
                     { id: "newspaper_grid", label: "Newspaper Grid" },
                     { id: "strip_1x4", label: "Strip 1x4" },
                     { id: "strip_3cut", label: "Strip 3-Cut" },
+                    { id: "strip_2", label: "Strip 2-Cut" },
                     { id: "grid_2x2", label: "Grid 2x2" },
                     { id: "purikura_4cut", label: "Purikura 4-Cut" },
                     { id: "y2k_checker", label: "Y2K Checker Strip" },
@@ -634,8 +655,8 @@ export default function EditorStep({
                       type="button"
                       onClick={() => setLayout(item.id as LayoutMode)}
                       className={`py-2 px-2 rounded-xl text-[11px] font-heading font-bold border-2 transition cursor-pointer ${layout === item.id
-                          ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
-                          : "bg-[#FFF9F0] text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                        ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                        : "bg-[#FFF9F0] text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
                         }`}
                     >
                       {item.label}
@@ -659,8 +680,8 @@ export default function EditorStep({
                         type="button"
                         onClick={() => onSwapPhotos(idx)}
                         className={`relative aspect-square rounded-xl overflow-hidden border-2 transition cursor-pointer ${selectedForSwap === idx
-                            ? "border-[#E84D91] ring-4 ring-[#F8D8E3] scale-105"
-                            : "border-[#E9B8CA] hover:border-[#E84D91]"
+                          ? "border-[#E84D91] ring-4 ring-[#F8D8E3] scale-105"
+                          : "border-[#E9B8CA] hover:border-[#E84D91]"
                           }`}
                       >
                         <img src={shot.dataUrl} alt={`Pos #${idx + 1}`} className="w-full h-full object-cover" />
@@ -700,8 +721,8 @@ export default function EditorStep({
                       type="button"
                       onClick={() => setPresetCategory(cat.id as any)}
                       className={`px-3 py-1 rounded-xl text-xs font-heading font-bold transition whitespace-nowrap cursor-pointer ${presetCategory === cat.id
-                          ? "bg-[#392633] text-white shadow-xs"
-                          : "bg-white text-[#8B7180] border border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                        ? "bg-[#392633] text-white shadow-xs"
+                        : "bg-white text-[#8B7180] border border-[#E9B8CA] hover:bg-[#FFF0F4]"
                         }`}
                     >
                       {cat.label}
@@ -791,8 +812,8 @@ export default function EditorStep({
                           }
                         }}
                         className={`py-2 px-2.5 rounded-xl text-xs font-heading font-bold border-2 transition cursor-pointer ${preset === item.id
-                            ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
-                            : "bg-[#FFF9F0] text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                          ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                          : "bg-[#FFF9F0] text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
                           }`}
                       >
                         {item.label}
@@ -806,6 +827,62 @@ export default function EditorStep({
                 value={frameColor}
                 onChange={setFrameColor}
               />
+
+              {/* Patterned Frame Swatches */}
+              {setFramePattern && (
+                <div className="space-y-2 pt-1">
+                  <label className="text-xs font-heading font-bold text-[#392633]">Pola Latar Bingkai (Pattern):</label>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                    {[
+                      { id: "none", label: "Solid" },
+                      { id: "gingham", label: "Gingham" },
+                      { id: "polkadot", label: "Polkadot" },
+                      { id: "stripes", label: "Stripes" },
+                      { id: "checker", label: "Checker" },
+                      { id: "grid", label: "Grid" },
+                    ].map((pat) => (
+                      <button
+                        key={pat.id}
+                        type="button"
+                        onClick={() => setFramePattern(pat.id as FramePattern)}
+                        className={`py-1.5 px-2 rounded-xl text-[11px] font-heading font-bold border-2 transition cursor-pointer ${framePattern === pat.id
+                          ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                          : "bg-[#FFF9F0] text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                          }`}
+                      >
+                        {pat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Photo Shape Cutout Mask */}
+              {setPhotoShape && (
+                <div className="space-y-2 pt-1">
+                  <label className="text-xs font-heading font-bold text-[#392633]">Bentuk Potongan Foto (Shape):</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { id: "rounded", label: "Rounded" },
+                      { id: "rect", label: "Sharp" },
+                      { id: "circle", label: "Oval" },
+                      { id: "heart", label: "Heart" },
+                    ].map((sh) => (
+                      <button
+                        key={sh.id}
+                        type="button"
+                        onClick={() => setPhotoShape(sh.id as PhotoShape)}
+                        className={`py-2 px-2 rounded-xl text-xs font-heading font-bold border-2 transition cursor-pointer ${photoShape === sh.id
+                          ? "bg-[#392633] text-white border-[#392633] shadow-xs"
+                          : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                          }`}
+                      >
+                        {sh.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -817,6 +894,7 @@ export default function EditorStep({
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { id: "none", label: "Original" },
+                    { id: "digicam_ccd", label: "Digicam CCD" },
                     { id: "soft_pink", label: "Soft Pink" },
                     { id: "warm_cafe", label: "Warm Cafe" },
                     { id: "cyber_glow", label: "Cyber Glow" },
@@ -831,8 +909,8 @@ export default function EditorStep({
                       type="button"
                       onClick={() => setCuteFilter(item.id as CuteFilter)}
                       className={`py-2 px-2 rounded-xl text-[11px] font-heading font-bold border-2 transition cursor-pointer ${cuteFilter === item.id
-                          ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
-                          : "bg-[#FFF9F0] text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                        ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                        : "bg-[#FFF9F0] text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
                         }`}
                     >
                       {item.label}
@@ -925,6 +1003,58 @@ export default function EditorStep({
                     value={selectedSticker.rotation || 0}
                     onChange={(val) => onUpdateStickerTransform(selectedSticker.id, selectedSticker.scale || 1, val)}
                   />
+                </div>
+              )}
+
+              {/* ONE-CLICK CURATED STICKER PACKS */}
+              {onApplyStickerPack && (
+                <div className="space-y-2 bg-[#FFF9F0] border-2 border-[#E9B8CA] p-3.5 rounded-2xl">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-heading font-bold text-[#392633]">
+                      Paket Stiker Instan (1-Klik):
+                    </span>
+                    <span className="text-[10px] font-mono text-[#8B7180] uppercase">Quick Decor</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { id: "none", label: "No Stickers", emojis: [] as string[] },
+                      { id: "coquette", label: "Coquette Ribbon", emojis: ["🎀", "🌸", "💖", "🎀"] },
+                      { id: "y2k", label: "Y2K Stars", emojis: ["✨", "🦋", "⭐", "💫"] },
+                      { id: "cafe", label: "Cafe Cute", emojis: ["☕", "🥐", "🧸", "🧁"] },
+                      { id: "retro", label: "Retro Stamp", emojis: ["🍒", "🕶️", "✌️", "👑"] },
+                    ].map((pack) => (
+                      <button
+                        key={pack.id}
+                        type="button"
+                        onClick={() => {
+                          if (pack.emojis.length === 0) {
+                            onApplyStickerPack([]);
+                            return;
+                          }
+                          const cw = canvasRef.current?.width || 600;
+                          const ch = canvasRef.current?.height || 1800;
+                          const anchors: Array<[number, number, number]> = [
+                            [0.14, 0.09, -12],
+                            [0.86, 0.28, 12],
+                            [0.14, 0.54, -10],
+                            [0.86, 0.76, 14],
+                          ];
+                          const scaledStickers: PlacedSticker[] = pack.emojis.map((emoji, idx) => ({
+                            id: `pk-${pack.id}-${idx}-${Date.now()}`,
+                            emoji,
+                            x: Math.round(cw * anchors[idx][0]),
+                            y: Math.round(ch * anchors[idx][1]),
+                            scale: cw >= 1000 ? 1.25 : 1.05,
+                            rotation: anchors[idx][2],
+                          }));
+                          onApplyStickerPack(scaledStickers);
+                        }}
+                        className="px-3 py-1.5 rounded-full text-[11px] font-heading font-bold bg-white hover:bg-[#FFF0F4] text-[#392633] hover:text-[#E84D91] border-2 border-[#E9B8CA] hover:border-[#E84D91] transition cursor-pointer"
+                      >
+                        {pack.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -1032,8 +1162,8 @@ export default function EditorStep({
                       type="button"
                       onClick={() => setSelectedStickerPack(pack.id)}
                       className={`px-3 py-1 rounded-full text-xs font-heading font-bold whitespace-nowrap transition border cursor-pointer ${selectedStickerPack === pack.id
-                          ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
-                          : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                        ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                        : "bg-white text-[#392633] border-[#E9B8CA] hover:bg-[#FFF0F4]"
                         }`}
                     >
                       {pack.name}

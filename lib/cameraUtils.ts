@@ -69,7 +69,7 @@ export const captureCanvasSnapshot = (
   videoEl: HTMLVideoElement,
   mirror: boolean = false,
   arCanvasEl?: HTMLCanvasElement | null,
-  filters?: { brightness?: number; contrast?: number; beautyGlow?: number },
+  filters?: { brightness?: number; contrast?: number; beautyGlow?: number; cssFilter?: string },
   remoteVideoEl?: HTMLVideoElement | null
 ): string => {
   const canvas = document.createElement("canvas");
@@ -85,38 +85,54 @@ export const captureCanvasSnapshot = (
   if (filters) {
     const b = filters.brightness ?? 100;
     const c = filters.contrast ?? 100;
-    ctx.filter = `brightness(${b}%) contrast(${c}%)`;
+    const extra = filters.cssFilter ? ` ${filters.cssFilter}` : "";
+    ctx.filter = `brightness(${b}%) contrast(${c}%)${extra}`;
   }
 
-  if (remoteVideoEl && remoteVideoEl.readyState >= 2) {
-    // LDR SPLIT-SCREEN COMPOSITE: Left Half = Local, Right Half = Remote
-    const halfW = width / 2;
-
-    // Draw Left (Local User)
+  const drawCoverVideo = (
+    vid: HTMLVideoElement,
+    dx: number,
+    dy: number,
+    dw: number,
+    dh: number,
+    flipX: boolean
+  ) => {
+    const svw = vid.videoWidth || dw;
+    const svh = vid.videoHeight || dh;
+    const srcRatio = svw / svh;
+    const dstRatio = dw / dh;
+    let sx = 0, sy = 0, sw = svw, sh = svh;
+    if (srcRatio > dstRatio) {
+      sw = svh * dstRatio;
+      sx = (svw - sw) / 2;
+    } else {
+      sh = svw / dstRatio;
+      sy = (svh - sh) / 2;
+    }
     ctx.save();
     ctx.beginPath();
-    ctx.rect(0, 0, halfW, height);
+    ctx.rect(dx, dy, dw, dh);
     ctx.clip();
-    if (mirror) {
-      ctx.translate(halfW, 0);
+    if (flipX) {
+      ctx.translate(dx + dw, dy);
       ctx.scale(-1, 1);
-      ctx.drawImage(videoEl, 0, 0, halfW, height);
+      ctx.drawImage(vid, sx, sy, sw, sh, 0, 0, dw, dh);
     } else {
-      ctx.drawImage(videoEl, 0, 0, halfW, height);
+      ctx.drawImage(vid, sx, sy, sw, sh, dx, dy, dw, dh);
     }
     ctx.restore();
+  };
 
-    // Draw Right (Remote Partner)
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(halfW, 0, halfW, height);
-    ctx.clip();
-    ctx.drawImage(remoteVideoEl, halfW, 0, halfW, height);
-    ctx.restore();
+  if (remoteVideoEl && remoteVideoEl.readyState >= 2) {
+    // LDR SPLIT-SCREEN COMPOSITE: Left Half = Local, Right Half = Remote (aspect-preserved cover crop)
+    const halfW = width / 2;
+    drawCoverVideo(videoEl, 0, 0, halfW, height, mirror);
+    drawCoverVideo(remoteVideoEl, halfW, 0, halfW, height, false);
 
-    // Subtle pink heart divider line
+    // Subtle pink divider line
     ctx.save();
-    ctx.strokeStyle = "rgba(244, 114, 182, 0.8)";
+    ctx.filter = "none";
+    ctx.strokeStyle = "rgba(232, 77, 145, 0.85)";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(halfW, 0);

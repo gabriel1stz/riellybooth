@@ -79,10 +79,111 @@ export type CuteFilter =
   | "warm_cafe"
   | "cyber_glow"
   | "vintage_90s"
+  | "digicam_ccd"
   | "pixel"
   | "thermal"
   | "pop_art"
   | "vhs";
+
+export type PhotoShape = "rounded" | "rect" | "circle" | "heart";
+
+export type FramePattern = "none" | "gingham" | "polkadot" | "stripes" | "checker" | "grid";
+
+let currentPhotoShape: PhotoShape = "rounded";
+
+function tracePhotoShapePath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  borderRadius: number
+) {
+  ctx.beginPath();
+  if (currentPhotoShape === "rect") {
+    ctx.rect(x, y, w, h);
+  } else if (currentPhotoShape === "circle") {
+    ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+  } else if (currentPhotoShape === "heart") {
+    const cx = x + w / 2;
+    const topY = y + h * 0.26;
+    const bottomY = y + h * 0.96;
+    ctx.moveTo(cx, bottomY);
+    ctx.bezierCurveTo(x + w * 0.02, y + h * 0.62, x + w * 0.04, y + h * 0.04, cx, topY);
+    ctx.bezierCurveTo(x + w * 0.96, y + h * 0.04, x + w * 0.98, y + h * 0.62, cx, bottomY);
+    ctx.closePath();
+  } else {
+    if (borderRadius > 0) {
+      ctx.roundRect(x, y, w, h, borderRadius);
+    } else {
+      ctx.rect(x, y, w, h);
+    }
+  }
+}
+
+function drawFramePatternOverlay(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  pattern: FramePattern
+) {
+  if (pattern === "none") return;
+  ctx.save();
+  if (pattern === "gingham") {
+    const size = 44;
+    ctx.fillStyle = "rgba(232, 77, 145, 0.10)";
+    for (let x = 0; x < w; x += size * 2) {
+      ctx.fillRect(x, 0, size, h);
+    }
+    for (let y = 0; y < h; y += size * 2) {
+      ctx.fillRect(0, y, w, size);
+    }
+  } else if (pattern === "polkadot") {
+    const gap = 42;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    for (let y = 18; y < h; y += gap) {
+      const offset = Math.floor(y / gap) % 2 === 0 ? 0 : gap / 2;
+      for (let x = 18 + offset; x < w; x += gap) {
+        ctx.beginPath();
+        ctx.arc(x, y, 7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  } else if (pattern === "stripes") {
+    const stripeW = 28;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.28)";
+    for (let x = 0; x < w; x += stripeW * 2) {
+      ctx.fillRect(x, 0, stripeW, h);
+    }
+  } else if (pattern === "checker") {
+    const cell = 36;
+    ctx.fillStyle = "rgba(57, 38, 51, 0.12)";
+    for (let y = 0; y < h; y += cell) {
+      for (let x = 0; x < w; x += cell) {
+        if ((Math.floor(x / cell) + Math.floor(y / cell)) % 2 === 0) {
+          ctx.fillRect(x, y, cell, cell);
+        }
+      }
+    }
+  } else if (pattern === "grid") {
+    const cell = 32;
+    ctx.strokeStyle = "rgba(232, 77, 145, 0.16)";
+    ctx.lineWidth = 1.2;
+    for (let x = 0; x <= w; x += cell) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= h; y += cell) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
 
 export type FontFamily = "sans" | "serif" | "cursive" | "mono";
 
@@ -122,13 +223,8 @@ function drawImageCover(
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  // Strict Clipping Path around container bounds
-  ctx.beginPath();
-  if (borderRadius > 0) {
-    ctx.roundRect(x, y, w, h, borderRadius);
-  } else {
-    ctx.rect(x, y, w, h);
-  }
+  // Strict Clipping Path around container bounds (supports Rounded, Sharp, Oval/Circle, Heart)
+  tracePhotoShapePath(ctx, x, y, w, h, borderRadius);
   ctx.clip();
 
   if (isFlipped) {
@@ -187,12 +283,7 @@ function applyCuteFilterOverlay(
   ctx.save();
   ctx.globalAlpha = alphaMult;
 
-  ctx.beginPath();
-  if (borderRadius > 0) {
-    ctx.roundRect(x, y, w, h, borderRadius);
-  } else {
-    ctx.rect(x, y, w, h);
-  }
+  tracePhotoShapePath(ctx, x, y, w, h, borderRadius);
   ctx.clip();
 
   if (beautyGlow > 0) {
@@ -232,6 +323,26 @@ function applyCuteFilterOverlay(
   } else if (cuteFilter === "vintage_90s") {
     ctx.fillStyle = "rgba(120, 53, 15, 0.18)";
     ctx.globalCompositeOperation = "multiply";
+    ctx.fillRect(x, y, w, h);
+  } else if (cuteFilter === "digicam_ccd") {
+    // Authentic 2000s Sony Cybershot / Canon IXUS CCD Flash Look
+    const grad = ctx.createRadialGradient(
+      x + w / 2,
+      y + h * 0.42,
+      Math.min(w, h) * 0.08,
+      x + w / 2,
+      y + h / 2,
+      Math.max(w, h) * 0.72
+    );
+    grad.addColorStop(0, "rgba(255, 248, 225, 0.24)");
+    grad.addColorStop(0.65, "rgba(251, 191, 36, 0.08)");
+    grad.addColorStop(1, "rgba(30, 20, 15, 0.26)");
+    ctx.fillStyle = grad;
+    ctx.globalCompositeOperation = "soft-light";
+    ctx.fillRect(x, y, w, h);
+
+    ctx.fillStyle = "rgba(254, 243, 199, 0.12)";
+    ctx.globalCompositeOperation = "screen";
     ctx.fillRect(x, y, w, h);
   } else if (cuteFilter === "thermal") {
     ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
@@ -3678,10 +3789,13 @@ export const drawPhotoStrip = (
   stickers: PlacedSticker[] = [],
   isFlipped: boolean = false,
   customLogoImg?: HTMLImageElement | null,
-  customFrameOverlayImg?: HTMLImageElement | null
+  customFrameOverlayImg?: HTMLImageElement | null,
+  photoShape: PhotoShape = "rounded",
+  framePattern: FramePattern = "none"
 ): void => {
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length === 0) return;
+  currentPhotoShape = photoShape;
 
   const isNewspaper = preset === "newspaper" || layout === "newspaper_grid";
   const isPhotomaticsNews = preset === "photomatics_news" || preset === "riellmatics_news";
@@ -5901,6 +6015,11 @@ export const drawPhotoStrip = (
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   ctx.restore();
+
+  // Optional Patterned Frame Background Overlay (Gingham, Polkadot, Stripes, Checker, Grid)
+  if (framePattern !== "none" && !isNewspaper && !isDailyRielly) {
+    drawFramePatternOverlay(ctx, canvas.width, canvas.height, framePattern);
+  }
 
   // STEP 2: DRAW PHOTOS ACCORDING TO THE LAYOUT MODES WITH STRICT CLIPPING
   if (preset === "valorant_id") {

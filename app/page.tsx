@@ -9,7 +9,7 @@ import LandingStep from "@/components/Steps/LandingStep";
 import InAppBrowserBanner from "@/components/InAppBrowserBanner";
 import { createGifFromCanvas } from "@/lib/gifUtils";
 import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet, revokeBlobUrl } from "@/lib/cameraUtils";
-import { drawPhotoStrip, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker } from "@/lib/canvasUtils";
+import { drawPhotoStrip, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker, PhotoShape, FramePattern } from "@/lib/canvasUtils";
 import { playShutterSound } from "@/lib/audioUtils";
 import QRCode from "qrcode";
 import { LDRPeerManager, LDRSessionState, LDRMessage, normalizeRoomCode } from "@/lib/ldrPeerManager";
@@ -89,6 +89,8 @@ export default function RiellyBooth() {
   const [selectedForSwap, setSelectedForSwap] = useState<number | null>(null);
   const [frameColor, setFrameColor] = useState("#fce7f3");
   const [textColor, setTextColor] = useState("#db2777");
+  const [photoShape, setPhotoShape] = useState<PhotoShape>("rounded");
+  const [framePattern, setFramePattern] = useState<FramePattern>("none");
   const [filter, setFilter] = useState<FilterState>({
     brightness: 100,
     contrast: 100,
@@ -100,12 +102,19 @@ export default function RiellyBooth() {
   const [isExportingVideo, setIsExportingVideo] = useState(false);
   const [isExportingGif, setIsExportingGif] = useState(false);
 
-  // Session Mode: Standard 4 Shots vs Korean Haru Film (Ambil 6, Pilih 4)
-  const [sessionMode, setSessionMode] = useState<"standard_4" | "korean_6">("standard_4");
-  const sessionModeRef = useRef<"standard_4" | "korean_6">("standard_4");
+  // Session Mode: 2 Pose, 3 Pose, 4 Pose, or Korean 6-Take-Pick-4
+  const [sessionMode, setSessionMode] = useState<"duo_2" | "trio_3" | "standard_4" | "korean_6">("standard_4");
+  const sessionModeRef = useRef<"duo_2" | "trio_3" | "standard_4" | "korean_6">("standard_4");
   useEffect(() => {
     sessionModeRef.current = sessionMode;
   }, [sessionMode]);
+
+  const getMaxShotsForMode = (mode: "duo_2" | "trio_3" | "standard_4" | "korean_6") => {
+    if (mode === "duo_2") return 2;
+    if (mode === "trio_3") return 3;
+    if (mode === "korean_6") return 6;
+    return 4;
+  };
 
   // Singleton camera initialization promise to prevent double getUserMedia race conditions in LDR mode
   const cameraInitPromiseRef = useRef<Promise<MediaStream> | null>(null);
@@ -315,7 +324,7 @@ export default function RiellyBooth() {
           });
         } else if (msg.type === "SYNC_SHOT") {
           // Deduplicate by shotIndex (1-based) so duplicate packets or simultaneous clicks NEVER double-count shots
-          const maxShots = sessionModeRef.current === "korean_6" ? 6 : 4;
+          const maxShots = getMaxShotsForMode(sessionModeRef.current);
           const targetIdx = Math.max(0, Math.min((msg.shotIndex || shotsRef.current.length + 1) - 1, maxShots - 1));
           const newShot: Shot = {
             id: Date.now() + Math.random(),
@@ -606,7 +615,7 @@ export default function RiellyBooth() {
   // Single Shot Capture Trigger with flexible timer & camera tuning filters & LDR sync
   const handleTakeSingleShot = async (
     customTimer?: number,
-    filters?: { brightness?: number; contrast?: number; beautyGlow?: number },
+    filters?: { brightness?: number; contrast?: number; beautyGlow?: number; cssFilter?: string; mirror?: boolean },
     remoteVideoEl?: HTMLVideoElement | null
   ) => {
     if (isCapturing) return;
@@ -653,7 +662,7 @@ export default function RiellyBooth() {
 
       const dataUrl = captureCanvasSnapshot(
         videoRef.current,
-        false,
+        filters?.mirror ?? false,
         arCanvasRef.current,
         filters,
         activeRemoteEl
@@ -669,7 +678,7 @@ export default function RiellyBooth() {
       }
       const shotId = Date.now() + Math.random();
       const streamToRecord = mediaStreamRef.current;
-      const maxShots = sessionMode === "korean_6" ? 6 : 4;
+      const maxShots = getMaxShotsForMode(sessionMode);
 
       // Record Live Photo directly from MediaStream (immune to CaptureStep unmounting on Shot #4 & 100% native aspect ratio!)
       // Use composite canvas only when LDR split-screen is active
@@ -851,14 +860,17 @@ export default function RiellyBooth() {
     }
   };
 
-  // Handle Adding & Dragging Stickers on Canvas
+  // Handle Adding, Moving, Transforming, and Deleting Stickers on Canvas
   const handleAddSticker = (emoji: string) => {
+    const cw = canvasRef.current?.width || 600;
+    const ch = canvasRef.current?.height || 1800;
     const newSticker: PlacedSticker = {
       id: Date.now().toString() + Math.random().toString(),
       emoji,
-      x: 300,
-      y: 800 + Math.random() * 200,
-      scale: 1,
+      x: Math.round(cw * 0.5),
+      y: Math.round(ch * 0.42 + (Math.random() - 0.5) * ch * 0.14),
+      scale: cw >= 1000 ? 1.2 : 1,
+      rotation: 0,
     };
     setPlacedStickers((prev) => [...prev, newSticker]);
   };
@@ -869,8 +881,22 @@ export default function RiellyBooth() {
     );
   };
 
+  const handleUpdateStickerTransform = (id: string, scale: number, rotation: number) => {
+    setPlacedStickers((prev) =>
+      prev.map((st) => (st.id === id ? { ...st, scale, rotation } : st))
+    );
+  };
+
+  const handleDeleteSticker = (id: string) => {
+    setPlacedStickers((prev) => prev.filter((st) => st.id !== id));
+  };
+
   const handleClearStickers = () => {
     setPlacedStickers([]);
+  };
+
+  const handleApplyStickerPack = (packStickers: PlacedSticker[]) => {
+    setPlacedStickers(packStickers);
   };
 
   // Render HTML5 Canvas Output (Instant Flicker-Free Sync Render via Image Cache)
@@ -894,13 +920,15 @@ export default function RiellyBooth() {
           placedStickers,
           isFlipped,
           customLogoImg,
-          customFrameOverlayImg
+          customFrameOverlayImg,
+          photoShape,
+          framePattern
         );
         return;
       }
 
       // Async Promise.all Image Render (Guarantees 100% photo loading including retakes)
-      const targetCount = layout === "strip_2" ? 2 : layout === "strip_3" ? 3 : 4;
+      const targetCount = layout === "strip_2" ? 2 : layout === "strip_3" || layout === "strip_3cut" ? 3 : 4;
       const targetShots = shots.slice(0, targetCount);
 
       loadCanvasImages(targetShots).then((loadedImages) => {
@@ -920,11 +948,13 @@ export default function RiellyBooth() {
           placedStickers,
           isFlipped,
           customLogoImg,
-          customFrameOverlayImg
+          customFrameOverlayImg,
+          photoShape,
+          framePattern
         );
       });
     },
-    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped, customLogoImg, customFrameOverlayImg]
+    [shots, layout, frameColor, textColor, filter, preset, cuteFilter, customText, fontFamily, subtitleText, isLivePhotoOn, placedStickers, isFlipped, customLogoImg, customFrameOverlayImg, photoShape, framePattern]
   );
 
   const renderCanvasRef = useRef(renderCanvas);
@@ -955,7 +985,7 @@ export default function RiellyBooth() {
     const videoElements: (HTMLVideoElement | null)[] = [];
 
     if (step === "editor" && isLivePhotoOn && shots.some((s) => s.videoBlobUrl)) {
-      const targetCount = layout === "strip_2" ? 2 : layout === "strip_3" ? 3 : 4;
+      const targetCount = layout === "strip_2" ? 2 : layout === "strip_3" || layout === "strip_3cut" ? 3 : 4;
       const targetShots = shots.slice(0, targetCount);
 
       loadCanvasImages(targetShots).then((fallbackImages) => {
@@ -1302,8 +1332,13 @@ export default function RiellyBooth() {
             facingMode={facingMode}
             onToggleFacingMode={handleToggleFacingMode}
             retakeIndex={retakeIndex}
-            maxShots={sessionMode === "korean_6" ? 6 : 4}
-            onToggleSessionMode={(mode) => setSessionMode(mode)}
+            maxShots={getMaxShotsForMode(sessionMode)}
+            onToggleSessionMode={(mode) => {
+              setSessionMode(mode);
+              if (mode === "duo_2") setLayout("strip_2");
+              else if (mode === "trio_3") setLayout("strip_3cut");
+              else setLayout("strip_1x4");
+            }}
           />
         )}
 
@@ -1343,8 +1378,15 @@ export default function RiellyBooth() {
             setIsLivePhotoOn={setIsLivePhotoOn}
             placedStickers={placedStickers}
             onAddSticker={handleAddSticker}
+            onApplyStickerPack={handleApplyStickerPack}
             onUpdateStickerPos={handleUpdateStickerPos}
+            onUpdateStickerTransform={handleUpdateStickerTransform}
+            onDeleteSticker={handleDeleteSticker}
             onClearStickers={handleClearStickers}
+            photoShape={photoShape}
+            setPhotoShape={setPhotoShape}
+            framePattern={framePattern}
+            setFramePattern={setFramePattern}
             customLogoUrl={customLogoUrl}
             onUploadCustomLogo={handleUploadCustomLogo}
             onClearCustomLogo={handleClearCustomLogo}
