@@ -255,7 +255,19 @@ export default function EditorStep({
     }
   };
 
+  const isFirstRenderRef = useRef(true);
+  const [isPrinting, setIsPrinting] = useState(true);
+
   useEffect(() => {
+    const printTimer = setTimeout(() => setIsPrinting(false), 1150);
+    return () => clearTimeout(printTimer);
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
     setIsUpdatingCanvas(true);
     const timer = setTimeout(() => setIsUpdatingCanvas(false), 180);
     return () => clearTimeout(timer);
@@ -514,69 +526,75 @@ export default function EditorStep({
           </div>
 
           {/* Vintage Photobooth Print Dispenser Slot */}
-          <div className="w-full max-w-sm sm:max-w-md mx-auto flex flex-col items-center">
-            <div className="w-4/5 h-3 bg-[#392633] rounded-t-xl border-x-2 border-t-2 border-[#E9B8CA] flex items-center justify-center shadow-inner">
-              <div className="w-3/4 h-1 bg-stone-900 rounded-full" />
+          <div className="w-full flex flex-col items-center">
+            {/* Dispenser Lip (sits above the emerging strip) */}
+            <div className="relative z-20 w-56 sm:w-64 h-4 bg-[#392633] rounded-full border-2 border-[#E9B8CA] flex items-center justify-center shadow-md">
+              <div className="w-[88%] h-1.5 bg-[#120B10] rounded-full shadow-inner" />
             </div>
-            <div className="w-full -mt-1">
-              <div
-                ref={containerRef}
-                className="relative w-full p-4 flex items-center justify-center bg-white border-2 border-[#E9B8CA] rounded-3xl shadow-polaroid overflow-hidden cursor-grab active:cursor-grabbing select-none animate-print-drop"
-                onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
-                onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
-                onMouseUp={handlePointerUp}
-                onTouchStart={(e) => {
-                  if (e.touches.length > 0) {
-                    handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
-                  }
-                }}
-                onTouchMove={(e) => {
-                  if (e.touches.length > 0) {
-                    handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
-                  }
-                }}
-                onTouchEnd={handlePointerUp}
-              >
-                {/* Anti-Flicker Smooth Overlay Loader */}
-                {isUpdatingCanvas && (
-                  <div className="absolute inset-0 bg-white/85 z-40 flex items-center justify-center gap-2 pointer-events-none transition-opacity duration-150">
-                    <Sparkles className="w-5 h-5 text-[#E84D91] animate-spin" />
-                    <span className="text-xs font-heading font-bold text-[#392633]">Memperbarui Tampilan...</span>
-                  </div>
-                )}
 
-                <canvas
-                  ref={canvasRef}
-                  className="max-w-full max-h-[40vh] sm:max-h-[500px] w-auto h-auto object-contain rounded-xl shadow-inner pointer-events-none"
-                />
+            {/* Print Chute Clip Mask: strip slides smoothly out of the slot */}
+            <div className="relative z-10 w-full -mt-2 pt-3 pb-3 px-2 overflow-hidden flex justify-center">
+              <div className="animate-print-drop inline-flex justify-center">
+                <div
+                  ref={containerRef}
+                  className="relative inline-flex items-center justify-center rounded-2xl shadow-[0_14px_34px_-6px_rgba(57,38,51,0.22)] ring-1 ring-[#E9B8CA]/80 cursor-grab active:cursor-grabbing select-none"
+                  onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
+                  onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
+                  onMouseUp={handlePointerUp}
+                  onTouchStart={(e) => {
+                    if (e.touches.length > 0) {
+                      handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+                    }
+                  }}
+                  onTouchMove={(e) => {
+                    if (e.touches.length > 0) {
+                      handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+                    }
+                  }}
+                  onTouchEnd={handlePointerUp}
+                >
+                  {/* Anti-Flicker Smooth Overlay Loader */}
+                  {isUpdatingCanvas && (
+                    <div className="absolute inset-0 bg-white/85 rounded-2xl z-40 flex items-center justify-center gap-2 pointer-events-none transition-opacity duration-150">
+                      <Sparkles className="w-5 h-5 text-[#E84D91] animate-spin" />
+                      <span className="text-xs font-heading font-bold text-[#392633]">Memperbarui...</span>
+                    </div>
+                  )}
 
-                {/* DELETE (X) BADGE OVER SELECTED STICKER ON CANVAS OVERLAY */}
-                {selectedSticker && (() => {
-                  const domPos = getDOMPos(selectedSticker.x, selectedSticker.y);
-                  if (!domPos) return null;
-                  return (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onDeleteSticker) onDeleteSticker(selectedSticker.id);
-                        setSelectedStickerId(null);
-                      }}
-                      style={{
-                        left: `${domPos.left + 15}px`,
-                        top: `${domPos.top - 15}px`,
-                      }}
-                      className="absolute z-50 p-1 bg-[#E84D91] hover:bg-[#F48FB1] text-white rounded-full shadow-lg border border-white transition transform hover:scale-110 active:scale-95 cursor-pointer"
-                      title="Hapus Stiker Ini (x)"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  );
-                })()}
+                  <canvas
+                    ref={canvasRef}
+                    className="block max-w-full max-h-[50vh] sm:max-h-[540px] w-auto h-auto rounded-2xl pointer-events-none"
+                  />
+
+                  {/* DELETE (X) BADGE OVER SELECTED STICKER ON CANVAS OVERLAY */}
+                  {selectedSticker && (() => {
+                    const domPos = getDOMPos(selectedSticker.x, selectedSticker.y);
+                    if (!domPos) return null;
+                    return (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onDeleteSticker) onDeleteSticker(selectedSticker.id);
+                          setSelectedStickerId(null);
+                        }}
+                        style={{
+                          left: `${domPos.left + 15}px`,
+                          top: `${domPos.top - 15}px`,
+                        }}
+                        className="absolute z-50 p-1 bg-[#E84D91] hover:bg-[#F48FB1] text-white rounded-full shadow-lg border border-white transition transform hover:scale-110 active:scale-95 cursor-pointer"
+                        title="Hapus Stiker Ini (x)"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    );
+                  })()}
+                </div>
               </div>
             </div>
-            <span className="mt-1.5 text-[10px] font-mono uppercase tracking-widest text-[#8B7180]">
-              Printed in 0.0s · Ready to customize
+
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#8B7180]">
+              {isPrinting ? "Printing photo strip..." : "Printed · Ready to customize"}
             </span>
           </div>
 

@@ -55,7 +55,7 @@ export default function ReviewStep({
   };
 
   return (
-    <div className="w-full max-w-4xl space-y-6 sm:space-y-8 px-3 sm:px-4 py-4 animate-in fade-in duration-300">
+    <div className="w-full max-w-4xl space-y-6 sm:space-y-8 px-3 sm:px-4 py-4 animate-step-reveal">
       {/* Header */}
       <div className="text-center space-y-2.5">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FFF9F0] rounded-full border-2 border-[#E9B8CA] text-[#E84D91] text-xs font-heading font-bold shadow-xs">
