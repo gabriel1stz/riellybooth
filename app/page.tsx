@@ -9,7 +9,7 @@ import LandingStep from "@/components/Steps/LandingStep";
 import InAppBrowserBanner from "@/components/InAppBrowserBanner";
 import { createGifFromCanvas } from "@/lib/gifUtils";
 import { startCameraStream, stopCameraStream, captureCanvasSnapshot, recordLiveVideoSnippet, revokeBlobUrl } from "@/lib/cameraUtils";
-import { drawPhotoStrip, drawBackdropComposite, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker, PhotoShape, FramePattern, ExportBackdrop, BackdropRatio } from "@/lib/canvasUtils";
+import { drawPhotoStrip, drawBackdropComposite, loadBackdropImage, loadCanvasImages, LayoutMode, FilterState, FramePreset, CuteFilter, FontFamily, PlacedSticker, PhotoShape, FramePattern, ExportBackdrop, BackdropRatio } from "@/lib/canvasUtils";
 import { playShutterSound } from "@/lib/audioUtils";
 import QRCode from "qrcode";
 import { LDRPeerManager, LDRSessionState, LDRMessage, normalizeRoomCode } from "@/lib/ldrPeerManager";
@@ -174,8 +174,15 @@ export default function RiellyBooth() {
   const [customFrameOverlayImg, setCustomFrameOverlayImg] = useState<HTMLImageElement | null>(null);
 
   // Aesthetic Outer Backdrop (Preview Stage + Optional Export Composite)
-  const [exportBackdrop, setExportBackdrop] = useState<ExportBackdrop>("pink_dots");
+  const [exportBackdrop, setExportBackdrop] = useState<ExportBackdrop>("pastel_stars");
   const [backdropRatio, setBackdropRatio] = useState<BackdropRatio>("feed");
+
+  // Preload selected HD backdrop image so PNG/MP4/GIF export is instant
+  useEffect(() => {
+    if (exportBackdrop !== "none") {
+      loadBackdropImage(exportBackdrop);
+    }
+  }, [exportBackdrop]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const arCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1054,19 +1061,20 @@ export default function RiellyBooth() {
   }, []);
 
   // Helper: Get final export canvas (with or without aesthetic outer backdrop)
-  const buildExportPngDataUrl = useCallback((): string | null => {
+  const buildExportPngDataUrl = useCallback(async (): Promise<string | null> => {
     if (!canvasRef.current) return null;
     if (exportBackdrop === "none") {
       return canvasRef.current.toDataURL("image/png");
     }
+    const bgImg = await loadBackdropImage(exportBackdrop);
     const outCanvas = document.createElement("canvas");
-    drawBackdropComposite(canvasRef.current, outCanvas, exportBackdrop, backdropRatio, 1);
+    drawBackdropComposite(canvasRef.current, outCanvas, exportBackdrop, backdropRatio, 1, bgImg);
     return outCanvas.toDataURL("image/png");
   }, [exportBackdrop, backdropRatio]);
 
   // Direct PNG Download Trigger with Branded Random Filename
   const handleDownloadPng = async () => {
-    const dataUrl = buildExportPngDataUrl();
+    const dataUrl = await buildExportPngDataUrl();
     if (!dataUrl) return;
     const randomHash = Math.random().toString(36).substring(2, 8);
     const filename = `riellybooth-${randomHash}.png`;
@@ -1132,12 +1140,13 @@ export default function RiellyBooth() {
       let recordTarget: HTMLCanvasElement = canvasRef.current;
 
       if (exportBackdrop !== "none") {
+        const bgImg = await loadBackdropImage(exportBackdrop);
         const compCanvas = document.createElement("canvas");
         const scaleFactor = 0.67; // Crisp 720x900 or 720x1280 for smooth 30fps mobile MediaRecorder
-        drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor);
+        drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor, bgImg);
         const syncFrame = () => {
           if (canvasRef.current) {
-            drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor);
+            drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor, bgImg);
           }
           compRafId = requestAnimationFrame(syncFrame);
         };
@@ -1234,12 +1243,13 @@ export default function RiellyBooth() {
       let gifSource: HTMLCanvasElement = canvasRef.current;
 
       if (exportBackdrop !== "none") {
+        const bgImg = await loadBackdropImage(exportBackdrop);
         const compCanvas = document.createElement("canvas");
         const scaleFactor = 0.45;
-        drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor);
+        drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor, bgImg);
         const syncFrame = () => {
           if (canvasRef.current) {
-            drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor);
+            drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor, bgImg);
           }
           compRafId = requestAnimationFrame(syncFrame);
         };
@@ -1298,7 +1308,7 @@ export default function RiellyBooth() {
 
   // NATIVE MULTI-APP SHARE HANDLER
   const handleNativeMultiAppShare = async () => {
-    const dataUrl = buildExportPngDataUrl();
+    const dataUrl = await buildExportPngDataUrl();
     if (!dataUrl) return;
 
     try {

@@ -151,7 +151,7 @@ export default function EditorStep({
   setFilter,
   isFlipped,
   setIsFlipped,
-  exportBackdrop = "pink_dots",
+  exportBackdrop = "pastel_stars",
   setExportBackdrop,
   backdropRatio = "feed",
   setBackdropRatio,

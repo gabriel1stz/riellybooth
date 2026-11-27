@@ -7359,6 +7359,16 @@ export const drawPhotoStrip = (
 // ==========================================
 export type ExportBackdrop =
   | "none"
+  | "pastel_stars"
+  | "denim_lace"
+  | "red_gingham"
+  | "espresso_dots"
+  | "denim_dots"
+  | "burgundy_corduroy"
+  | "walnut_stars"
+  | "wood_plaid"
+  | "dusty_blue_stars"
+  | "mono_knit"
   | "pink_dots"
   | "cream_grid"
   | "pastel_sunset"
@@ -7374,8 +7384,28 @@ export interface BackdropOption {
   label: string;
   swatchStyle: string;
   stageStyle: React.CSSProperties;
+  imageUrl?: string;
   isDark?: boolean;
 }
+
+const makeImageBackdrop = (
+  id: ExportBackdrop,
+  label: string,
+  imageUrl: string,
+  isDark = false
+): BackdropOption => ({
+  id,
+  label,
+  imageUrl,
+  isDark,
+  swatchStyle: `url('${imageUrl}') center / cover no-repeat`,
+  stageStyle: {
+    backgroundImage: `url('${imageUrl}')`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  },
+});
 
 export const BACKDROP_OPTIONS: BackdropOption[] = [
   {
@@ -7388,6 +7418,18 @@ export const BACKDROP_OPTIONS: BackdropOption[] = [
       backgroundSize: "16px 16px",
     },
   },
+  // Custom HD Curated Backdrops (from contoh/02 -> public/backdrops)
+  makeImageBackdrop("pastel_stars", "Pastel Stars", "/backdrops/pastel-stars.webp", false),
+  makeImageBackdrop("denim_lace", "Denim Lace", "/backdrops/denim-lace.webp", false),
+  makeImageBackdrop("red_gingham", "Red Gingham", "/backdrops/red-gingham.webp", false),
+  makeImageBackdrop("espresso_dots", "Espresso Dots", "/backdrops/espresso-dots.webp", true),
+  makeImageBackdrop("denim_dots", "Denim Dots", "/backdrops/denim-dots.webp", true),
+  makeImageBackdrop("burgundy_corduroy", "Corduroy", "/backdrops/burgundy-corduroy.webp", true),
+  makeImageBackdrop("walnut_stars", "Walnut Stars", "/backdrops/walnut-stars.webp", true),
+  makeImageBackdrop("wood_plaid", "Wood Plaid", "/backdrops/wood-plaid.webp", true),
+  makeImageBackdrop("dusty_blue_stars", "Dusty Stars", "/backdrops/dusty-blue-stars.webp", true),
+  makeImageBackdrop("mono_knit", "Mono Knit", "/backdrops/mono-knit.webp", false),
+  // Minimalist Soft Gradient Backdrops
   {
     id: "pink_dots",
     label: "Blush Dots",
@@ -7462,6 +7504,32 @@ export const BACKDROP_OPTIONS: BackdropOption[] = [
   },
 ];
 
+const backdropImgCache = new Map<string, HTMLImageElement>();
+
+/**
+ * Loads & caches an HD image backdrop for synchronous Canvas export compositing.
+ */
+export function loadBackdropImage(backdrop: ExportBackdrop): Promise<HTMLImageElement | null> {
+  const opt = BACKDROP_OPTIONS.find((b) => b.id === backdrop);
+  if (!opt?.imageUrl || typeof window === "undefined") {
+    return Promise.resolve(null);
+  }
+  const cached = backdropImgCache.get(opt.imageUrl);
+  if (cached && cached.complete && cached.naturalWidth > 0) {
+    return Promise.resolve(cached);
+  }
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      backdropImgCache.set(opt.imageUrl!, img);
+      resolve(img);
+    };
+    img.onerror = () => resolve(null);
+    img.src = opt.imageUrl!;
+  });
+}
+
 /**
  * Composites a rendered photobooth strip canvas centered inside an aesthetic outer backdrop
  * (4:5 Feed card or 9:16 IG Story) with realistic paper drop-shadow for PNG, MP4, and GIF export.
@@ -7471,7 +7539,8 @@ export function drawBackdropComposite(
   targetCanvas: HTMLCanvasElement,
   backdrop: ExportBackdrop,
   ratio: BackdropRatio = "feed",
-  scaleFactor: number = 1
+  scaleFactor: number = 1,
+  backdropImg?: HTMLImageElement | null
 ): void {
   const baseW = 1080;
   const baseH = ratio === "story" ? 1920 : 1350;
@@ -7485,9 +7554,32 @@ export function drawBackdropComposite(
   if (!ctx) return;
 
   ctx.save();
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
-  // 1. Paint Aesthetic Backdrop
-  if (backdrop === "pink_dots") {
+  const opt = BACKDROP_OPTIONS.find((b) => b.id === backdrop);
+  const resolvedImg =
+    backdropImg || (opt?.imageUrl ? backdropImgCache.get(opt.imageUrl) || null : null);
+
+  // 1. Paint Aesthetic Backdrop (HD Image Cover Crop OR Procedural Pattern)
+  if (resolvedImg && resolvedImg.complete && resolvedImg.naturalWidth > 0) {
+    const iw = resolvedImg.naturalWidth;
+    const ih = resolvedImg.naturalHeight;
+    const srcRatio = iw / ih;
+    const dstRatio = outW / outH;
+    let sx = 0,
+      sy = 0,
+      sw = iw,
+      sh = ih;
+    if (srcRatio > dstRatio) {
+      sw = ih * dstRatio;
+      sx = (iw - sw) / 2;
+    } else {
+      sh = iw / dstRatio;
+      sy = (ih - sh) / 2;
+    }
+    ctx.drawImage(resolvedImg, sx, sy, sw, sh, 0, 0, outW, outH);
+  } else if (backdrop === "pink_dots") {
     const grad = ctx.createLinearGradient(0, 0, 0, outH);
     grad.addColorStop(0, "#FFE4EE");
     grad.addColorStop(1, "#FFF5F8");
