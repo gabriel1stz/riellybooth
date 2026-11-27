@@ -3771,6 +3771,145 @@ export const loadCanvasImages = (shots: { dataUrl: string }[]): Promise<HTMLImag
   );
 };
 
+interface DetectedCutoutHole {
+  nx: number;
+  ny: number;
+  nw: number;
+  nh: number;
+}
+
+const pngCutoutCache = new WeakMap<HTMLImageElement, DetectedCutoutHole[]>();
+
+/**
+ * Automatically detects transparent photo cutout holes inside ANY user-uploaded PNG frame
+ * using fast alpha-channel connected components (BFS). Cached per image for 0ms Live Photo FPS.
+ */
+function detectPngCutoutHoles(img: HTMLImageElement): DetectedCutoutHole[] {
+  const cached = pngCutoutCache.get(img);
+  if (cached) return cached;
+
+  const natW = img.naturalWidth;
+  const natH = img.naturalHeight;
+  if (!natW || !natH || typeof document === "undefined") return [];
+
+  const maxSide = 220;
+  const scale = maxSide / Math.max(natW, natH);
+  const aw = Math.max(16, Math.round(natW * scale));
+  const ah = Math.max(16, Math.round(natH * scale));
+
+  const off = document.createElement("canvas");
+  off.width = aw;
+  off.height = ah;
+  const octx = off.getContext("2d", { willReadFrequently: true });
+  if (!octx) return [];
+
+  octx.clearRect(0, 0, aw, ah);
+  octx.drawImage(img, 0, 0, aw, ah);
+
+  let data: Uint8ClampedArray;
+  try {
+    data = octx.getImageData(0, 0, aw, ah).data;
+  } catch {
+    return [];
+  }
+
+  const totalPixels = aw * ah;
+  const visited = new Uint8Array(totalPixels);
+  const queue = new Int32Array(totalPixels);
+  const holes: DetectedCutoutHole[] = [];
+
+  for (let start = 0; start < totalPixels; start++) {
+    if (visited[start] || data[start * 4 + 3] >= 80) continue;
+
+    let head = 0;
+    let tail = 0;
+    queue[tail++] = start;
+    visited[start] = 1;
+
+    let count = 0;
+    let minX = aw;
+    let maxX = 0;
+    let minY = ah;
+    let maxY = 0;
+    let touchesBorder = false;
+
+    while (head < tail) {
+      const p = queue[head++];
+      const x = p % aw;
+      const y = (p - x) / aw;
+      count++;
+
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      if (x === 0 || x === aw - 1 || y === 0 || y === ah - 1) {
+        touchesBorder = true;
+      }
+
+      // 4-neighbor flood fill
+      if (x > 0) {
+        const n = p - 1;
+        if (!visited[n] && data[n * 4 + 3] < 80) {
+          visited[n] = 1;
+          queue[tail++] = n;
+        }
+      }
+      if (x < aw - 1) {
+        const n = p + 1;
+        if (!visited[n] && data[n * 4 + 3] < 80) {
+          visited[n] = 1;
+          queue[tail++] = n;
+        }
+      }
+      if (y > 0) {
+        const n = p - aw;
+        if (!visited[n] && data[n * 4 + 3] < 80) {
+          visited[n] = 1;
+          queue[tail++] = n;
+        }
+      }
+      if (y < ah - 1) {
+        const n = p + aw;
+        if (!visited[n] && data[n * 4 + 3] < 80) {
+          visited[n] = 1;
+          queue[tail++] = n;
+        }
+      }
+    }
+
+    const areaRatio = count / totalPixels;
+    const bw = maxX - minX + 1;
+    const bh = maxY - minY + 1;
+
+    // Ignore tiny speckle transparency (< 1.2% of frame)
+    if (areaRatio < 0.012) continue;
+
+    // Ignore outer canvas margin / rounded corner outer transparency
+    if (touchesBorder && (bw > aw * 0.85 || bh > ah * 0.85 || areaRatio < 0.045)) {
+      continue;
+    }
+
+    holes.push({
+      nx: minX / aw,
+      ny: minY / ah,
+      nw: bw / aw,
+      nh: bh / ah,
+    });
+  }
+
+  // Sort detected holes naturally: top-to-bottom rows, left-to-right columns
+  holes.sort((a, b) => {
+    const rowA = Math.floor((a.ny + a.nh / 2) * 5);
+    const rowB = Math.floor((b.ny + b.nh / 2) * 5);
+    if (rowA !== rowB) return rowA - rowB;
+    return (a.nx + a.nw / 2) - (b.nx + b.nw / 2);
+  });
+
+  pngCutoutCache.set(img, holes);
+  return holes;
+}
+
 /**
  * Main High-Resolution Photo Strip Render Engine (Supports 9 Layout Modes & Gen Z Frames)
  */
@@ -3795,6 +3934,84 @@ export const drawPhotoStrip = (
 ): void => {
   const ctx = canvas.getContext("2d");
   if (!ctx || images.length === 0) return;
+
+  // =========================================================================
+  // SMART CUSTOM PNG FRAME MODE (AUTO-DETECTS HOLES + EXACT ASPECT RATIO)
+  // Prevents stretching ("gepeng") and prevents default presets bleeding through!
+  // =========================================================================
+  if (
+    customFrameOverlayImg &&
+    customFrameOverlayImg.complete &&
+    customFrameOverlayImg.naturalWidth > 0 &&
+    customFrameOverlayImg.naturalHeight > 0
+  ) {
+    const detectedHoles = detectPngCutoutHoles(customFrameOverlayImg);
+    if (detectedHoles.length > 0) {
+      const natW = customFrameOverlayImg.naturalWidth;
+      const natH = customFrameOverlayImg.naturalHeight;
+      const maxDim = 1800;
+      const scale = maxDim / Math.max(natW, natH);
+      const outW = Math.max(2, Math.round((natW * scale) / 2) * 2);
+      const outH = Math.max(2, Math.round((natH * scale) / 2) * 2);
+
+      if (canvas.width !== outW) canvas.width = outW;
+      if (canvas.height !== outH) canvas.height = outH;
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.clearRect(0, 0, outW, outH);
+
+      // Clean solid base behind transparent cutouts (no default newspaper/preset clutter)
+      ctx.fillStyle = frameColor || "#ffffff";
+      ctx.fillRect(0, 0, outW, outH);
+
+      const filterString = `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) grayscale(${filter.grayscale}%)`;
+      const filterIntensity = filter.filterIntensity ?? 100;
+
+      // Let the uploaded PNG's own organic shapes (blobs, circles, torn edges) do the masking
+      currentPhotoShape = "rect";
+
+      detectedHoles.forEach((hole, idx) => {
+        const photo = images[idx % images.length];
+        if (!photo) return;
+
+        // Slight 1.5% bleed expansion so anti-aliased / wavy PNG borders never show 1px white seams
+        const bleedX = outW * 0.015;
+        const bleedY = outH * 0.015;
+        const hx = Math.max(0, hole.nx * outW - bleedX);
+        const hy = Math.max(0, hole.ny * outH - bleedY);
+        const hw = Math.min(outW - hx, hole.nw * outW + bleedX * 2);
+        const hh = Math.min(outH - hy, hole.nh * outH + bleedY * 2);
+
+        ctx.save();
+        ctx.filter = filterString;
+        drawImageCover(ctx, photo, hx, hy, hw, hh, 0, isFlipped);
+        ctx.restore();
+
+        applyCuteFilterOverlay(ctx, hx, hy, hw, hh, cuteFilter, filter.beautyGlow, 0, filterIntensity);
+      });
+
+      // Draw the user's PNG frame cleanly at its exact natural aspect ratio
+      ctx.drawImage(customFrameOverlayImg, 0, 0, outW, outH);
+
+      // Draw user-placed stickers on top
+      if (stickers && stickers.length > 0) {
+        stickers.forEach((st) => {
+          ctx.save();
+          ctx.translate(st.x, st.y);
+          ctx.rotate(((st.rotation || 0) * Math.PI) / 180);
+          const fontSize = Math.round(64 * (st.scale || 1));
+          ctx.font = `${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(st.emoji, 0, 0);
+          ctx.restore();
+        });
+      }
+      return;
+    }
+  }
+
   currentPhotoShape = photoShape;
 
   const isNewspaper = preset === "newspaper" || layout === "newspaper_grid";
@@ -7359,6 +7576,7 @@ export const drawPhotoStrip = (
 // ==========================================
 export type ExportBackdrop =
   | "none"
+  | "custom"
   | "pastel_stars"
   | "denim_lace"
   | "red_gingham"

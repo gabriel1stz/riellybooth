@@ -99,6 +99,7 @@ export default function RiellyBooth() {
     grain: 0,
     beautyGlow: 0,
   });
+  const [isExportingPng, setIsExportingPng] = useState(false);
   const [isExportingVideo, setIsExportingVideo] = useState(false);
   const [isExportingGif, setIsExportingGif] = useState(false);
 
@@ -176,7 +177,34 @@ export default function RiellyBooth() {
   // Aesthetic Outer Backdrop (Preview Stage + Optional Export Composite)
   const [exportBackdrop, setExportBackdrop] = useState<ExportBackdrop>("pastel_stars");
   const [backdropRatio, setBackdropRatio] = useState<BackdropRatio>("feed");
+  const [customBackdropUrl, setCustomBackdropUrl] = useState<string | null>(null);
+  const [customBackdropImg, setCustomBackdropImg] = useState<HTMLImageElement | null>(null);
   const [canvasMountTick, setCanvasMountTick] = useState(0);
+
+  const handleUploadCustomBackdrop = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        const url = e.target.result as string;
+        setCustomBackdropUrl(url);
+        const img = new Image();
+        img.onload = () => {
+          setCustomBackdropImg(img);
+          setExportBackdrop("custom");
+        };
+        img.src = url;
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClearCustomBackdrop = () => {
+    setCustomBackdropUrl(null);
+    setCustomBackdropImg(null);
+    if (exportBackdrop === "custom") {
+      setExportBackdrop("pastel_stars");
+    }
+  };
 
   // Preload selected HD backdrop image so PNG/MP4/GIF export is instant
   useEffect(() => {
@@ -996,7 +1024,7 @@ export default function RiellyBooth() {
     let cancelled = false;
     const videoElements: (HTMLVideoElement | null)[] = [];
 
-    if (step === "editor" && isLivePhotoOn && shots.some((s) => s.videoBlobUrl)) {
+    if (step === "editor" && isLivePhotoOn && !showShareModal && !isExportingPng && shots.some((s) => s.videoBlobUrl)) {
       const targetCount = layout === "strip_2" ? 2 : layout === "strip_3" || layout === "strip_3cut" ? 3 : 4;
       const targetShots = shots.slice(0, targetCount);
 
@@ -1053,7 +1081,7 @@ export default function RiellyBooth() {
         }
       });
     };
-  }, [step, isLivePhotoOn, shots, layout]);
+  }, [step, isLivePhotoOn, shots, layout, showShareModal, isExportingPng]);
 
   // Helper for Mobile Device Detection
   const isMobileDevice = useCallback(() => {
@@ -1061,74 +1089,103 @@ export default function RiellyBooth() {
     return window.innerWidth < 768 || navigator.maxTouchPoints > 0;
   }, []);
 
-  // Helper: Get final export canvas (with or without aesthetic outer backdrop)
-  const buildExportPngDataUrl = useCallback(async (): Promise<string | null> => {
+  // Helper: Async off-main-thread PNG Blob builder (eliminates synchronous toDataURL freeze!)
+  const buildExportPngBlob = useCallback(async (): Promise<Blob | null> => {
     if (!canvasRef.current) return null;
-    if (exportBackdrop === "none") {
-      return canvasRef.current.toDataURL("image/png");
-    }
-    const bgImg = await loadBackdropImage(exportBackdrop);
-    const outCanvas = document.createElement("canvas");
-    drawBackdropComposite(canvasRef.current, outCanvas, exportBackdrop, backdropRatio, 1, bgImg);
-    return outCanvas.toDataURL("image/png");
-  }, [exportBackdrop, backdropRatio]);
+    let targetCanvas: HTMLCanvasElement = canvasRef.current;
 
-  // Direct PNG Download Trigger with Branded Random Filename
+    if (exportBackdrop !== "none") {
+      const bgImg = exportBackdrop === "custom" ? customBackdropImg : await loadBackdropImage(exportBackdrop);
+      const outCanvas = document.createElement("canvas");
+      drawBackdropComposite(canvasRef.current, outCanvas, exportBackdrop, backdropRatio, 1, bgImg);
+      targetCanvas = outCanvas;
+    }
+
+    return new Promise((resolve) => {
+      targetCanvas.toBlob((blob) => resolve(blob), "image/png");
+    });
+  }, [exportBackdrop, backdropRatio, customBackdropImg]);
+
+  // Direct PNG Download Trigger (Non-blocking async toBlob + ObjectURL)
   const handleDownloadPng = async () => {
-    const dataUrl = await buildExportPngDataUrl();
-    if (!dataUrl) return;
-    const randomHash = Math.random().toString(36).substring(2, 8);
-    const filename = `riellybooth-${randomHash}.png`;
+    if (isExportingPng) return;
+    setIsExportingPng(true);
 
-    setDownloadedDataUrl(dataUrl);
-
-    // Native Web Share API for Mobile Devices
-    if (isMobileDevice() && navigator.share) {
-      try {
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        const file = new File([blob], filename, { type: "image/png" });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: "riellybooth ♡ Virtual Photobooth",
-            text: "Baru aja foto estetik di riellybooth ♡ Bikin photo strip & Live Photo gratis di sini! ✨",
-            url: "https://riellybooth.my.id",
-          });
-
-          try {
-            confetti({
-              particleCount: 120,
-              spread: 80,
-              origin: { y: 0.6 },
-              colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
-            });
-          } catch (e) { }
-          setTimeout(() => setShowShareModal(true), 400);
-          return;
-        }
-      } catch (shareErr) {
-        console.warn("Web Share API cancelled or unsupported:", shareErr);
-      }
-    }
-
-    // Direct Browser Download
-    const link = document.createElement("a");
-    link.download = filename;
-    link.href = dataUrl;
-    link.click();
+    // Yield 1 animation frame so button loading state renders immediately without perceived freeze
+    await new Promise((r) => requestAnimationFrame(r));
 
     try {
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
-      });
-    } catch (e) { }
+      const blob = await buildExportPngBlob();
+      if (!blob) {
+        setIsExportingPng(false);
+        return;
+      }
 
-    setTimeout(() => setShowShareModal(true), 400);
+      const randomHash = Math.random().toString(36).substring(2, 8);
+      const filename = `riellybooth-${randomHash}.png`;
+
+      // Lazily populate dataUrl in background for P2P QR Share Modal (non-blocking)
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setDownloadedDataUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(blob);
+
+      // Native Web Share API for Mobile Devices (uses Blob directly — zero base64 decode!)
+      if (isMobileDevice() && navigator.share) {
+        try {
+          const file = new File([blob], filename, { type: "image/png" });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: "riellybooth ♡ Virtual Photobooth",
+              text: "Baru aja foto estetik di riellybooth ♡ Bikin photo strip & Live Photo gratis di sini! ✨",
+              url: "https://riellybooth.my.id",
+            });
+
+            setIsExportingPng(false);
+            try {
+              confetti({
+                particleCount: 55,
+                spread: 65,
+                origin: { y: 0.6 },
+                colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
+              });
+            } catch (e) { }
+            setTimeout(() => setShowShareModal(true), 300);
+            return;
+          }
+        } catch (shareErr) {
+          console.warn("Web Share API cancelled or unsupported:", shareErr);
+        }
+      }
+
+      // Direct Browser Download via instant ObjectURL (zero 5MB base64 string!)
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = blobUrl;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+
+      setIsExportingPng(false);
+
+      try {
+        confetti({
+          particleCount: 55,
+          spread: 65,
+          origin: { y: 0.6 },
+          colors: ["#f472b6", "#fb7185", "#c084fc", "#ffffff"],
+        });
+      } catch (e) { }
+
+      setTimeout(() => setShowShareModal(true), 300);
+    } catch (err) {
+      console.warn("PNG export failed:", err);
+      setIsExportingPng(false);
+    }
   };
 
   // Live Photo Video Export (MP4 preferred, WebM fallback)
@@ -1141,7 +1198,7 @@ export default function RiellyBooth() {
       let recordTarget: HTMLCanvasElement = canvasRef.current;
 
       if (exportBackdrop !== "none") {
-        const bgImg = await loadBackdropImage(exportBackdrop);
+        const bgImg = exportBackdrop === "custom" ? customBackdropImg : await loadBackdropImage(exportBackdrop);
         const compCanvas = document.createElement("canvas");
         const scaleFactor = 0.67; // Crisp 720x900 or 720x1280 for smooth 30fps mobile MediaRecorder
         drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor, bgImg);
@@ -1244,7 +1301,7 @@ export default function RiellyBooth() {
       let gifSource: HTMLCanvasElement = canvasRef.current;
 
       if (exportBackdrop !== "none") {
-        const bgImg = await loadBackdropImage(exportBackdrop);
+        const bgImg = exportBackdrop === "custom" ? customBackdropImg : await loadBackdropImage(exportBackdrop);
         const compCanvas = document.createElement("canvas");
         const scaleFactor = 0.45;
         drawBackdropComposite(canvasRef.current, compCanvas, exportBackdrop, backdropRatio, scaleFactor, bgImg);
@@ -1309,12 +1366,10 @@ export default function RiellyBooth() {
 
   // NATIVE MULTI-APP SHARE HANDLER
   const handleNativeMultiAppShare = async () => {
-    const dataUrl = await buildExportPngDataUrl();
-    if (!dataUrl) return;
+    const blob = await buildExportPngBlob();
+    if (!blob) return;
 
     try {
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
       const randomHash = Math.random().toString(36).substring(2, 8);
       const file = new File([blob], `riellybooth-${randomHash}.png`, { type: "image/png" });
 
@@ -1476,12 +1531,16 @@ export default function RiellyBooth() {
             setExportBackdrop={setExportBackdrop}
             backdropRatio={backdropRatio}
             setBackdropRatio={setBackdropRatio}
+            customBackdropUrl={customBackdropUrl}
+            onUploadCustomBackdrop={handleUploadCustomBackdrop}
+            onClearCustomBackdrop={handleClearCustomBackdrop}
             onCanvasMount={() => setCanvasMountTick((t) => t + 1)}
             onBack={() => setStep("review")}
             onDownloadPng={handleDownloadPng}
             onDownloadVideo={handleDownloadVideo}
             onDownloadGif={handleDownloadGif}
             onOpenShareModal={() => setShowShareModal(true)}
+            isExportingPng={isExportingPng}
             isExportingVideo={isExportingVideo}
             isExportingGif={isExportingGif}
           />

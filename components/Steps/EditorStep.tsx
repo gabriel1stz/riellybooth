@@ -98,12 +98,16 @@ type EditorStepProps = {
   setExportBackdrop?: (bg: ExportBackdrop) => void;
   backdropRatio?: BackdropRatio;
   setBackdropRatio?: (ratio: BackdropRatio) => void;
+  customBackdropUrl?: string | null;
+  onUploadCustomBackdrop?: (file: File) => void;
+  onClearCustomBackdrop?: () => void;
   onCanvasMount?: () => void;
   onBack: () => void;
   onDownloadPng: () => void;
   onDownloadVideo: () => void;
   onDownloadGif?: () => void;
   onOpenShareModal: () => void;
+  isExportingPng?: boolean;
   isExportingVideo: boolean;
   isExportingGif?: boolean;
 };
@@ -156,18 +160,23 @@ export default function EditorStep({
   setExportBackdrop,
   backdropRatio = "feed",
   setBackdropRatio,
+  customBackdropUrl,
+  onUploadCustomBackdrop,
+  onClearCustomBackdrop,
   onCanvasMount,
   onBack,
   onDownloadPng,
   onDownloadVideo,
   onDownloadGif,
   onOpenShareModal,
+  isExportingPng = false,
   isExportingVideo,
   isExportingGif = false,
 }: EditorStepProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const frameOverlayInputRef = useRef<HTMLInputElement>(null);
+  const customBackdropInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"layout" | "frame" | "filter" | "stickers">("layout");
   const [selectedStickerPack, setSelectedStickerPack] = useState<string>("all");
   const [presetCategory, setPresetCategory] = useState<"all" | "editorial" | "coquette" | "retro" | "pop">("all");
@@ -540,7 +549,19 @@ export default function EditorStep({
           {/* Aesthetic Outer Backdrop Stage + Vintage Print Dispenser Slot */}
           {(() => {
             const activeBackdrop =
-              BACKDROP_OPTIONS.find((b) => b.id === exportBackdrop) || BACKDROP_OPTIONS[1];
+              exportBackdrop === "custom" && customBackdropUrl
+                ? {
+                    id: "custom" as ExportBackdrop,
+                    label: "BG Custom",
+                    stageStyle: {
+                      backgroundImage: `url('${customBackdropUrl}')`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat",
+                    } as React.CSSProperties,
+                    isDark: false,
+                  }
+                : BACKDROP_OPTIONS.find((b) => b.id === exportBackdrop) || BACKDROP_OPTIONS[1];
             return (
               <div className="w-full max-w-sm sm:max-w-md mx-auto flex flex-col items-center gap-2.5">
                 {/* Outer Big Aesthetic Box (Matches Export Backdrop) */}
@@ -662,6 +683,46 @@ export default function EditorStep({
                     </div>
 
                     <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+                      {/* Custom User Backdrop Upload Button */}
+                      {onUploadCustomBackdrop && (
+                        <>
+                          <input
+                            ref={customBackdropInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                onUploadCustomBackdrop(e.target.files[0]);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => customBackdropInputRef.current?.click()}
+                            className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[10px] font-heading font-bold transition cursor-pointer ${
+                              exportBackdrop === "custom"
+                                ? "bg-[#E84D91] text-white border-[#E84D91] shadow-xs"
+                                : "bg-[#FFF0F4] text-[#E84D91] border-[#F48FB1] hover:bg-[#F8D8E3]"
+                            }`}
+                            title="Upload foto/wallpaper sendiri dari galeri"
+                          >
+                            <Upload className="w-3 h-3 shrink-0" />
+                            <span>{customBackdropUrl ? "Ganti BG" : "+ Upload BG"}</span>
+                          </button>
+                          {customBackdropUrl && exportBackdrop === "custom" && onClearCustomBackdrop && (
+                            <button
+                              type="button"
+                              onClick={onClearCustomBackdrop}
+                              className="shrink-0 p-1.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition cursor-pointer"
+                              title="Hapus BG Custom"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </>
+                      )}
+
                       {BACKDROP_OPTIONS.map((bg) => {
                         const isSelected = exportBackdrop === bg.id;
                         return (
@@ -697,6 +758,15 @@ export default function EditorStep({
 
         {/* Right Editor Control Panel (4-TAB NAVIGATION) */}
         <div className="lg:col-span-6 scrapbook-paper p-4 sm:p-5 shadow-paper space-y-4 sm:space-y-5">
+          {/* Always-mounted hidden PNG frame overlay input (accessible from both Frame & Sticker tabs) */}
+          <input
+            ref={frameOverlayInputRef}
+            type="file"
+            accept="image/png"
+            onChange={handleFrameOverlayFileChange}
+            className="hidden"
+          />
+
           {/* Navigation Control Tabs */}
           <div className="flex bg-[#FFF0F4] p-1.5 rounded-2xl border border-[#E9B8CA] gap-1 overflow-x-auto">
             <button
@@ -809,6 +879,47 @@ export default function EditorStep({
           {/* TAB 2: FRAME PRESETS & PALETTE */}
           {activeTab === "frame" && (
             <div className="space-y-4 animate-in fade-in duration-200">
+              {/* Quick Shortcut: Upload Custom PNG Frame (Auto-Cutout) right inside Frame tab */}
+              {onUploadCustomFrameOverlay && (
+                <div className="bg-gradient-to-r from-[#FFF0F4] to-[#FFF9F0] border border-[#E9B8CA] p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2">
+                  <div className="space-y-0.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#E84D91] shrink-0" />
+                      <span className="text-xs font-heading font-bold text-[#392633]">
+                        Bingkai PNG Sendiri (Auto-Cutout)
+                      </span>
+                      {customFrameOverlayUrl && (
+                        <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full">
+                          Aktif
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-[#8B7180] font-sans">
+                      Upload PNG transparan dari Canva/Pinterest — lubang foto &amp; rasio terdeteksi otomatis.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => frameOverlayInputRef.current?.click()}
+                      className="px-3 py-1.5 bg-[#E84D91] hover:bg-[#D93D82] text-white font-heading font-bold text-[11px] rounded-xl transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <Upload className="w-3 h-3" />
+                      <span>{customFrameOverlayUrl ? "Ganti PNG" : "Upload PNG"}</span>
+                    </button>
+                    {customFrameOverlayUrl && onClearCustomFrameOverlay && (
+                      <button
+                        type="button"
+                        onClick={onClearCustomFrameOverlay}
+                        className="px-2.5 py-1.5 bg-white hover:bg-rose-50 text-rose-600 font-heading font-bold text-[11px] rounded-xl border border-rose-200 transition cursor-pointer"
+                      >
+                        Hapus
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-heading font-bold text-[#392633]">Pilihan Bingkai & Koleksi:</label>
@@ -1181,16 +1292,8 @@ export default function EditorStep({
                   )}
                 </div>
                 <p className="text-[11px] text-[#8B7180] font-sans font-medium">
-                  Upload file PNG transparan desain sendiri dari Canva/Photoshop (cocok buat ulang tahun, wisuda, atau event komunitas)!
+                  Upload PNG transparan desain sendiri (Canva/Photoshop/Pinterest). Sistem otomatis mendeteksi lubang foto &amp; menyesuaikan rasio asli PNG (anti gepeng!).
                 </p>
-
-                <input
-                  ref={frameOverlayInputRef}
-                  type="file"
-                  accept="image/png"
-                  onChange={handleFrameOverlayFileChange}
-                  className="hidden"
-                />
 
                 <div className="flex items-center gap-2 pt-1">
                   <button
@@ -1496,10 +1599,11 @@ export default function EditorStep({
             <button
               type="button"
               onClick={onDownloadPng}
-              className="w-full py-2.5 scrapbook-btn text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer text-center"
+              disabled={isExportingPng}
+              className="w-full py-2.5 scrapbook-btn text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer text-center disabled:opacity-60"
             >
               <Download className="w-4 h-4" />
-              <span>Simpan PNG HD</span>
+              <span>{isExportingPng ? "Menyimpan PNG..." : "Simpan PNG HD"}</span>
             </button>
           </div>
 

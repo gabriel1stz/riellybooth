@@ -277,7 +277,15 @@ export default function CaptureStep({
 
   return (
     <div className="w-full max-w-4xl px-3 sm:px-4 py-2 sm:py-4 flex flex-col items-center gap-4 animate-in fade-in duration-300">
-      {/* Camera Snapshot Flash Screen FX */}
+      {/* Camera Snapshot Flash Screen FX & Pre-Shot Ring Light Illumination */}
+      {isFlashOn && countdown === 1 && (
+        <div
+          className="fixed inset-0 z-[95] pointer-events-none transition-opacity duration-200"
+          style={{
+            boxShadow: "inset 0 0 0 28px rgba(255, 255, 255, 0.96), inset 0 0 110px 45px rgba(255, 252, 248, 0.82)",
+          }}
+        />
+      )}
       {flashFx && (
         <div className="fixed inset-0 bg-white z-[100] animate-out fade-out duration-300 pointer-events-none" />
       )}
@@ -344,6 +352,23 @@ export default function CaptureStep({
               title={isFlashOn ? "Matikan Flash Kamera" : "Nyalakan Flash Kamera"}
             >
               {isFlashOn ? <Zap className="w-3.5 h-3.5 fill-current" /> : <ZapOff className="w-3.5 h-3.5" />}
+              <span>Flash {isFlashOn ? "ON" : "OFF"}</span>
+            </button>
+          )}
+
+          {/* Screen Flash / Ring Light Toggle */}
+          {onToggleFlash && (
+            <button
+              type="button"
+              onClick={onToggleFlash}
+              disabled={isCapturing}
+              className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold transition flex items-center gap-1.5 border shadow-xs cursor-pointer ${isFlashOn
+                ? "bg-amber-50 text-amber-700 border-amber-300"
+                : "bg-white text-[#8B7180] border-[#E9B8CA] hover:bg-[#FFF0F4]"
+                }`}
+              title="Lampu Flash Layar Putih (Bantu Terangkan Wajah di Ruangan Gelap)"
+            >
+              {isFlashOn ? <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-400" /> : <ZapOff className="w-3.5 h-3.5" />}
               <span>Flash {isFlashOn ? "ON" : "OFF"}</span>
             </button>
           )}
